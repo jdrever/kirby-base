@@ -23,5 +23,6 @@
   },
   "require": {
     "getkirby/composer-installer": "^1.2"
-  }
+  },
+  "minimum-stability": "stable"
 }
