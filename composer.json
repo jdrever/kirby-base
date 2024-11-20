@@ -1,7 +1,8 @@
 {
-    "name": "bsbi/web-base",
+    "name": "open/kirby-base",
     "description": "A set of base classes and blueprint for web development using Kirby CMS",
     "type": "library",
+    "license": "MIT",
     "autoload": {
         "psr-4": {
             "BSBI\\WebBase\\": "src/"
