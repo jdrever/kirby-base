@@ -1,20 +1,26 @@
 {
-    "name": "open-foundations/kirby-base",
-    "description": "A set of base classes and blueprint for web development in a plugin format using Kirby CMS",
-    "type": "kirby-plugin",
-    "license": "MIT",
-    "autoload": {
-        "psr-4": {
-            "BSBI\\WebBase\\": "src/"
-        }
-    },
-    "authors": [
-        {
-            "name": "James Drever",
-            "email": "james.drever@bsbi.org"
-        }
-    ],
+  "name": "open-foundations/kirby-base",
+  "description": "A set of base classes and blueprint for web development in a plugin format using Kirby CMS",
+  "type": "kirby-plugin",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "BSBI\\WebBase\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "James Drever",
+      "email": "james.drever@bsbi.org"
+    }
+  ],
   "config": {
-    "optimize-autoloader": true
+    "optimize-autoloader": true,
+    "allow-plugins": {
+      "getkirby/composer-installer": true
+    }
+  },
+  "require": {
+    "getkirby/composer-installer": "^1.2"
   }
 }
