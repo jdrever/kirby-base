@@ -1,7 +1,7 @@
 {
     "name": "open-foundations/kirby-base",
-    "description": "A set of base classes and blueprint for web development using Kirby CMS",
-    "type": "library",
+    "description": "A set of base classes and blueprint for web development in a plugin format using Kirby CMS",
+    "type": "kirby-plugin",
     "license": "MIT",
     "autoload": {
         "psr-4": {
