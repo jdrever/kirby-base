@@ -1,5 +1,5 @@
 {
-    "name": "open/kirby-base",
+    "name": "open-foundations/kirby-base",
     "description": "A set of base classes and blueprint for web development using Kirby CMS",
     "type": "library",
     "license": "MIT",
