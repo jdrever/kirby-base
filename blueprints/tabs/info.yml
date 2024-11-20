@@ -1,0 +1,36 @@
+label: Info
+icon: info
+sections:
+  infoSection:
+    type: fields
+    fields:
+      publishedDate:
+        label: Published Date
+        type: date
+        default: now
+        time: true
+        readonly: true
+      publishedBy:
+        label: Published By
+        type: users
+        readonly: true
+      updatedDate:
+        label: Last Updated Date
+        type: date
+        default: now
+        time: true
+        readonly: true
+      updatedBy:
+        label: Last Updated By
+        type: users
+        readonly: true
+      reviewDate:
+        label: Review Date
+        type: date
+      reviewBy:
+        label: Review By
+        type: users
+
+
+
+

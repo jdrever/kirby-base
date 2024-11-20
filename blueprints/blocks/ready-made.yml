@@ -1,0 +1,7 @@
+icon: template
+fields:
+  contentType:
+    label: Content Type
+    type: select
+    options:
+      "ddb-validation-state-table": "DDb validation state table"

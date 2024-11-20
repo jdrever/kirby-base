@@ -1,0 +1,38 @@
+label: Page
+icon: draft
+columns:
+  mainCol:
+    width: 2/3
+    sections:
+      main:
+        type: fields
+        fields:
+          mainContent: fields/mainContent
+  sidebar:
+    width: 1/3
+    sections:
+      templateName: sections/templateName
+      subPages:
+        type: pages
+        label: Sub Pages
+        template:
+          - content
+          - category
+          - blog
+          - conferences
+          - countries
+          - donate
+          - events
+          - event_listing
+          - join
+          - news
+          - newsletter_listing
+          - newsletter_signup
+          - people
+          - products
+          - projects
+          - policies
+          - press_releases
+          - species_accounts
+          - vice_county_listing
+

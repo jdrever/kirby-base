@@ -1,0 +1,5 @@
+icon: template
+fields:
+  noteContent:
+    label: Content
+    type: textarea

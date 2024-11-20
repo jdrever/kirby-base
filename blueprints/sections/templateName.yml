@@ -1,0 +1,6 @@
+type: fields
+fields:
+  template_name:
+    label: Template Name
+    type: info
+    text: "{{ page.template() }}"

@@ -1,0 +1,8 @@
+label: Panel
+icon: edit-line
+columns:
+  main:
+    width: 1/1
+    fields:
+      panelContent: fields/panelContent
+      panelImage: fields/panelImage

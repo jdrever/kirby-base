@@ -1,0 +1,15 @@
+name: Description List
+icon: menu
+preview: table
+fields:
+  rows:
+    type: structure
+    label: Columns
+    fields:
+      term:
+        label: Term
+        type: text
+      description:
+        label: Description
+        type: textarea
+

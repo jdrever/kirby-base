@@ -1,0 +1,20 @@
+{
+    "name": "bsbi/web-base",
+    "description": "A set of base classes and blueprint for web development using Kirby CMS",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "BSBI\\WebBase\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "James Drever",
+            "email": "james.drever@bsbi.org"
+        }
+    ],
+  "config": {
+    "optimize-autoloader": true
+  },
+    "require": {}
+}

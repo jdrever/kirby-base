@@ -1,0 +1,16 @@
+title: General Page
+tabs:
+  page: tabs/page
+  fields: tabs/fields
+  panel: tabs/panel
+  related: tabs/related
+  info: tabs/info
+options:
+  create:
+    *: false
+    admin: true
+    editor: true
+  update:
+    *: false
+    admin: true
+    editor: true

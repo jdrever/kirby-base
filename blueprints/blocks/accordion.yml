@@ -1,0 +1,12 @@
+name: Accordion
+icon: bars
+fields:
+  summary:
+    label: Summary
+    type: text
+    marks: false
+    placeholder: Enter summary…
+  details:
+    label: Detail
+    type: textarea
+    marks: true

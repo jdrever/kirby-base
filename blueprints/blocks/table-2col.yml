@@ -1,0 +1,21 @@
+name: Table (2 Column)
+icon: menu
+preview: table
+fields:
+  col1Title:
+    label: Column 1 Title
+    type: text
+  col2Title:
+    label: Column 2 Title
+    type: text
+  rows:
+    type: structure
+    label: Columns
+    fields:
+      col1:
+        label: Column1
+        type: textarea
+      col2:
+        label: Column2
+        type: textarea
+

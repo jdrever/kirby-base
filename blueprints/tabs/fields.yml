@@ -1,0 +1,29 @@
+label: Fields
+icon: edit-line
+columns:
+  main:
+    width: 1/1
+    sections:
+      desc:
+        type: fields
+        fields:
+          description: fields/description
+      og-info:
+        type: info
+        label: " "
+        text: |
+          The fields below relate to Open Graph data, which determines how a page will
+          be displayed when linked to via social media
+      og:
+        type: fields
+        fields:
+          og_title:
+            label: Open Graph Title
+            type: text
+          og_description:
+            label: Open Graph Description
+            type: textarea
+          og_image:
+            label: Open Graph Image
+            type: files
+            multiple: false

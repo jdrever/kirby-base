@@ -1,0 +1,7 @@
+type: files
+label: Panel Image.  Displayed on parent page.
+multiple: false
+query: page.images.template('image')
+uploads:
+  template: image
+crop: true

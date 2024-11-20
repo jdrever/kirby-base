@@ -1,0 +1,12 @@
+type: structure
+label: Related Content
+fields:
+  url:
+    type: link
+  title:
+    label: Link Text
+    type: text
+  openInNewTab:
+    label: How to open
+    type: toggle
+    text: Open in new tab/window?
