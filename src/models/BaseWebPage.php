@@ -380,6 +380,14 @@ class BaseWebPage extends BaseModel
     }
 
     /**
+     * @return string
+     */
+    public function getCurrentUserRole(): string
+    {
+        return $this->currentUser->getRole();
+    }
+
+    /**
      * @return string[]
      */
     public function getRequiredUserRoles(): array
