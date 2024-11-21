@@ -669,10 +669,6 @@ trait GenericKirbyHelper
                 $webPage->setOpenGraphDescription($this->site->url() . '/assets/images/BSBI-long-colour.svg');
             }
 
-            $webPage->setBasketCount($this->getBasketCount());
-
-
-
             $webPage->setColourMode($this->getColourMode());
 
             $query = $this->getSearchQuery();
@@ -1033,12 +1029,12 @@ trait GenericKirbyHelper
 
     /**
      * @param KirbyRetrievalException $e
-     * @param class-string<WebPage> $pageClass
-     * @return WebPage
+     * @param class-string<BaseWebPage> $pageClass
+     * @return BaseWebPage
      */
-    private function recordPageError(KirbyRetrievalException $e, string $pageClass = WebPage::class): WebPage
+    private function recordPageError(KirbyRetrievalException $e, string $pageClass = BaseWebPage::class): BaseWebPage
     {
-        /** @var WebPage $webPage */
+        /** @var BaseWebPage $webPage */
         $webPage = new $pageClass('Error', '', 'error');
         $pageName = str_replace('BSBI\\models\\', '', $pageClass);
         $webPage

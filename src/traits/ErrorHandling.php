@@ -1,6 +1,6 @@
 <?php
 
-namespace BSBI\WebBase\traits;
+namespace BSBI\Learning\traits;
 
 trait ErrorHandling {
 
@@ -21,6 +21,7 @@ trait ErrorHandling {
     {
         return $this->errorMessages;
     }
+
 
 
     /**
@@ -50,6 +51,10 @@ trait ErrorHandling {
     {
         $this->errorMessages = array_merge($this->errorMessages, $errorMessages);
         return $this;
+    }
+
+    public function hasFriendlyMessages(): bool {
+        return (count($this->friendlyMessages)>0);
     }
 
 
