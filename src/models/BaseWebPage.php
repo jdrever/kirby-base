@@ -250,6 +250,16 @@ class BaseWebPage extends BaseModel
         return $this->coreLinks;
     }
 
+
+    /**
+     * @param CoreLink $coreLink
+     * @return $this
+     */
+    public function addCoreLink(CoreLink $coreLink): self {
+        $this->coreLinks->addListItem($coreLink);
+        return $this;
+    }
+
     /**
      * @param \BSBI\WebBase\models\CoreLinks $coreLinks
      * @return $this
@@ -395,6 +405,32 @@ class BaseWebPage extends BaseModel
             return true;
         }
         return (in_array($this->currentUser->getRole(), $this->requiredUserRoles, true));
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getAttributes(): array
+    {
+        return $this->attributes;
+    }
+
+    /**
+     * @param string[] $attributes
+     * @return self
+     */
+    public function setAttributes(array $attributes): self
+    {
+        $this->attributes = $attributes;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasAttribute(string $attributeType): bool
+    {
+        return in_array($attributeType, $this->attributes, true);
     }
 
 }
