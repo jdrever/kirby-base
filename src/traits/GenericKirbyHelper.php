@@ -613,6 +613,7 @@ trait GenericKirbyHelper
             $webPage->setCurrentUser($user);
 
             if (!$webPage->checkUserAgainstRequiredRoles()) {
+                echo('login'); die();
                 $this->redirectToLogin();
             }
 
@@ -1394,6 +1395,32 @@ trait GenericKirbyHelper
         return $page;
     }
 
+
+    #endregion
+
+    #region FILES
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @return Document
+     */
+    private function getDocument(Page $page, string $fieldName): Document
+    {
+        try {
+            $pageFile = $this->getPageFieldAsFile($page, $fieldName);
+            if ($pageFile != null) {
+
+                $url = $pageFile->url();
+                $size = $pageFile->niceSize();
+                $document = new Document('questionSheet',$url);
+                $document->setSize($size);
+                return $document;
+            }
+            return (new Document())->recordError('Document not found');
+        } catch (KirbyRetrievalException) {
+            return (new Document())->recordError('Document not found');
+        }
+    }
 
     #endregion
 
