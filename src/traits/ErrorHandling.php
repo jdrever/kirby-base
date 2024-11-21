@@ -1,6 +1,6 @@
 <?php
 
-namespace BSBI\Learning\traits;
+namespace BSBI\WebBase\traits;
 
 trait ErrorHandling {
 
