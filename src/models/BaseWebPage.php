@@ -79,6 +79,11 @@ class BaseWebPage extends BaseModel
     protected array $relatedContent = [];
 
     /**
+     * @var string[]
+     */
+    protected array $attributes = [];
+
+    /**
      * the custom scripts for the page
      * @var string[]
      */
