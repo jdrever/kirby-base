@@ -7,6 +7,7 @@ use BSBI\WebBase\models\BaseModel;
 use BSBI\WebBase\models\BaseWebPage;
 use BSBI\WebBase\models\CoreLink;
 use BSBI\WebBase\models\CoreLinks;
+use BSBI\WebBase\models\Document;
 use BSBI\WebBase\models\Image;
 use BSBI\WebBase\models\ImageType;
 use BSBI\WebBase\models\Pagination;
