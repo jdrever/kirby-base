@@ -7,5 +7,6 @@ use Kirby\Cms\App as Kirby;
 Kirby::plugin(
     'open-foundations/web-base', [
             'blueprints' => require __DIR__ . '/blueprints.php',
+            'snippets' => require __DIR__ . '/snippets.php',
         ]
 );
