@@ -192,6 +192,14 @@ class BaseWebPage extends BaseModel
         return $this;
     }
 
+    /**
+     * @param string $blockType
+     * @return bool
+     */
+    public function hasBlockofType(string $blockType): bool {
+        return $this->mainContentBlocks->hasBlockOfType($blockType);
+    }
+
     public function hasHeadingBlock(): bool {
         return $this->mainContentBlocks->hasBlockOfType('heading');
     }
