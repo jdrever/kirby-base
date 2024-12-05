@@ -628,7 +628,7 @@ trait GenericKirbyHelper
 
             $webPage->setMenuPages($this->getMenuPages());
 
-            $webPage->setSubPages($this->getSubPages($page));
+            $webPage->setSubPages($this->getSubPages($page, $webPage->isUsingSimpleLinksForSubPages()));
 
             if ($this->isPageFieldNotEmpty($page, 'mainContent')) {
                 $webPage->setMainContentBlocks($this->getContentBlocks($page));
@@ -648,10 +648,12 @@ trait GenericKirbyHelper
                     }
                 }
             }
+
             if ($this->isPageFieldNotEmpty($page, 'mainImage')) {
                 $image = $this->getImage($page, 'mainImage', 2000, 500, ImageType::MAIN);
                 $webPage->setMainImage($image);
             }
+
 
             $openGraphTitle = $this->isPageFieldNotEmpty($page, 'og_title')
                 ? $this->getPageFieldAsString($page, 'og_title')
@@ -671,7 +673,9 @@ trait GenericKirbyHelper
                 $webPage->setOpenGraphDescription($this->site->url() . '/assets/images/BSBI-long-colour.svg');
             }
 
+
             $webPage->setColourMode($this->getColourMode());
+
 
             $query = $this->getSearchQuery();
 
@@ -710,11 +714,11 @@ trait GenericKirbyHelper
      * @return WebPageLinks
      * @throws KirbyRetrievalException
      */
-    private function getSubPages(Page $page): WebPageLinks
+    private function getSubPages(Page $page, bool $simpleLink = true): WebPageLinks
     {
         $subPagesCollection = $this->getSubPagesAsCollection($page);
         if ($subPagesCollection instanceof Collection) {
-            return $this->getWebPageLinks($subPagesCollection, false);
+            return $this->getWebPageLinks($subPagesCollection, $simpleLink);
         }
         return new WebPageLinks();
     }
@@ -968,6 +972,7 @@ trait GenericKirbyHelper
     ): BaseWebPage
     {
         try {
+
             $kirbyPage = $this->getKirbyPage($pageId);
             $page = $this->getPage($kirbyPage, $pageClass);
             if ($getPageFunction) {
@@ -1423,10 +1428,32 @@ trait GenericKirbyHelper
         }
     }
 
+    private function getFileModifiedAsDateTime(File $file): DateTime {
+        $modified = $file->modified();
+        return (new DateTime())->setTimestamp($modified);
+
+    }
+
     #endregion
 
-    #region MISC
+    #region USERS
 
+    private function getUserName(string $userId, string $fallback = 'User not found') : string {
+        // Extract the actual user ID from the string
+        if (preg_match('/user:\/\/([a-zA-Z0-9]+)/', $userId, $matches)) {
+            $userId = $matches[1]; // Get the ID (e.g., 'dvw7nX3C')
+
+            // Check if the user exists
+            $user = kirby()->user($userId);
+            if ($user) {
+                return $user->username();
+            } else {
+                return $fallback;
+            }
+        } else {
+            return "User id is malformed";
+        }
+    }
 
     /**
      * @return User
@@ -1445,6 +1472,10 @@ trait GenericKirbyHelper
         return $user;
     }
 
+    #endregion
+
+    #region MISC
+
     /**
      * gets the colour mode (getting/setting a colourMode cookie as required)
      * @return string
@@ -1459,13 +1490,25 @@ trait GenericKirbyHelper
         }
 
         if (get('colourMode')) {
-            cookie::set(
-                'colourMode',
-                $colourMode,
-                ['expires' => time() + 60 * 60 * 24 * 30, 'path' => '/', 'secure' => true, 'httpOnly' => true]
-            );
+            $this->setCookie('colourMode', $colourMode);
         }
         return $colourMode;
+    }
+
+    /**
+     * @param string $key
+     * @param string $value
+     * @return void
+     */
+    private function setCookie(string $key, string $value): void
+    {
+        //allow insecure cookies on localhost only
+        $secure = $_SERVER['HTTP_HOST'] != 'localhost:8095';
+        Cookie::set(
+            $key,
+            $value,
+            ['expires' => time() + 60 * 60 * 24 * 30, 'path' => '/', 'secure' => $secure, 'httpOnly' => true]
+        );
     }
 
 
@@ -1506,6 +1549,14 @@ trait GenericKirbyHelper
     private function getFallBackDateTime(): DateTime
     {
         return new DateTime('1970-01-01 00:00:00');
+    }
+
+    function logCurrentTime(): void
+    {
+        $microtime = microtime(true);
+        $milliseconds = sprintf("%03d", ($microtime - floor($microtime)) * 1000);
+        $timestamp = (new DateTime())->setTimestamp((int)$microtime)->format("Y-m-d H:i:s");
+        echo "[{$timestamp}.{$milliseconds}]<br>";
     }
 
     #endregion

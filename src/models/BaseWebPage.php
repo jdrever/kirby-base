@@ -89,9 +89,7 @@ class BaseWebPage extends BaseModel
      */
     protected array $customScripts;
 
-    /**
-     * @var int
-     */
+    protected bool $usingSimpleLinksForSubPages = false;
 
     /**
      * @param string $title
@@ -440,5 +438,11 @@ class BaseWebPage extends BaseModel
     {
         return in_array($attributeType, $this->attributes, true);
     }
+
+    public function isUsingSimpleLinksForSubPages(): bool
+    {
+        return $this->usingSimpleLinksForSubPages;
+    }
+
 
 }

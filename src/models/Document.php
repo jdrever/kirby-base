@@ -2,6 +2,8 @@
 
 namespace BSBI\WebBase\models;
 
+use DateTime;
+
 /**
  * Represents a document
  *
@@ -10,6 +12,8 @@ namespace BSBI\WebBase\models;
 class Document extends BaseModel
 {
     private string $size;
+
+    private DateTime $modified;
 
     public function getSize(): string
     {
@@ -21,6 +25,19 @@ class Document extends BaseModel
         $this->size = $size;
     }
 
+    public function getModifiedDate(): DateTime
+    {
+        return $this->modified;
+    }
 
+    public function setModifiedDate(DateTime $modified): Document
+    {
+        $this->modified = $modified;
+        return $this;
+    }
+
+    public function getFormattedModifiedDate(): string {
+        return $this->modified->format('d/m/Y H:i:s');
+    }
 
 }
