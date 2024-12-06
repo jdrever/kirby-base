@@ -533,6 +533,10 @@ trait GenericKirbyHelper
         return $structureField;
     }
 
+    #endregion
+
+    #region BLOCKS
+
     /**
      * @param Block $block
      * @param string $fieldName
@@ -546,6 +550,76 @@ trait GenericKirbyHelper
             $blockField = $this->getBlockField($block, $fieldName);
             return $blockField->toString();
         } catch (KirbyRetrievalException $e) {
+            if ($required) {
+                throw $e;
+            }
+            return '';
+        }
+    }
+
+    /**
+     * @param Block $block
+     * @param string $fieldName
+     * @param bool $required
+     * @return int
+     * @throws KirbyRetrievalException
+     */
+    private function getBlockFieldAsInt(Block $block, string $fieldName, bool $required = false): int
+    {
+        try {
+            $blockField = $this->getBlockField($block, $fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $blockField->toInt();
+        } catch (KirbyRetrievalException $e) {
+            if ($required) {
+                throw $e;
+            }
+            //TODO: do better than returning zero
+            return 0;
+        }
+    }
+
+    /**
+     * @param Block $block
+     * @param string $fieldName
+     * @param bool $required
+     * @return Image
+     * @throws KirbyRetrievalException
+     */
+    private function getBlockFieldAsImage(Block $block, string $fieldName, int $width, ?int $height, ImageType $imageType = ImageType::SQUARE): Image
+    {
+        try {
+            $blockImage = $this->getBlockFieldAsFile($block, $fieldName);
+            if ($blockImage != null) {
+                $src = $blockImage->crop($width, $height)->url();
+                $srcSetType = ($imageType === ImageType::SQUARE) ? 'square' : 'main';
+                $srcSet = $blockImage->srcset($srcSetType);
+                $webpSrcSet = $blockImage->srcset($srcSetType . '-webp');
+                $alt = $blockImage->alt()->isNotEmpty() ? $blockImage->alt()->value() : '';
+                if ($src !== null && $srcSet !== null && $webpSrcSet !== null) {
+                    return new Image ($src, $srcSet, $webpSrcSet, $alt, $width, $height);
+                }
+            }
+            return (new Image())->recordError('Image not found');
+        } catch (KirbyRetrievalException) {
+            return (new Image())->recordError('Image not found');
+        }
+    }
+
+    /**
+     * @param Block $block
+     * @param string $fieldName
+     * @return string
+     * @throws KirbyRetrievalException
+     */
+    private function getBlockFieldAsBlocksHtml(Block $block, string $fieldName, bool $required=false): string
+    {
+        try {
+            $blockField = $this->getBlockField($block, $fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $blockField->toBlocks()->toHtml();
+        }
+        catch (KirbyRetrievalException $e) {
             if ($required) {
                 throw $e;
             }
@@ -581,6 +655,19 @@ trait GenericKirbyHelper
             throw new KirbyRetrievalException('Block field not found or empty');
         }
         return $blockField;
+    }
+
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @return File|null
+     * @throws KirbyRetrievalException
+     */
+    private function getBlockFieldAsFile(Block $block, string $fieldName): File|null
+    {
+        $blockField = $this->getBlockField($block, $fieldName);
+        /** @noinspection PhpUndefinedMethodInspection */
+        return $blockField->toFile();
     }
 
     #endregion
