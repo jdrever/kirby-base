@@ -6,7 +6,7 @@ use BSBI\WebBase\traits\ListHandling;
 
 
 /**
- * Represents a submission list
+ * Represents a user list
  *
  * @package BSBI\Web
  */

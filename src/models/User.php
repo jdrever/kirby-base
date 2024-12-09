@@ -19,6 +19,8 @@ class User extends BaseModel
 
     private string $role;
 
+    private string $email;
+
     public function isLoggedIn(): bool {
         return (!empty($this->userId) && !empty($this->userName));
     }
@@ -53,6 +55,17 @@ class User extends BaseModel
     public function setRole(string $role): void
     {
         $this->role = $role;
+    }
+
+    public function getEmail(): string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(string $email): User
+    {
+        $this->email = $email;
+        return $this;
     }
 
 

@@ -89,9 +89,7 @@ class BaseWebPage extends BaseModel
      */
     protected array $customScripts;
 
-    /**
-     * @var int
-     */
+    protected bool $usingSimpleLinksForSubPages = false;
 
     /**
      * @param string $title
@@ -192,6 +190,14 @@ class BaseWebPage extends BaseModel
     {
         $this->mainContentBlocks = $mainContentBlocks;
         return $this;
+    }
+
+    /**
+     * @param string $blockType
+     * @return bool
+     */
+    public function hasBlockofType(string $blockType): bool {
+        return $this->mainContentBlocks->hasBlockOfType($blockType);
     }
 
     public function hasHeadingBlock(): bool {
@@ -380,6 +386,14 @@ class BaseWebPage extends BaseModel
     }
 
     /**
+     * @return string
+     */
+    public function getCurrentUserRole(): string
+    {
+        return $this->currentUser->getRole();
+    }
+
+    /**
      * @return string[]
      */
     public function getRequiredUserRoles(): array
@@ -432,5 +446,11 @@ class BaseWebPage extends BaseModel
     {
         return in_array($attributeType, $this->attributes, true);
     }
+
+    public function isUsingSimpleLinksForSubPages(): bool
+    {
+        return $this->usingSimpleLinksForSubPages;
+    }
+
 
 }
