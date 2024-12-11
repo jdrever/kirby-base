@@ -15,7 +15,7 @@ use BSBI\WebBase\models\Pagination;
 
 trait ListHandling
 {
-    /** @var BaseModel The list*/
+    /** @var BaseModel[] The list*/
     protected array $list = [];
 
     /** @var BaseFilter The filter*/
@@ -44,10 +44,11 @@ trait ListHandling
      *
      * @return BaseModel
      */
-    public function getCategories(): array
+    public function getList(): array
     {
         return $this->list;
     }
+
 
     public function hasListItems(): bool {
         return count($this->list) > 0;

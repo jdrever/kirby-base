@@ -415,10 +415,16 @@ class BaseWebPage extends BaseModel
      */
     public function checkUserAgainstRequiredRoles(): bool
     {
+        return ($this->checkRoleAgainstRequiredRoles($this->currentUser->getRole()));
+    }
+
+    public function checkRoleAgainstRequiredRoles(string $role): bool
+    {
         if (count($this->requiredUserRoles) === 0) {
             return true;
         }
         return (in_array($this->currentUser->getRole(), $this->requiredUserRoles, true));
+
     }
 
     /**

@@ -107,7 +107,6 @@ trait GenericKirbyHelper
         }
     }
 
-
     /**
      * @param Page $page
      * @param string $fieldName
@@ -681,7 +680,7 @@ trait GenericKirbyHelper
      * @param string $pageClass the type of class to return (must extend WebPage)
      * @return BaseWebPage
      */
-    private function getPage(Page $page, string $pageClass = BaseWebPage::class): BaseWebPage
+    private function getPage(Page $page, string $pageClass = BaseWebPage::class, bool $checkUserRoles = true): BaseWebPage
     {
         try {
 
@@ -700,9 +699,10 @@ trait GenericKirbyHelper
 
             $webPage->setCurrentUser($user);
 
-            if (!$webPage->checkUserAgainstRequiredRoles()) {
-                echo('login'); die();
-                $this->redirectToLogin();
+            if ($checkUserRoles) {
+                if (!$webPage->checkUserAgainstRequiredRoles()) {
+                    $this->redirectToLogin();
+                }
             }
 
             $webPage->setDescription(
@@ -1055,13 +1055,14 @@ trait GenericKirbyHelper
         string   $pageClass = BaseWebPage::class,
         callable $setPageFunction = null,
         string   $collectionName = '',
-        callable $getPageFunction = null
+        callable $getPageFunction = null,
+        bool $checkUserRoles = true
     ): BaseWebPage
     {
         try {
 
             $kirbyPage = $this->getKirbyPage($pageId);
-            $page = $this->getPage($kirbyPage, $pageClass);
+            $page = $this->getPage($kirbyPage, $pageClass, $checkUserRoles);
             if ($getPageFunction) {
                 // Check if the created $page instance has the addListItem method
                 if (!method_exists($page, 'addListItem')) {
@@ -1118,6 +1119,14 @@ trait GenericKirbyHelper
             $model = $this->recordModelError($e, $modelClass);
         }
         return $model;
+    }
+
+    private function getEmptyWebPage(Page $kirbyPage, string $pageClass = BaseWebPage::class): BaseWebPage
+    {
+        $webPage = new $pageClass($kirbyPage->title()->toString(), $kirbyPage->url(), $kirbyPage->template()->name());
+        $user = $this->getCurrentUser();
+        $webPage->setCurrentUser($user);
+        return $webPage;
     }
 
 
