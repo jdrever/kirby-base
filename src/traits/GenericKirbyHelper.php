@@ -107,7 +107,6 @@ trait GenericKirbyHelper
         }
     }
 
-
     /**
      * @param Page $page
      * @param string $fieldName
@@ -533,6 +532,10 @@ trait GenericKirbyHelper
         return $structureField;
     }
 
+    #endregion
+
+    #region BLOCKS
+
     /**
      * @param Block $block
      * @param string $fieldName
@@ -546,6 +549,76 @@ trait GenericKirbyHelper
             $blockField = $this->getBlockField($block, $fieldName);
             return $blockField->toString();
         } catch (KirbyRetrievalException $e) {
+            if ($required) {
+                throw $e;
+            }
+            return '';
+        }
+    }
+
+    /**
+     * @param Block $block
+     * @param string $fieldName
+     * @param bool $required
+     * @return int
+     * @throws KirbyRetrievalException
+     */
+    private function getBlockFieldAsInt(Block $block, string $fieldName, bool $required = false): int
+    {
+        try {
+            $blockField = $this->getBlockField($block, $fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $blockField->toInt();
+        } catch (KirbyRetrievalException $e) {
+            if ($required) {
+                throw $e;
+            }
+            //TODO: do better than returning zero
+            return 0;
+        }
+    }
+
+    /**
+     * @param Block $block
+     * @param string $fieldName
+     * @param bool $required
+     * @return Image
+     * @throws KirbyRetrievalException
+     */
+    private function getBlockFieldAsImage(Block $block, string $fieldName, int $width, ?int $height, ImageType $imageType = ImageType::SQUARE): Image
+    {
+        try {
+            $blockImage = $this->getBlockFieldAsFile($block, $fieldName);
+            if ($blockImage != null) {
+                $src = $blockImage->crop($width, $height)->url();
+                $srcSetType = ($imageType === ImageType::SQUARE) ? 'square' : 'main';
+                $srcSet = $blockImage->srcset($srcSetType);
+                $webpSrcSet = $blockImage->srcset($srcSetType . '-webp');
+                $alt = $blockImage->alt()->isNotEmpty() ? $blockImage->alt()->value() : '';
+                if ($src !== null && $srcSet !== null && $webpSrcSet !== null) {
+                    return new Image ($src, $srcSet, $webpSrcSet, $alt, $width, $height);
+                }
+            }
+            return (new Image())->recordError('Image not found');
+        } catch (KirbyRetrievalException) {
+            return (new Image())->recordError('Image not found');
+        }
+    }
+
+    /**
+     * @param Block $block
+     * @param string $fieldName
+     * @return string
+     * @throws KirbyRetrievalException
+     */
+    private function getBlockFieldAsBlocksHtml(Block $block, string $fieldName, bool $required=false): string
+    {
+        try {
+            $blockField = $this->getBlockField($block, $fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $blockField->toBlocks()->toHtml();
+        }
+        catch (KirbyRetrievalException $e) {
             if ($required) {
                 throw $e;
             }
@@ -583,6 +656,19 @@ trait GenericKirbyHelper
         return $blockField;
     }
 
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @return File|null
+     * @throws KirbyRetrievalException
+     */
+    private function getBlockFieldAsFile(Block $block, string $fieldName): File|null
+    {
+        $blockField = $this->getBlockField($block, $fieldName);
+        /** @noinspection PhpUndefinedMethodInspection */
+        return $blockField->toFile();
+    }
+
     #endregion
 
     #region PAGES
@@ -594,7 +680,7 @@ trait GenericKirbyHelper
      * @param string $pageClass the type of class to return (must extend WebPage)
      * @return BaseWebPage
      */
-    private function getPage(Page $page, string $pageClass = BaseWebPage::class): BaseWebPage
+    private function getPage(Page $page, string $pageClass = BaseWebPage::class, bool $checkUserRoles = true): BaseWebPage
     {
         try {
 
@@ -613,9 +699,10 @@ trait GenericKirbyHelper
 
             $webPage->setCurrentUser($user);
 
-            if (!$webPage->checkUserAgainstRequiredRoles()) {
-                echo('login'); die();
-                $this->redirectToLogin();
+            if ($checkUserRoles) {
+                if (!$webPage->checkUserAgainstRequiredRoles()) {
+                    $this->redirectToLogin();
+                }
             }
 
             $webPage->setDescription(
@@ -968,13 +1055,14 @@ trait GenericKirbyHelper
         string   $pageClass = BaseWebPage::class,
         callable $setPageFunction = null,
         string   $collectionName = '',
-        callable $getPageFunction = null
+        callable $getPageFunction = null,
+        bool $checkUserRoles = true
     ): BaseWebPage
     {
         try {
 
             $kirbyPage = $this->getKirbyPage($pageId);
-            $page = $this->getPage($kirbyPage, $pageClass);
+            $page = $this->getPage($kirbyPage, $pageClass, $checkUserRoles);
             if ($getPageFunction) {
                 // Check if the created $page instance has the addListItem method
                 if (!method_exists($page, 'addListItem')) {
@@ -1031,6 +1119,14 @@ trait GenericKirbyHelper
             $model = $this->recordModelError($e, $modelClass);
         }
         return $model;
+    }
+
+    private function getEmptyWebPage(Page $kirbyPage, string $pageClass = BaseWebPage::class): BaseWebPage
+    {
+        $webPage = new $pageClass($kirbyPage->title()->toString(), $kirbyPage->url(), $kirbyPage->template()->name());
+        $user = $this->getCurrentUser();
+        $webPage->setCurrentUser($user);
+        return $webPage;
     }
 
 

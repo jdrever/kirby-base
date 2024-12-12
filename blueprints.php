@@ -36,7 +36,4 @@ return [
 
     //layout blueprints
     'layouts/page' => __DIR__ . '/blueprints/layouts/page.yml',
-
-    //user role blueprints
-    'users/editor' => __DIR__ . '/blueprints/users/editor.yml',
     ];
