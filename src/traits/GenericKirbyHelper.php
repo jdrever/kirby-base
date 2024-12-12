@@ -1124,6 +1124,7 @@ trait GenericKirbyHelper
     private function getEmptyWebPage(Page $kirbyPage, string $pageClass = BaseWebPage::class): BaseWebPage
     {
         $webPage = new $pageClass($kirbyPage->title()->toString(), $kirbyPage->url(), $kirbyPage->template()->name());
+        $webPage->setPageId($kirbyPage->id());
         $user = $this->getCurrentUser();
         $webPage->setCurrentUser($user);
         return $webPage;
