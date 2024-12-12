@@ -16,6 +16,8 @@ class WebPageLink extends BaseModel
 
     private Image $panelImage;
 
+    private bool $excludeFromMenus = false;
+
     /**
      * @var string
      */
@@ -79,5 +81,15 @@ class WebPageLink extends BaseModel
         return $this;
     }
 
+    public function isExcludeFromMenus(): bool
+    {
+        return $this->excludeFromMenus;
+    }
+
+    public function setExcludeFromMenus(bool $excludeFromMenus): WebPageLink
+    {
+        $this->excludeFromMenus = $excludeFromMenus;
+        return $this;
+    }
 
 }
