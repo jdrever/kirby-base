@@ -91,5 +91,4 @@ class WebPageLink extends BaseModel
         $this->excludeFromMenus = $excludeFromMenus;
         return $this;
     }
-
 }
