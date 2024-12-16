@@ -585,15 +585,31 @@ trait GenericKirbyHelper
      * @return Image
      * @throws KirbyRetrievalException
      */
-    private function getBlockFieldAsImage(Block $block, string $fieldName, int $width, ?int $height, ImageType $imageType = ImageType::SQUARE): Image
+    private function getBlockFieldAsImage(Block $block, string $fieldName, int $width, ?int $height, ImageType $imageType = ImageType::SQUARE, bool $fixedWidth = false): Image
     {
         try {
             $blockImage = $this->getBlockFieldAsFile($block, $fieldName);
+            //var_dump($blockImage);
             if ($blockImage != null) {
-                $src = $blockImage->crop($width, $height)->url();
-                $srcSetType = ($imageType === ImageType::SQUARE) ? 'square' : 'main';
-                $srcSet = $blockImage->srcset($srcSetType);
-                $webpSrcSet = $blockImage->srcset($srcSetType . '-webp');
+                if ($fixedWidth) {
+                    if ($blockImage->width() < $width) {
+                        $width = $blockImage->width();
+                    }
+                    $blockImage = $blockImage->resize($width);
+                    $src = $blockImage->url();
+                    $srcSet = $blockImage->srcset([
+                        '1x'  => ['width' => $width],
+                        '2x'  => ['width' => $width * 2],
+                        '3x'  => ['width' => $width * 3],
+                    ]);
+                    $height =  $blockImage->height();
+                    $webpSrcSet = $blockImage->srcset( 'webp');
+                } else {
+                    $srcSetType = ($imageType === ImageType::SQUARE) ? 'square' : 'main';
+                    $src = $blockImage->crop($width, $height)->url();
+                    $srcSet = $blockImage->srcset($srcSetType);
+                    $webpSrcSet = $blockImage->srcset($srcSetType . '-webp');
+                }
                 $alt = $blockImage->alt()->isNotEmpty() ? $blockImage->alt()->value() : '';
                 if ($src !== null && $srcSet !== null && $webpSrcSet !== null) {
                     return new Image ($src, $srcSet, $webpSrcSet, $alt, $width, $height);
