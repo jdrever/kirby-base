@@ -627,6 +627,27 @@ trait GenericKirbyHelper
      * @return string
      * @throws KirbyRetrievalException
      */
+    private function getBlockFieldAsBlocks(Block $block, string $fieldName, bool $required=false): string
+    {
+        try {
+            $blockField = $this->getBlockField($block, $fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $blockField->toBlocks();
+        }
+        catch (KirbyRetrievalException $e) {
+            if ($required) {
+                throw $e;
+            }
+            return '';
+        }
+    }
+
+    /**
+     * @param Block $block
+     * @param string $fieldName
+     * @return string
+     * @throws KirbyRetrievalException
+     */
     private function getBlockFieldAsBlocksHtml(Block $block, string $fieldName, bool $required=false): string
     {
         try {
