@@ -6,13 +6,11 @@ use BSBI\WebBase\helpers\KirbyRetrievalException;
 use BSBI\WebBase\models\BaseModel;
 use BSBI\WebBase\models\BaseWebPage;
 use BSBI\WebBase\models\CoreLink;
-use BSBI\WebBase\models\CoreLinks;
 use BSBI\WebBase\models\Document;
 use BSBI\WebBase\models\Image;
 use BSBI\WebBase\models\ImageType;
 use BSBI\WebBase\models\Pagination;
 use BSBI\WebBase\models\RelatedContent;
-use BSBI\WebBase\models\WebPage;
 use BSBI\WebBase\models\WebPageBlock;
 use BSBI\WebBase\models\WebPageBlocks;
 use BSBI\WebBase\models\WebPageLink;
@@ -1183,6 +1181,7 @@ trait GenericKirbyHelper
                 $e->getMessage(),
                 'An error occurred while retrieving the ' . $pageName . ' page.',
             );
+        $this->sendErrorEmail($e);
         return $webPage;
     }
 
@@ -1201,7 +1200,27 @@ trait GenericKirbyHelper
                 $e->getMessage(),
                 'An error occurred while retrieving the ' . $modelName . '.',
             );
+        $this->sendErrorEmail($e);
         return $model;
+    }
+
+    /**
+     * @param KirbyRetrievalException $e
+     * @return void
+     */
+    private function sendErrorEmail(KirbyRetrievalException $e) : void {
+        if ($_SERVER['HTTP_HOST'] != 'localhost:8095') {
+            $this->kirby->email([
+                'template' => 'error-notification',
+                'from'     => option('defaultEmail'),
+                'replyTo'  => option('defaultEmail'),
+                'to'       => 'james.drever@bsbi-learning.org',
+                'subject'  => 'Identiplant: Error',
+                'data'     => [
+                    'errorMessage' => $e->getMessage(),
+                ]
+            ]);
+        }
     }
 
     /**
