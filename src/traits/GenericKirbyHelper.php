@@ -900,15 +900,15 @@ trait GenericKirbyHelper
 
     /**
      * @param string $title
-     * @return WebPage
+     * @return BaseWebPage
      */
-    private function findPage(string $title): WebPage
+    private function findPage(string $title): BaseWebPage
     {
         $page = $this->findKirbyPage($title);
         if ($page !== null) {
-            $webPage = new WebPage($page->title()->toString(), $page->url(), $page->template()->name());
+            $webPage = new BaseWebPage($page->title()->toString(), $page->url(), $page->template()->name());
         } else {
-            $webPage = new WebPage('', '', '');
+            $webPage = new BaseWebPage('', '', '');
             $webPage->setStatus(false);
         }
         return $webPage;
@@ -1538,11 +1538,11 @@ trait GenericKirbyHelper
     }
 
     /**
-     * @param WebPage $page
+     * @param BaseWebPage $page
      * @param string $query
-     * @return WebPage
+     * @return BaseWebPage
      */
-    private function highlightSearchQuery(WebPage $page, string $query): WebPage
+    private function highlightSearchQuery(BaseWebPage $page, string $query): BaseWebPage
     {
         $mainContentBlocks = $page->getMainContent();
         foreach ($mainContentBlocks->getBlocks() as $block) {
