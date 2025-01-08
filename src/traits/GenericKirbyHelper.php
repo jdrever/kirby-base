@@ -1176,6 +1176,8 @@ trait GenericKirbyHelper
         /** @var BaseWebPage $webPage */
         $webPage = new $pageClass('Error', '', 'error');
         $pageName = str_replace('BSBI\\models\\', '', $pageClass);
+        $user = $this->getCurrentUser();
+        $webPage->setCurrentUser($user);
         $webPage
             ->recordError(
                 $e->getMessage(),
@@ -1214,7 +1216,7 @@ trait GenericKirbyHelper
                 'template' => 'error-notification',
                 'from'     => option('defaultEmail'),
                 'replyTo'  => option('defaultEmail'),
-                'to'       => 'james.drever@bsbi-learning.org',
+                'to'       => option('adminEmail'),
                 'subject'  => 'Identiplant: Error',
                 'data'     => [
                     'errorMessage' => $e->getMessage(),

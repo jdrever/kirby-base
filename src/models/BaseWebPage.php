@@ -12,10 +12,6 @@ use BSBI\WebBase\traits\CoreWebPageProperties;
 class BaseWebPage extends BaseModel
 {
     use CoreWebPageProperties;
-    /**
-     * the page type (or template) for the page
-     * @var string
-     */
 
     /**
      * @var User
@@ -365,6 +361,10 @@ class BaseWebPage extends BaseModel
     public function getScripts(): array
     {
         return $this->customScripts;
+    }
+
+    public function hasCurrentUser(): bool {
+        return isset($this->currentUser);
     }
 
     /**

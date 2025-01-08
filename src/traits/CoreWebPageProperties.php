@@ -13,9 +13,9 @@ trait CoreWebPageProperties {
      * the page type (or template) for the page
      * @var string
      */
-    protected string $pageType;
+    protected string $pageType = '';
 
-    protected string $description;
+    protected string $description ='';
 
     /**
      * @var WebPageLinks
