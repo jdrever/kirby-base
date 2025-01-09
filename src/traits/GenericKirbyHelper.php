@@ -1223,36 +1223,36 @@ trait GenericKirbyHelper
         }
     }
 
-    function getExceptionDetails(Exception $exception): string
+    function getExceptionDetails(KirbyRetrievalException $exception): string
     {
-        $details = "An exception was thrown in your application:\n\n";
+        $details = "An exception was thrown in your application:<br><br>";
         $details .= $this->getExceptionDetail($exception);
 
         // Capture previous exceptions if they exist
         $previous = $exception->getPrevious();
         while ($previous) {
-            $details .= "Previous Exception:\n";
+            $details .= "<b>Previous Exception:</b><br>";
             $details .= $this->getExceptionDetail($previous);
             $previous = $previous->getPrevious();
         }
         // Optionally add request details (if running in a web context)
         if (php_sapi_name() !== 'cli') {
-            $details .= "Request Details:\n";
-            $details .= "URL: " . ($_SERVER['HTTP_HOST'] ?? '') . ($_SERVER['REQUEST_URI'] ?? '') . "\n";
-            $details .= "Method: " . ($_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN') . "\n";
-            $details .= "IP Address: " . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN') . "\n";
-            $details .= "User Agent: " . ($_SERVER['HTTP_USER_AGENT'] ?? 'UNKNOWN') . "\n\n";
+            $details .= "<b>Request Details: </b>\n";
+            $details .= "<b>URL: </b>" . ($_SERVER['HTTP_HOST'] ?? '') . ($_SERVER['REQUEST_URI'] ?? '') . "<br>";
+            $details .= "<b>Method: </b>" . ($_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN') . "<br>";
+            $details .= "<b>IP Address: </b>" . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN') . "<br>";
+            $details .= "<b>User Agent: </b>" . ($_SERVER['HTTP_USER_AGENT'] ?? 'UNKNOWN') . "<br><br>";
         }
         return $details;
     }
 
-    private function getExceptionDetail(Exception $exception): string
+    private function getExceptionDetail(KirbyRetrievalException $exception): string
     {
-        $detail = "Message: " . $exception->getMessage() . "\n";
-        $detail .= "Code: " . $exception->getCode() . "\n";
-        $detail .= "File: " . $exception->getFile() . "\n";
-        $detail .= "Line: " . $exception->getLine() . "\n\n";
-        $detail .= "Stack Trace:\n" . $exception->getTraceAsString() . "\n\n";
+        $detail = "<b>Message:</b> " . $exception->getMessage() . "<br>";
+        $detail .= "<b>Code:</b> " . $exception->getCode() . "<br>";
+        $detail .= "<b>File:</b> " . $exception->getFile() . "<br>";
+        $detail .= "<b>Line:</b> " . $exception->getLine() . "<br><br>";
+        $detail .= "<b>Stack Trace</b> :\n" . $exception->getTraceAsString() . "<br><br>";
         return $detail;
     }
 
