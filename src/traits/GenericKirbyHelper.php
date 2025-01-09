@@ -1209,6 +1209,12 @@ trait GenericKirbyHelper
      */
     private function sendErrorEmail(KirbyRetrievalException $e): void
     {
+        $exceptionAsString =  "Message: " . $e->getMessage() . "\n" .
+            "File:" . $e->getFile() . "'\n" .
+            "Line:" . $e->getLine() . "\n" .
+            "Trace:" . $e->getTraceAsString();
+        error_log($exceptionAsString);
+
         if (!str_starts_with($_SERVER['HTTP_HOST'], 'localhost')) {
             $this->kirby->email([
                 'template' => 'error-notification',
