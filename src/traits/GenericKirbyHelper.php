@@ -1248,11 +1248,11 @@ trait GenericKirbyHelper
 
     private function getExceptionDetail(KirbyRetrievalException $exception): string
     {
-        $detail = "<b>Message:</b> " . $exception->getMessage() . "\n";
-        $detail .= "<b>Code:</b> " . $exception->getCode() . "\n";
-        $detail .= "<b>File:</b> " . $exception->getFile() . "\n";
-        $detail .= "<b>Line:</b> " . $exception->getLine() . "\n\n";
-        $detail .= "<b>Stack Trace</b> :\n" . $exception->getTraceAsString() . "\n\n";
+        $detail = "<b>Message:</b> " . $exception->getMessage() . "<br>";
+        $detail .= "<b>Code:</b> " . $exception->getCode() . "<br>";
+        $detail .= "<b>File:</b> " . $exception->getFile() . "<br>";
+        $detail .= "<b>Line:</b> " . $exception->getLine() . "<br><br>";
+        $detail .= "<b>Stack Trace</b> :\n" . $exception->getTraceAsString() . "<br><br>";
         return $detail;
     }
 
