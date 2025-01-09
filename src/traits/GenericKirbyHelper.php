@@ -1223,7 +1223,7 @@ trait GenericKirbyHelper
         }
     }
 
-    function getExceptionDetails(Exception $exception): string
+    function getExceptionDetails(KirbyRetrievalException $exception): string
     {
         $details = "An exception was thrown in your application:\n\n";
         $details .= $this->getExceptionDetail($exception);
@@ -1246,7 +1246,7 @@ trait GenericKirbyHelper
         return $details;
     }
 
-    private function getExceptionDetail(Exception $exception): string
+    private function getExceptionDetail(KirbyRetrievalException $exception): string
     {
         $detail = "Message: " . $exception->getMessage() . "\n";
         $detail .= "Code: " . $exception->getCode() . "\n";
