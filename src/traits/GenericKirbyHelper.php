@@ -1219,13 +1219,49 @@ trait GenericKirbyHelper
                 'to'       => option('adminEmail'),
                 'subject'  => 'Identiplant: Error',
                 'data'     => [
-                    'errorMessage' => $e->getMessage(),
+                    'errorMessage' => $this->getExceptionDetails($e),
                 ]
             ]);
         }
     }
 
-    /**
+    private function getExceptionDetails(Exception $exception): string
+    {
+        $details = "An exception was thrown in your application:\n\n";
+        $details .= $this->getExceptionDetail($exception);
+
+        // Capture previous exceptions if they exist
+        $previous = $exception->getPrevious();
+        while ($previous) {
+            $details .= "Previous Exception:\n";
+            $details .= $this->getExceptionDetail($previous);
+            $previous = $previous->getPrevious();
+        }
+
+        // Optionally add request details (if running in a web context)
+        if (php_sapi_name() !== 'cli') {
+            $details .= "Request Details:\n";
+            $details .= "URL: " . ($_SERVER['HTTP_HOST'] ?? '') . ($_SERVER['REQUEST_URI'] ?? '') . "\n";
+            $details .= "Method: " . ($_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN') . "\n";
+            $details .= "IP Address: " . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN') . "\n";
+            $details .= "User Agent: " . ($_SERVER['HTTP_USER_AGENT'] ?? 'UNKNOWN') . "\n\n";
+        }
+
+        return $details;
+    }
+
+    private function getExceptionDetail(Exception $exception): string
+    {
+        $detail = "Message: " . $exception->getMessage() . "\n";
+        $detail .= "Code: " . $exception->getCode() . "\n";
+        $detail .= "File: " . $exception->getFile() . "\n";
+        $detail .= "Line: " . $exception->getLine() . "\n\n";
+        $detail .= "Stack Trace:\n" . $exception->getTraceAsString() . "\n\n";
+        return $detail;
+    }
+
+
+/**
      * @param Page $page
      * @param string $fieldName
      * @return WebPageBlocks
