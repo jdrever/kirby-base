@@ -246,14 +246,13 @@ trait GenericKirbyHelper
      * @return string
      * @throws KirbyRetrievalException
      */
-    private function getPageFieldAsBlocksHtml(Page $page, string $fieldName, bool $required=false, int $excerpt=0): string
+    private function getPageFieldAsBlocksHtml(Page $page, string $fieldName, bool $required = false, int $excerpt = 0): string
     {
         try {
             $pageField = $this->getPageField($page, $fieldName);
             /** @noinspection PhpUndefinedMethodInspection */
             return $pageField->toBlocks()->toHtml();
-        }
-        catch (KirbyRetrievalException $e) {
+        } catch (KirbyRetrievalException $e) {
             if ($required) {
                 throw $e;
             }
@@ -596,12 +595,12 @@ trait GenericKirbyHelper
                     $blockImage = $blockImage->resize($width);
                     $src = $blockImage->url();
                     $srcSet = $blockImage->srcset([
-                        '1x'  => ['width' => $width],
-                        '2x'  => ['width' => $width * 2],
-                        '3x'  => ['width' => $width * 3],
+                        '1x' => ['width' => $width],
+                        '2x' => ['width' => $width * 2],
+                        '3x' => ['width' => $width * 3],
                     ]);
-                    $height =  $blockImage->height();
-                    $webpSrcSet = $blockImage->srcset( 'webp');
+                    $height = $blockImage->height();
+                    $webpSrcSet = $blockImage->srcset('webp');
                 } else {
                     $srcSetType = ($imageType === ImageType::SQUARE) ? 'square' : 'main';
                     $src = $blockImage->crop($width, $height)->url();
@@ -625,14 +624,13 @@ trait GenericKirbyHelper
      * @return string
      * @throws KirbyRetrievalException
      */
-    private function getBlockFieldAsBlocks(Block $block, string $fieldName, bool $required=false): string
+    private function getBlockFieldAsBlocks(Block $block, string $fieldName, bool $required = false): string
     {
         try {
             $blockField = $this->getBlockField($block, $fieldName);
             /** @noinspection PhpUndefinedMethodInspection */
             return $blockField->toBlocks();
-        }
-        catch (KirbyRetrievalException $e) {
+        } catch (KirbyRetrievalException $e) {
             if ($required) {
                 throw $e;
             }
@@ -646,14 +644,13 @@ trait GenericKirbyHelper
      * @return string
      * @throws KirbyRetrievalException
      */
-    private function getBlockFieldAsBlocksHtml(Block $block, string $fieldName, bool $required=false): string
+    private function getBlockFieldAsBlocksHtml(Block $block, string $fieldName, bool $required = false): string
     {
         try {
             $blockField = $this->getBlockField($block, $fieldName);
             /** @noinspection PhpUndefinedMethodInspection */
             return $blockField->toBlocks()->toHtml();
-        }
-        catch (KirbyRetrievalException $e) {
+        } catch (KirbyRetrievalException $e) {
             if ($required) {
                 throw $e;
             }
@@ -707,7 +704,6 @@ trait GenericKirbyHelper
     #endregion
 
     #region PAGES
-
 
 
     /**
@@ -806,14 +802,15 @@ trait GenericKirbyHelper
                 $webPage = $this->highlightSearchQuery($webPage, $query);
             }
         } catch (KirbyRetrievalException $e) {
-            $webPage = $this->recordPageError($e,$pageClass);
+            $webPage = $this->recordPageError($e, $pageClass);
         }
 
         return $webPage;
     }
 
-    private function redirectToLogin() : void {
-        $loginPage  = $this->findKirbyPage('login');
+    private function redirectToLogin(): void
+    {
+        $loginPage = $this->findKirbyPage('login');
         $loginPage->go();
     }
 
@@ -991,7 +988,7 @@ trait GenericKirbyHelper
      */
     private function getWebPageLink(Page $page, bool $simpleLink = true): WebPageLink
     {
-        $webPageLink=new WebPageLink($page->title()->toString(), $page->url(), $page->id(), $page->template()->name());
+        $webPageLink = new WebPageLink($page->title()->toString(), $page->url(), $page->id(), $page->template()->name());
         $webPageLink->setDescription($this->getPageFieldAsString($page, 'description'));
         $webPageLink->setPanelDescription($this->getPageFieldAsKirbyText($page, 'panelDescription'));
         if ($simpleLink) {
@@ -1091,7 +1088,7 @@ trait GenericKirbyHelper
         callable $setPageFunction = null,
         string   $collectionName = '',
         callable $getPageFunction = null,
-        bool $checkUserRoles = true
+        bool     $checkUserRoles = true
     ): BaseWebPage
     {
         try {
@@ -1210,19 +1207,53 @@ trait GenericKirbyHelper
      * @param KirbyRetrievalException $e
      * @return void
      */
-    private function sendErrorEmail(KirbyRetrievalException $e) : void {
+    private function sendErrorEmail(KirbyRetrievalException $e): void
+    {
         if ($_SERVER['HTTP_HOST'] != 'localhost:8095') {
             $this->kirby->email([
                 'template' => 'error-notification',
-                'from'     => option('defaultEmail'),
-                'replyTo'  => option('defaultEmail'),
-                'to'       => option('adminEmail'),
-                'subject'  => 'Identiplant: Error',
-                'data'     => [
-                    'errorMessage' => $e->getMessage(),
+                'from' => option('defaultEmail'),
+                'replyTo' => option('defaultEmail'),
+                'to' => option('adminEmail'),
+                'subject' => 'Identiplant: Error',
+                'data' => [
+                    'errorMessage' => $this->getExceptionDetails($e),
                 ]
             ]);
         }
+    }
+
+    function getExceptionDetails(Exception $exception): string
+    {
+        $details = "An exception was thrown in your application:\n\n";
+        $details .= $this->getExceptionDetail($exception);
+
+        // Capture previous exceptions if they exist
+        $previous = $exception->getPrevious();
+        while ($previous) {
+            $details .= "Previous Exception:\n";
+            $details .= $this->getExceptionDetail($previous);
+            $previous = $previous->getPrevious();
+        }
+        // Optionally add request details (if running in a web context)
+        if (php_sapi_name() !== 'cli') {
+            $details .= "Request Details:\n";
+            $details .= "URL: " . ($_SERVER['HTTP_HOST'] ?? '') . ($_SERVER['REQUEST_URI'] ?? '') . "\n";
+            $details .= "Method: " . ($_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN') . "\n";
+            $details .= "IP Address: " . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN') . "\n";
+            $details .= "User Agent: " . ($_SERVER['HTTP_USER_AGENT'] ?? 'UNKNOWN') . "\n\n";
+        }
+        return $details;
+    }
+
+    private function getExceptionDetail(Exception $exception): string
+    {
+        $detail = "Message: " . $exception->getMessage() . "\n";
+        $detail .= "Code: " . $exception->getCode() . "\n";
+        $detail .= "File: " . $exception->getFile() . "\n";
+        $detail .= "Line: " . $exception->getLine() . "\n\n";
+        $detail .= "Stack Trace:\n" . $exception->getTraceAsString() . "\n\n";
+        return $detail;
     }
 
     /**
