@@ -1209,7 +1209,7 @@ trait GenericKirbyHelper
      */
     private function sendErrorEmail(KirbyRetrievalException $e): void
     {
-        if ($_SERVER['HTTP_HOST'] != 'localhost:8095') {
+        if (!str_starts_with($_SERVER['HTTP_HOST'], 'localhost')) {
             $this->kirby->email([
                 'template' => 'error-notification',
                 'from' => option('defaultEmail'),
