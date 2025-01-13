@@ -1339,7 +1339,7 @@ trait GenericKirbyHelper
      */
     private function getBreadcrumbAsCollection(): Collection
     {
-        return $this->site->breadcrumb()->filterBy('template', '!=', 'home');
+        return $this->site->breadcrumb()->filterBy('template', '!=', 'home')->filterBy('isListed', true);
     }
 
     private function getUserNames(Page $page, string $fieldName): string
