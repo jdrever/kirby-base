@@ -960,7 +960,7 @@ trait GenericKirbyHelper
     {
         $page = $this->kirby->page($pageId);
         if (!$page instanceof Page) {
-            throw new KirbyRetrievalException('Person page not found');
+            throw new KirbyRetrievalException('Page not found');
         }
         return $page;
     }
