@@ -1664,6 +1664,22 @@ trait GenericKirbyHelper
         return $user;
     }
 
+    /**
+     * gets the current Kirby username - returns blank string if no user
+     * @return string
+     */
+    private function getCurrentUserName(): string {
+        return $this->kirby->user() ? $this->kirby->user()->name() : '';
+    }
+
+    /**
+     * gets the current Kirby username - returns blank string if no user
+     * @return string
+     */
+    private function getCurrentUserRole(): string {
+        return $this->kirby->user() ? $this->kirby->user()->role()->name() : '';
+    }
+
     #endregion
 
     #region MISC
