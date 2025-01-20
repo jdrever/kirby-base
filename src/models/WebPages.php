@@ -6,7 +6,6 @@ use BSBI\WebBase\traits\ListHandling;
 use BSBI\WebBase\traits\ErrorHandling;
 
 /**
- * Class ViceCounties
  * Represents a list of web pages with various properties and methods.
  * @package BSBI\Web
  */

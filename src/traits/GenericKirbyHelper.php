@@ -851,7 +851,7 @@ trait GenericKirbyHelper
     private function getSubPagesAsCollection(Page $page): mixed
     {
         if ($page->template()->name() !== 'home') {
-            $excludedTemplates = option('bsbi-web.web.subPagesExclude');
+            $excludedTemplates = option('bsbi.bsbiweb.subPagesExclude');
 
             // Ensure it returns an array
             if (!is_array($excludedTemplates)) {
