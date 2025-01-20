@@ -15,7 +15,6 @@ use BSBI\WebBase\models\WebPageBlock;
 use BSBI\WebBase\models\WebPageBlocks;
 use BSBI\WebBase\models\WebPageLink;
 use BSBI\WebBase\models\WebPageLinks;
-use BSBI\WebBase\models\WebPages;
 use BSBI\WebBase\models\User;
 use DateTime;
 use Kirby\Cms\Block;
@@ -1014,21 +1013,6 @@ trait GenericKirbyHelper
             throw new KirbyRetrievalException('Collection ' . $collectionName . ' pages not found');
         }
         return $pages;
-    }
-
-    /**
-     * @param Collection $collection
-     * @return WebPages
-     */
-    private function getWebPages(Collection $collection): WebPages
-    {
-        $webPages = new WebPages();
-        /** @var Page $collectionPage */
-        foreach ($collection as $collectionPage) {
-            $webPages->addListItem($this->getPage($collectionPage));
-        }
-
-        return $webPages;
     }
 
     /**
