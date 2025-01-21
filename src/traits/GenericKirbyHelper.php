@@ -951,6 +951,22 @@ trait GenericKirbyHelper
     }
 
     /**
+     * @param Page $page
+     * @param string $linkType
+     * @return CoreLink
+     */
+    private function getCoreLink(Page $page, string $linkType): CoreLink
+    {
+        if ($page instanceof Page) {
+            $coreLink = new CoreLink($page->title()->toString(), $page->url(), $linkType);
+        } else {
+            $coreLink = new CoreLink('', '', 'NOT_FOUND');
+            $coreLink->setStatus(false);
+        }
+        return $coreLink;
+    }
+
+    /**
      * @param string $pageId
      * @return Page
      * @throws KirbyRetrievalException
