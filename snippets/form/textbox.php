@@ -36,7 +36,7 @@ if (isset($label)) : ?>
     name="<?=$name?>"
     id="<?=$id?>"
     value="<?= esc($value, 'attr') ?>"
-    class="form-input p-2 m-1"
+    class="form-control p-2 m-1"
     <?= $isRequired ?>
 >
 <?= isset($alert) ? '<span class="alert error">' . esc($alert) . '</span>' : '' ?>

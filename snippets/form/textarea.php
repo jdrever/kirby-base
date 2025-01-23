@@ -40,7 +40,7 @@ if (isset($label)) : ?>
     name="<?=$name?>"
     id="<?=$id?>"
     rows="<?=$rows?>"
-    class="form-input p-2 m-1"
+    class="form-control p-2 m-1"
     <?= $isRequired ?>
 >
     <?= esc($value, 'attr') ?>
