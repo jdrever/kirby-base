@@ -29,6 +29,7 @@ use Kirby\Content\Field;
 use Kirby\Exception\Exception;
 use Kirby\Exception\InvalidArgumentException;
 use Kirby\Http\Cookie;
+use Kirby\Http\Remote;
 use Kirby\Toolkit\Str;
 
 trait GenericKirbyHelper
@@ -1204,6 +1205,41 @@ trait GenericKirbyHelper
     }
 
     /**
+     * @param string $template
+     * @param string $from
+     * @param string $replyTo
+     * @param string $to
+     * @param string $subject
+     * @param array $data
+     * @return void
+     * @throws KirbyRetrievalException
+     */
+    private function sendEmail(string $template,
+                               string $from,
+                               string $replyTo,
+                               string $to,
+                               string $subject,
+                               array  $data) : void {
+        try {
+            if (!str_starts_with($_SERVER['HTTP_HOST'], 'localhost')) {
+                $this->kirby->email([
+                    'template' => $template,
+                    'from' => $from,
+                    'replyTo' => $replyTo,
+                    'to' => $to,
+                    'subject' => $subject,
+                    'data' => $data
+                ]);
+            }
+            } catch (Exception $error) {
+                throw new KirbyRetrievalException(
+                    'An error occurred when trying to send the email: '.$error->getMessage(),
+                    $error->getCode()
+                );
+            }
+    }
+
+    /**
      * @param KirbyRetrievalException $e
      * @return void
      */
@@ -1214,7 +1250,6 @@ trait GenericKirbyHelper
             "Line:" . $e->getLine() . "\n" .
             "Trace:" . $e->getTraceAsString();
         error_log($exceptionAsString);
-
         if (!str_starts_with($_SERVER['HTTP_HOST'], 'localhost')) {
             $this->kirby->email([
                 'template' => 'error-notification',
@@ -1717,6 +1752,57 @@ trait GenericKirbyHelper
             $value,
             ['expires' => time() + 60 * 60 * 24 * 30, 'path' => '/', 'secure' => $secure, 'httpOnly' => true]
         );
+    }
+
+    /**
+     * @return string
+     * @throws KirbyRetrievalException
+     */
+    private function getTurnstileSiteKey(): string {
+        $turnstileSiteKey = (string) option('turnstile.siteKey');
+
+        if (empty($turnstileSiteKey)) {
+            throw new KirbyRetrievalException('The Turnstile sitekey for Uniform is not configured');
+        }
+        return $turnstileSiteKey;
+    }
+
+    /**
+     * @throws KirbyRetrievalException
+     */
+    private function getTurnstileResponse(): void {
+
+        // Turnstile HTML input field name
+        $fieldName = 'cf-turnstile-response';
+
+        // URL for the Turnstile verification
+        $verificationUrl = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+
+        $turnstileChallenge = $this->kirby->request()->get($fieldName);
+
+        if (empty($turnstileChallenge)) {
+            throw new KirbyRetrievalException('The Turnstile secret key is not configured');
+        }
+
+        $secretKey = option('turnstile.secretKey');
+
+        if (empty($secretKey)) {
+            throw new KirbyRetrievalException('The Turnstile secret key is not configured');
+        }
+
+        $response = Remote::request($verificationUrl, [
+            'method' => 'POST',
+            'data' => [
+                'secret' => $secretKey,
+                'response' => $turnstileChallenge,
+            ],
+        ]);
+
+        $jsonResponse = $response->json();
+
+        if ($response->code() !== 200 || !isset($jsonResponse['success']) || $jsonResponse['success'] !== true) {
+            throw new KirbyRetrievalException('Turnstile rejected this input');
+        }
     }
 
 
