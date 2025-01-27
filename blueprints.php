@@ -26,7 +26,6 @@ return [
     'sections/corePageFields' => __DIR__ . '/blueprints/sections/corePageFields.yml',
     'sections/templateName' => __DIR__ . '/blueprints/sections/templateName.yml',
 
-
     //tabs blueprints
     'tabs/page' => __DIR__ . '/blueprints/tabs/page.yml',
     'tabs/fields' => __DIR__ . '/blueprints/tabs/fields.yml',

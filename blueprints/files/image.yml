@@ -58,3 +58,10 @@ columns:
           link:
             label: Link
             type: url
+          tags:
+            label: Tags
+            type: tags
+            options:
+              - Urban
+              - People
+              - Group

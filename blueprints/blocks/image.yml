@@ -5,10 +5,11 @@ fields:
   location:
     label: field.blocks.image.location
     type: radio
-    columns: 2
+    columns: 3
     default: "kirby"
     options:
       kirby: "{{ t('field.blocks.image.location.internal') }}"
+      bank: Image Bank
       web: "{{ t('field.blocks.image.location.external') }}"
   image:
     label: field.blocks.image.name
@@ -21,6 +22,18 @@ fields:
       template: blocks/image
     when:
       location: kirby
+  bank:
+    type: files
+    label: Select an Image
+    query: site.index.files.filterBy("type", "image")
+    multiple: false
+    layout: cards
+    image:
+      cover: true
+    info: "{{ file.filename }}"
+    text: "{{ file.alt.or(file.filename) }}"
+    when:
+      location: bank
   src:
     label: field.blocks.image.url
     type: url
