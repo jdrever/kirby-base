@@ -726,6 +726,8 @@ trait GenericKirbyHelper
                 $page->template()->name()
             );
 
+            $webPage->setUrlWithQueryString($_SERVER['REQUEST_URI']);
+
             $user = $this->getCurrentUser();
 
             $webPage->setCurrentUser($user);

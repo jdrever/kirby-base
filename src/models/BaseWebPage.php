@@ -87,6 +87,8 @@ class BaseWebPage extends BaseModel
 
     protected bool $usingSimpleLinksForSubPages = false;
 
+    protected string $urlWithQueryString = '';
+
     /**
      * @param string $title
      * @param string $url
@@ -456,6 +458,27 @@ class BaseWebPage extends BaseModel
     public function isUsingSimpleLinksForSubPages(): bool
     {
         return $this->usingSimpleLinksForSubPages;
+    }
+
+    public function getUrlWithQueryString(): string
+    {
+        return $this->urlWithQueryString;
+    }
+
+    public function setUrlWithQueryString(string $urlWithQueryString): BaseWebPage
+    {
+        $this->urlWithQueryString = $urlWithQueryString;
+        return $this;
+    }
+
+
+    /**
+     * @param string $queryString
+     * @return string
+     */
+    public function addQueryString(string $queryString): string {
+        $separator = str_contains($this->urlWithQueryString, '?') ? '&' : '?';
+        return $this->urlWithQueryString . $separator . $queryString;
     }
 
 
