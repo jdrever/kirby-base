@@ -67,7 +67,7 @@ class BaseWebPage extends BaseModel
     /**
      * @var string
      */
-    protected string $query;
+    protected string $query = '';
 
     /**
      * @var RelatedContent[]
