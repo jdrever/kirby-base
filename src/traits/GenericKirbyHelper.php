@@ -251,7 +251,12 @@ trait GenericKirbyHelper
         try {
             $pageField = $this->getPageField($page, $fieldName);
             /** @noinspection PhpUndefinedMethodInspection */
-            return $pageField->toBlocks()->toHtml();
+            $blockContent = $pageField->toBlocks()->toHtml();
+
+            return ($excerpt === 0)
+                ? $blockContent
+                : Str::excerpt($blockContent, 200);
+
         } catch (KirbyRetrievalException $e) {
             if ($required) {
                 throw $e;
