@@ -731,6 +731,8 @@ trait GenericKirbyHelper
                 $page->template()->name()
             );
 
+            $webPage->setUrlWithQueryString($_SERVER['REQUEST_URI']);
+
             $user = $this->getCurrentUser();
 
             $webPage->setCurrentUser($user);
@@ -1281,14 +1283,11 @@ trait GenericKirbyHelper
             $details .= $this->getExceptionDetail($previous);
             $previous = $previous->getPrevious();
         }
-        // Optionally add request details (if running in a web context)
-        if (php_sapi_name() !== 'cli') {
-            $details .= "<b>Request Details: </b>\n";
-            $details .= "<b>URL: </b>" . ($_SERVER['HTTP_HOST'] ?? '') . ($_SERVER['REQUEST_URI'] ?? '') . "<br>";
-            $details .= "<b>Method: </b>" . ($_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN') . "<br>";
-            $details .= "<b>IP Address: </b>" . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN') . "<br>";
-            $details .= "<b>User Agent: </b>" . ($_SERVER['HTTP_USER_AGENT'] ?? 'UNKNOWN') . "<br><br>";
-        }
+        $details .= "<b>Request Details: </b>\n";
+        $details .= "<b>URL: </b>" . ($_SERVER['HTTP_HOST'] ?? '') . ($_SERVER['REQUEST_URI'] ?? '') . "<br>";
+        $details .= "<b>Method: </b>" . ($_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN') . "<br>";
+        $details .= "<b>IP Address: </b>" . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN') . "<br>";
+        $details .= "<b>User Agent: </b>" . ($_SERVER['HTTP_USER_AGENT'] ?? 'UNKNOWN') . "<br><br>";
         return $details;
     }
 
