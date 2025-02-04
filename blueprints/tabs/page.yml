@@ -24,6 +24,7 @@ columns:
           - donate
           - events
           - event_listing
+          - floras
           - join
           - news
           - newsletter_listing
