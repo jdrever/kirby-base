@@ -1101,8 +1101,6 @@ trait GenericKirbyHelper
     ): BaseWebPage
     {
         try {
-            echo('here');
-
             $kirbyPage = $this->getKirbyPage($pageId);
             $page = $this->getPage($kirbyPage, $pageClass, $checkUserRoles);
             if ($getPageFunction) {
@@ -1128,11 +1126,7 @@ trait GenericKirbyHelper
             if ($setPageFunction) {
                 $setPageFunction($kirbyPage, $page);
             }
-            echo('finished');
-            die();
         } catch (KirbyRetrievalException $e) {
-            var_dump($e); //
-            die();
             $page = $this->recordPageError($e, $pageClass);
         }
         return $page;
