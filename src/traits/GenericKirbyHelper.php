@@ -1131,7 +1131,7 @@ trait GenericKirbyHelper
             echo('finished');
             die();
         } catch (KirbyRetrievalException $e) {
-            var_dump($e);
+            var_dump($e); //
             die();
             $page = $this->recordPageError($e, $pageClass);
         }
