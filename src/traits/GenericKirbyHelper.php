@@ -251,7 +251,12 @@ trait GenericKirbyHelper
         try {
             $pageField = $this->getPageField($page, $fieldName);
             /** @noinspection PhpUndefinedMethodInspection */
-            return $pageField->toBlocks()->toHtml();
+            $blockContent = $pageField->toBlocks()->toHtml();
+
+            return ($excerpt === 0)
+                ? $blockContent
+                : Str::excerpt($blockContent, 200);
+
         } catch (KirbyRetrievalException $e) {
             if ($required) {
                 throw $e;
@@ -853,6 +858,7 @@ trait GenericKirbyHelper
     private function getSubPagesAsCollection(Page $page): mixed
     {
         if ($page->template()->name() !== 'home') {
+            //TODO: need to not hard-code option location
             $excludedTemplates = option('bsbi.bsbiweb.subPagesExclude');
 
             // Ensure it returns an array
@@ -1095,7 +1101,6 @@ trait GenericKirbyHelper
     ): BaseWebPage
     {
         try {
-
             $kirbyPage = $this->getKirbyPage($pageId);
             $page = $this->getPage($kirbyPage, $pageClass, $checkUserRoles);
             if ($getPageFunction) {
