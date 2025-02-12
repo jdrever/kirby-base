@@ -1292,6 +1292,7 @@ trait GenericKirbyHelper
         $details .= "<b>IP Address: </b>" . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN') . "<br>";
         $details .= "<b>User Agent: </b>" . ($_SERVER['HTTP_USER_AGENT'] ?? 'UNKNOWN') . "<br><br>";
         $details .= "<b>Kirby User ID: </b>" . $userId . "<br><br>";
+
         return $details;
     }
 
