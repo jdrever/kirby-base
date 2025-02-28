@@ -1,4 +1,4 @@
-name: field.blocks.image.name
+ame: field.blocks.image.name
 icon: image
 preview: image
 fields:
@@ -25,7 +25,7 @@ fields:
   bank:
     type: files
     label: Select an Image
-    query: site.index.files.filterBy("type", "image")
+    query: site.children.filterBy("template", "imagebank").first.files
     multiple: false
     layout: cards
     image:
