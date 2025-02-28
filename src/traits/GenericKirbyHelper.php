@@ -1276,6 +1276,9 @@ trait GenericKirbyHelper
         $details = "An exception was thrown in your application:<br><br>";
         $details .= $this->getExceptionDetail($exception);
 
+        $userLoggedIn = $this->kirby->user();
+        $userId = ($userLoggedIn) ? $userLoggedIn->id() : '';
+
         // Capture previous exceptions if they exist
         $previous = $exception->getPrevious();
         while ($previous) {
@@ -1288,6 +1291,8 @@ trait GenericKirbyHelper
         $details .= "<b>Method: </b>" . ($_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN') . "<br>";
         $details .= "<b>IP Address: </b>" . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN') . "<br>";
         $details .= "<b>User Agent: </b>" . ($_SERVER['HTTP_USER_AGENT'] ?? 'UNKNOWN') . "<br><br>";
+        $details .= "<b>Kirby User ID: </b>" . $userId . "<br><br>";
+
         return $details;
     }
 
