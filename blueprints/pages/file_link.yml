@@ -1,0 +1,13 @@
+title: File Link
+
+icon: file-code
+image:
+  color: green
+
+fields:
+  file:
+    type: files
+    label: Upload
+    max: 1
+    required: true
+    help: upload the file you want to link to

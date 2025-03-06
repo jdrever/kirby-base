@@ -91,4 +91,17 @@ class WebPageLink extends BaseModel
         $this->excludeFromMenus = $excludeFromMenus;
         return $this;
     }
+
+    public function getPageType(): string
+    {
+        return $this->pageType;
+    }
+
+    public function setPageType(string $pageType): WebPageLink
+    {
+        $this->pageType = $pageType;
+        return $this;
+    }
+
+
 }

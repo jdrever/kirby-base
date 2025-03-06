@@ -1012,7 +1012,14 @@ trait GenericKirbyHelper
      */
     private function getWebPageLink(Page $page, bool $simpleLink = true): WebPageLink
     {
-        $webPageLink = new WebPageLink($page->title()->toString(), $page->url(), $page->id(), $page->template()->name());
+        $templateName = $page->template()->name();
+        if ($templateName === 'file_link') {
+            $file = $this->getPageFieldAsFile($page, 'file');
+            $pageUrl = $file ? $file->url() : '';
+        } else {
+            $pageUrl = $page->url();
+        }
+        $webPageLink = new WebPageLink($page->title()->toString(), $pageUrl , $page->id(), $page->template()->name());
         $webPageLink->setDescription($this->getPageFieldAsString($page, 'description'));
         $webPageLink->setPanelDescription($this->getPageFieldAsKirbyText($page, 'panelDescription'));
         if ($simpleLink) {

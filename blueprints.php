@@ -1,5 +1,9 @@
 <?php
 return [
+
+    //pages blueprints
+    'pages/file_link' => __DIR__ . '/blueprints/pages/file_link.yml',
+
     //block blueprints
     'blocks/accordion' => __DIR__ . '/blueprints/blocks/accordion.yml',
     'blocks/description-list' => __DIR__ . '/blueprints/blocks/description-list.yml',

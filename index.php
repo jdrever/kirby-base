@@ -8,5 +8,8 @@ Kirby::plugin(
     'open-foundations/kirby-base', [
             'blueprints' => require __DIR__ . '/blueprints.php',
             'snippets' => require __DIR__ . '/snippets.php',
+            'templates' => [
+                'file_link' => __DIR__ . '/templates/file_link.php',
+            ]
         ]
 );
