@@ -3,6 +3,7 @@
 namespace BSBI\WebBase\traits;
 
 use BSBI\WebBase\helpers\KirbyRetrievalException;
+use BSBI\WebBase\models\BaseFilter;
 use BSBI\WebBase\models\BaseModel;
 use BSBI\WebBase\models\BaseWebPage;
 use BSBI\WebBase\models\CoreLink;
@@ -1049,13 +1050,20 @@ trait GenericKirbyHelper
 
     /**
      * @param string $collection
+     * @param string $modelListClass
      * @param class-string<BaseModel> $modelClass
+     * @param BaseFilter|null $filter
+     * @param callable|null $filterFunction
+     * @param callable|null $setModelFunction
      * @return BaseModel
      * @throws KirbyRetrievalException
      */
-    private function getModelList(string $collection,
-                                  string $modelListClass = BaseModel::class,
-                                  string $modelClass = BaseModel::class): BaseModel
+    private function getModelList(string      $collection,
+                                  string      $modelListClass = BaseModel::class,
+                                  string      $modelClass = BaseModel::class,
+                                  ?BaseFilter $filter = null,
+                                  callable    $filterFunction = null,
+                                  callable    $setModelFunction = null): BaseModel
     {
 
 
@@ -1066,9 +1074,19 @@ trait GenericKirbyHelper
 
         $modelList = new $modelListClass();
 
-        // Check if the created $modelList instance has the addListItem method
+        // Check if the created $modelList instance has the addListItem function
         if (!method_exists($modelList, 'addListItem')) {
-            throw new KirbyRetrievalException("The class {$modelClass} does not have an addListItem method.");
+            throw new KirbyRetrievalException("The class {$modelClass} does not have an addListItem function.");
+        }
+
+        // Check if the created $modelList instance has the addListItem method
+        if (!method_exists($modelList, 'setFilters')) {
+            throw new KirbyRetrievalException("The class {$modelClass} does not have an setFilers function.");
+        }
+
+        // Ensure $modelClass is a subclass of BaseModel
+        if (!(is_a($modelClass, BaseModel::class, true))) {
+            throw new KirbyRetrievalException("Model class must extend BaseModel.");
         }
 
         $collectionPages = $this->kirby->collection($collection);
@@ -1077,14 +1095,18 @@ trait GenericKirbyHelper
             throw new KirbyRetrievalException('Collection ' . $collection . ' pages not found');
         }
 
-        // Ensure $modelClass is a subclass of WebPage
-        if (!(is_a($modelClass, BaseModel::class, true))) {
-            throw new KirbyRetrievalException("Model class must extend BaseModel.");
+        if ($filter && $filterFunction) {
+            $modelList->setFilters($filter);
+            $collectionPages = $filterFunction($collectionPages, $filter);
         }
 
         /** @var Page $collectionPage */
         foreach ($collectionPages as $collectionPage) {
-            $modelList->addListItem($this->getModelPage($collectionPage->id(), $modelClass));
+            if ($setModelFunction) {
+                $modelList->addListItem($setModelFunction($collectionPage->id()));
+            } else {
+                $modelList->addListItem($this->getModelPage($collectionPage->id(), $modelClass));
+            }
         }
 
         return $modelList;

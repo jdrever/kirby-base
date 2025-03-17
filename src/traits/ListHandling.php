@@ -114,7 +114,7 @@ trait ListHandling
     /**
      * @return BaseFilter
      */
-    public function getFilter(): BaseFilter
+    public function getFilters(): BaseFilter
     {
         return $this->filter;
     }
@@ -123,7 +123,7 @@ trait ListHandling
      * @param BaseFilter $filter
      * @return $this
      */
-    public function setFilter(BaseFilter $filter): static
+    public function setFilters(BaseFilter $filter): static
     {
         $this->filter = $filter;
         return $this;
