@@ -2,6 +2,7 @@ name: FAQ
 icon: question
 preview: fields
 wysiwyg: true
+
 fields:
   title:
     type: text
