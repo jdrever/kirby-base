@@ -1,0 +1,17 @@
+name: FAQ
+icon: question
+preview: fields
+wysiwyg: true
+fields:
+  title:
+    type: text
+  questions:
+    type: structure
+    label: Questions
+    fields:
+      question:
+        label: Question
+        type: text
+      answer:
+        label: Answer
+        type: textarea

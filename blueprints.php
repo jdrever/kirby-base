@@ -7,6 +7,7 @@ return [
     //block blueprints
     'blocks/accordion' => __DIR__ . '/blueprints/blocks/accordion.yml',
     'blocks/description-list' => __DIR__ . '/blueprints/blocks/description-list.yml',
+    'blocks/faq' => __DIR__ . '/blueprints/blocks/faq.yml',
     'blocks/file' => __DIR__ . '/blueprints/blocks/file.yml',
     'blocks/gallery' => __DIR__ . '/blueprints/blocks/gallery.yml',
     'blocks/heading' => __DIR__ . '/blueprints/blocks/heading.yml',

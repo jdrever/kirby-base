@@ -12,6 +12,7 @@ fieldsets:
       - table-2col
       - description-list
       - accordion
+      - faq
       - ready-made
   media:
     label: Media
