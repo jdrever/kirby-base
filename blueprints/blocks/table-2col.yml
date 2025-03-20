@@ -1,5 +1,5 @@
 name: Table (2 Column)
-icon: menu
+icon: table
 preview: table
 fields:
   col1Title:

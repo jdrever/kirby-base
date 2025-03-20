@@ -1,5 +1,5 @@
 name: Description List
-icon: menu
+icon: list
 preview: table
 fields:
   rows:
