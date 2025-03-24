@@ -1,5 +1,5 @@
 name: Description List
-icon: list
+icon: list-bullet
 preview: table
 fields:
   rows:
