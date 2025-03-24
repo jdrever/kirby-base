@@ -925,7 +925,7 @@ trait GenericKirbyHelper
      * @param Page|null $parentPage
      * @return Page|null
      */
-    private function findKirbyPage(string $title, Page $parentPage = null): Page|null
+    private function findKirbyPage(string $title, ?Page $parentPage = null): Page|null
     {
         $page = $parentPage === null
             ? $this->site->children()->find($title)
@@ -1062,8 +1062,8 @@ trait GenericKirbyHelper
                                   string      $modelListClass = BaseModel::class,
                                   string      $modelClass = BaseModel::class,
                                   ?BaseFilter $filter = null,
-                                  callable    $filterFunction = null,
-                                  callable    $setModelFunction = null): BaseModel
+                                  ?callable   $filterFunction = null,
+                                  ?callable    $setModelFunction = null): BaseModel
     {
 
 
@@ -1123,9 +1123,9 @@ trait GenericKirbyHelper
     private function getSpecialisedPage(
         string   $pageId,
         string   $pageClass = BaseWebPage::class,
-        callable $setPageFunction = null,
+        ?callable $setPageFunction = null,
         string   $collectionName = '',
-        callable $getPageFunction = null,
+        ?callable $getPageFunction = null,
         bool     $checkUserRoles = true
     ): BaseWebPage
     {
@@ -1169,7 +1169,7 @@ trait GenericKirbyHelper
     private function getModelPage(
         string   $pageId,
         string   $modelClass = BaseModel::class,
-        callable $setPageFunction = null,
+        ?callable $setPageFunction = null,
     ): BaseModel
     {
         try {
@@ -1476,7 +1476,7 @@ trait GenericKirbyHelper
      * @param Collection|null $collection
      * @return WebPageLinks
      */
-    private function getSearchResults(string $query, Collection $collection = null): WebPageLinks
+    private function getSearchResults(string $query, ?Collection $collection = null): WebPageLinks
     {
         $searchResults = new WebPageLinks();
         try {
@@ -1532,10 +1532,10 @@ trait GenericKirbyHelper
      * @return Collection
      */
     private function getSearchCollection(
-        string     $query = null,
+        ?string     $query = null,
         string     $params = 'title|mainContent|description',
         int        $perPage = 10,
-        Collection $collection = null
+        ?Collection $collection = null
     ): Collection
     {
         if ($collection === null) {
