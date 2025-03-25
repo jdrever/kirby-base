@@ -1755,6 +1755,24 @@ trait GenericKirbyHelper
 
     #endregion
 
+    #region TAGS
+
+    /**
+     * @param Collection $pages
+     * @param string $tagName
+     * @param string $tagValue
+     * @return Collection
+     */
+    private function filterByPagesTag(Collection $pages, string $tagName, string $tagValue): Collection {
+        if (empty($tagValue)) { return $pages;}
+        return $pages->filter(function ($page) use ($tagName, $tagValue) {
+            $pages = $page->content()->get($tagName)->toPages();
+            return ($pages->filterBy('title', $tagValue)->count() > 0);
+        });
+    }
+
+    #endregion
+
     #region MISC
 
     /**
