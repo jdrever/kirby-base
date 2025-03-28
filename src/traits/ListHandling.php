@@ -15,10 +15,10 @@ use BSBI\WebBase\models\Pagination;
 
 trait ListHandling
 {
-    /** @var BaseModel[] The list*/
+    /** @var T[] $list */
     protected array $list = [];
 
-    /** @var BaseFilter The filter*/
+    /** @var U $filter */
     protected BaseFilter $filter;
 
     /**
@@ -30,7 +30,7 @@ trait ListHandling
     /**
      * Add the item.
      * For implementations, use a specific add function, e.g. addCategory, that enforces type
-     * @param BaseModel $item
+     * @param T $item
      * @return $this
      */
     private function add(BaseModel $item): static

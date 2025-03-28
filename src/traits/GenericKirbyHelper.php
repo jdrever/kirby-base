@@ -711,6 +711,25 @@ trait GenericKirbyHelper
 
     #region PAGES
 
+    /**
+     * @param string $pageId
+     * @param string $pageClass
+     * @return BaseWebPage
+     * @throws KirbyRetrievalException
+     */
+    public function getWebPage(string $pageId, string $pageClass = BaseWebPage::class): BaseWebPage {
+        $kirbyPage = $this->getKirbyPage($pageId);
+        $webPage = $this->getPage($kirbyPage, $pageClass);
+        if (method_exists($this, 'setCurrentPage')) {
+            $webPage = $this->setCurrentPage($webPage);
+        }
+
+        if (method_exists($this, 'set'.$pageClass)) {
+            $setPageMethod = 'set'.$pageClass;
+            $webPage = $this->$setPageMethod($webPage);
+        }
+    }
+
 
     /**
      * @param Page $page
@@ -1751,6 +1770,24 @@ trait GenericKirbyHelper
      */
     private function getCurrentUserRole(): string {
         return $this->kirby->user() ? $this->kirby->user()->role()->name() : '';
+    }
+
+    #endregion
+
+    #region TAGS
+
+    /**
+     * @param Collection $pages
+     * @param string $tagName
+     * @param string $tagValue
+     * @return Collection
+     */
+    private function filterByPagesTag(Collection $pages, string $tagName, string $tagValue): Collection {
+        if (empty($tagValue)) { return $pages;}
+        return $pages->filter(function ($page) use ($tagName, $tagValue) {
+            $pages = $page->content()->get($tagName)->toPages();
+            return ($pages->filterBy('title', $tagValue)->count() > 0);
+        });
     }
 
     #endregion
