@@ -7,6 +7,7 @@ namespace BSBI\WebBase\interfaces;
  */
 interface ListHandler
 {
+
     /**
      * @return T[]
      */

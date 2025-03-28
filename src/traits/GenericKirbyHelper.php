@@ -711,6 +711,25 @@ trait GenericKirbyHelper
 
     #region PAGES
 
+    /**
+     * @param string $pageId
+     * @param string $pageClass
+     * @return BaseWebPage
+     * @throws KirbyRetrievalException
+     */
+    public function getWebPage(string $pageId, string $pageClass = BaseWebPage::class): BaseWebPage {
+        $kirbyPage = $this->getKirbyPage($pageId);
+        $webPage = $this->getPage($kirbyPage, $pageClass);
+        if (method_exists($this, 'setCurrentPage')) {
+            $webPage = $this->setCurrentPage($webPage);
+        }
+
+        if (method_exists($this, 'set'.$pageClass)) {
+            $setPageMethod = 'set'.$pageClass;
+            $webPage = $this->$setPageMethod($webPage);
+        }
+    }
+
 
     /**
      * @param Page $page
