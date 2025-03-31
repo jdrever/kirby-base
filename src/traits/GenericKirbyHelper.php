@@ -17,6 +17,8 @@ use BSBI\WebBase\models\WebPageBlocks;
 use BSBI\WebBase\models\WebPageLink;
 use BSBI\WebBase\models\WebPageLinks;
 use BSBI\WebBase\models\User;
+use BSBI\WebBase\models\WebPageTagLinks;
+use BSBI\WebBase\models\WebPageTagLinkSet;
 use DateTime;
 use Kirby\Cms\Block;
 use Kirby\Cms\Blocks;
@@ -331,6 +333,21 @@ trait GenericKirbyHelper
         $pageField = $this->getPageField($page, $fieldName);
         /** @noinspection PhpUndefinedMethodInspection */
         return $pageField->toFile();
+    }
+
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @param string $tagType
+     * @return WebPageLinks
+     * @throws KirbyRetrievalException
+     */
+    private function getPageFieldAsWebPageTagLinks(Page $page, string $fieldName): WebPageTagLinks
+    {
+        $pageField = $this->getPageField($page, $fieldName);
+        /** @noinspection PhpUndefinedMethodInspection */
+        $pages = $pageField->toPages();
+        return $this->getWebPageLinks($pages);
     }
 
     /**
@@ -1790,6 +1807,23 @@ trait GenericKirbyHelper
         });
     }
 
+    /**
+     * @param Collection $collection
+     * @return WebPageTagLinks
+     * @throws KirbyRetrievalException
+     */
+    private function getWebPageTagLinks(Collection $collection, string $tagType): WebPageTagLinks
+    {
+        $tagLinks = new WebPageTagLinks();
+        /** @var Page $collectionPage */
+        foreach ($collection as $collectionPage) {
+            $
+            $tagLinks->addListItem($this->getWebPageLink($collectionPage));
+        }
+        return $webPageLinks;
+    }
+
+
     #endregion
 
     #region MISC
@@ -1926,6 +1960,11 @@ trait GenericKirbyHelper
         $milliseconds = sprintf("%03d", ($microtime - floor($microtime)) * 1000);
         $timestamp = (new DateTime())->setTimestamp((int)$microtime)->format("Y-m-d H:i:s");
         echo "[{$timestamp}.{$milliseconds}]<br>";
+    }
+
+    function doesClassUseTrait($class, $trait) {
+        $traits = class_uses_recursive($class);
+        return in_array($trait, $traits);
     }
 
     #endregion

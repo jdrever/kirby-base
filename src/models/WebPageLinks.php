@@ -36,6 +36,7 @@ class WebPageLinks
         return $this;
     }
 
+    //TODO: update this class to use ListHandler (would need to update all projects)
     /**
      * @return WebPageLink[]
      */
