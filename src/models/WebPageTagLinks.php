@@ -11,18 +11,12 @@ use BSBI\WebBase\traits\ErrorHandling;
  * Represents a list of web pages with various properties and methods.
  * @package BSBI\Web
  */
-class WebPageTagLinks extends BaseModel implements ListHandler
+class WebPageTagLinks implements ListHandler
 {
     /**
      * @use ListHandling<WebPageTagLinkSet, BaseFilter>
      */
     use ListHandling;
-
-
-    public function __construct()
-    {
-        parent::__construct('Tag Links','');
-    }
 
     public function addListItem(WebPageTagLinkSet $item): self {
         $this->add($item);

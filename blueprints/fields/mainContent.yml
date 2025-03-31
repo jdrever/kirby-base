@@ -10,6 +10,7 @@ fieldsets:
       - list
       - note
       - table-2col
+      - table-3col
       - description-list
       - accordion
       - faq

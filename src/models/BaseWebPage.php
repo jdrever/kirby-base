@@ -2,6 +2,7 @@
 
 namespace BSBI\WebBase\models;
 
+use BSBI\Web\traits\TagProperties;
 use BSBI\WebBase\traits\CoreWebPageProperties;
 
 /**
@@ -73,6 +74,11 @@ class BaseWebPage extends BaseModel
      * @var RelatedContent[]
      */
     protected array $relatedContent = [];
+
+    /**
+     * @var WebPageTagLinks
+     */
+    private WebPageTagLinks $tagLinks;
 
     /**
      * @var string[]
@@ -296,6 +302,31 @@ class BaseWebPage extends BaseModel
      */
     public function getRelatedContent(): array {
         return $this->relatedContent;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasTags():bool {
+        return false;
+    }
+
+    /**
+     * @return WebPageTagLinks
+     */
+    public function getTagLinks(): WebPageTagLinks
+    {
+        return $this->tagLinks;
+    }
+
+    /**
+     * @param WebPageTagLinks $tagLinks
+     * @return $this
+     */
+    public function setTagLinks(WebPageTagLinks $tagLinks): self
+    {
+        $this->tagLinks = $tagLinks;
+        return $this;
     }
 
     /**

@@ -342,7 +342,7 @@ trait GenericKirbyHelper
      * @return WebPageLinks
      * @throws KirbyRetrievalException
      */
-    private function getPageFieldAsWebPageTagLinks(Page $page, string $fieldName): WebPageTagLinks
+    private function getPageFieldAsWebPageTagLinks(Page $page, string $fieldName): WebPageLinks
     {
         $pageField = $this->getPageField($page, $fieldName);
         /** @noinspection PhpUndefinedMethodInspection */
@@ -1808,19 +1808,18 @@ trait GenericKirbyHelper
     }
 
     /**
-     * @param Collection $collection
-     * @return WebPageTagLinks
+     * @param Page $kirbyPage
+     * @param string $tagType
+     * @param string $fieldName
+     * @return WebPageTagLinkSet
      * @throws KirbyRetrievalException
      */
-    private function getWebPageTagLinks(Collection $collection, string $tagType): WebPageTagLinks
+    private function getWebPageTagLinkSet(Page $kirbyPage, string $tagType, string $fieldName): WebPageTagLinkSet
     {
-        $tagLinks = new WebPageTagLinks();
-        /** @var Page $collectionPage */
-        foreach ($collection as $collectionPage) {
-            $
-            $tagLinks->addListItem($this->getWebPageLink($collectionPage));
-        }
-        return $tagLinks;
+        $tagLinkSet = new WebPageTagLinkSet();
+        $tagLinkSet->setTagType($tagType);
+        $tagLinkSet->setTagLinks($this->getPageFieldAsWebPageTagLinks($kirbyPage,$fieldName));
+        return $tagLinkSet;
     }
 
 
