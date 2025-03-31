@@ -1820,7 +1820,7 @@ trait GenericKirbyHelper
             $
             $tagLinks->addListItem($this->getWebPageLink($collectionPage));
         }
-        return $webPageLinks;
+        return $tagLinks;
     }
 
 
