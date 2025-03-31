@@ -1185,7 +1185,7 @@ trait GenericKirbyHelper
             }
 
             if (method_exists($this, 'setCurrentPage')) {
-                $page = $this->setCurrentPage($page);
+                $page = $this->setCurrentPage($kirbyPage, $page);
             }
 
             if ($setPageFunction) {
