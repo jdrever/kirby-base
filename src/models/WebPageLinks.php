@@ -2,6 +2,7 @@
 
 namespace BSBI\WebBase\models;
 
+use BSBI\WebBase\interfaces\ListHandler;
 use BSBI\WebBase\traits\ListHandling;
 use BSBI\WebBase\traits\ErrorHandling;
 
@@ -10,7 +11,7 @@ use BSBI\WebBase\traits\ErrorHandling;
  * Represents a list of web pages with various properties and methods.
  * @package BSBI\Web
  */
-class WebPageLinks
+class WebPageLinks extends BaseModel implements ListHandler
 {
     /**
      * @use ListHandling<WebPageLink, BaseFilter>
@@ -21,6 +22,7 @@ class WebPageLinks
     public function __construct()
     {
         $this->status = true;
+        parent::__construct('WebPageLinks', '');
     }
 
 
@@ -40,7 +42,7 @@ class WebPageLinks
     /**
      * @return WebPageLink[]
      */
-    public function getLinks(): array {
+    public function getListItems(): array {
         return $this->list;
     }
 
