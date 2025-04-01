@@ -1505,7 +1505,7 @@ trait GenericKirbyHelper
             }
 
             $searchResults = $this->getWebPageLinks($collection);
-            foreach ($searchResults->getLinks() as $searchResult) {
+            foreach ($searchResults->getListItems() as $searchResult) {
                 $highlightedTitle = $this->highlightTerm($searchResult->getTitle(), $query);
                 $highlightedDescription = $this->highlightTerm($searchResult->getDescription(), $query);
                 $searchResult->setTitle($highlightedTitle);
