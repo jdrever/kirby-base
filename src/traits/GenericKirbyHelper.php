@@ -344,10 +344,14 @@ trait GenericKirbyHelper
      */
     private function getPageFieldAsWebPageTagLinks(Page $page, string $fieldName): WebPageLinks
     {
-        $pageField = $this->getPageField($page, $fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        $pages = $pageField->toPages();
-        return $this->getWebPageLinks($pages);
+        try {
+            $pageField = $this->getPageField($page, $fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            $pages = $pageField->toPages();
+            return $this->getWebPageLinks($pages);
+        } catch (KirbyRetrievalException $e) {
+            return new WebPageLinks();
+        }
     }
 
     /**
@@ -1218,7 +1222,7 @@ trait GenericKirbyHelper
             $model = new $modelClass($kirbyPage->title()->toString(), $kirbyPage->url(), $kirbyPage->template()->name());
 
             if ($setPageFunction) {
-                $setPageFunction($kirbyPage, $model);
+                $model = $setPageFunction($kirbyPage, $model);
             }
         } catch (KirbyRetrievalException $e) {
             $model = $this->recordModelError($e, $modelClass);
@@ -1818,7 +1822,7 @@ trait GenericKirbyHelper
     {
         $tagLinkSet = new WebPageTagLinkSet();
         $tagLinkSet->setTagType($tagType);
-        $tagLinkSet->setTagLinks($this->getPageFieldAsWebPageTagLinks($kirbyPage,$fieldName));
+        $tagLinkSet->setLinks($this->getPageFieldAsWebPageTagLinks($kirbyPage,$fieldName));
         return $tagLinkSet;
     }
 

@@ -12,7 +12,7 @@ use BSBI\WebBase\traits\ErrorHandling;
  * Represents a list of web pages with various properties and methods.
  * @package BSBI\Web
  */
-class WebPageTagLinkSet
+class WebPageTagLinkSet extends BaseModel
 {
 
     private string $tagType;
