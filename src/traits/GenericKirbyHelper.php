@@ -1101,7 +1101,7 @@ trait GenericKirbyHelper
 
         // Check if the created $modelList instance has the addListItem method
         if (!method_exists($modelList, 'setFilters')) {
-            throw new KirbyRetrievalException("The class {$modelClass} does not have an setFilers function.");
+            throw new KirbyRetrievalException("The class {$modelClass} does not have an setFilters function.");
         }
 
         // Ensure $modelClass is a subclass of BaseModel
