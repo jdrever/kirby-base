@@ -1238,6 +1238,74 @@ trait GenericKirbyHelper
         return $model;
     }
 
+    /**
+     * @param string $collection
+     * @param string $modelListClass
+     * @param class-string<BaseModel> $modelClass
+     * @param BaseFilter|null $filter
+     * @param callable|null $filterFunction
+     * @param callable|null $setModelFunction
+     * @return BaseModel
+     * @throws KirbyRetrievalException
+     */
+    private function getSpecificModelList(string      $collection,
+                                  string      $modelListClass = BaseModel::class,
+                                  string      $modelClass = BaseModel::class,
+                                  string      $filterClass = BaseFilter::class) : BaseModel
+    {
+
+
+        // Ensure $pageClass is a subclass of WebPage
+        if (!(is_a($modelListClass, BaseModel::class, true))) {
+            throw new KirbyRetrievalException("Model list class must extend BaseModel.");
+        }
+
+        $modelList = new $modelListClass();
+
+        // Check if the created $modelList instance has the addListItem/setFilters function
+        if (!method_exists($modelList, 'addListItem')) {
+            throw new KirbyRetrievalException("The class {$modelListClass} does not have an addListItem function.");
+        }
+        if (!method_exists($modelList, 'setFilters')) {
+            throw new KirbyRetrievalException("The class {$modelListClass} does not have an setFilters function.");
+        }
+        // Ensure $modelClass is a subclass of BaseModel
+        if (!(is_a($modelClass, BaseModel::class, true))) {
+            throw new KirbyRetrievalException("Model class must extend BaseModel.");
+        }
+
+        // Ensure $filterClass is a subclass of BaseModel
+        if (!(is_a($filterClass, BaseFilter::class, true))) {
+            throw new KirbyRetrievalException("Filter class must extend BaseFilter.");
+        }
+
+        $collectionPages = $this->kirby->collection($collection);
+
+        if (!isset($collectionPages)) {
+            throw new KirbyRetrievalException('Collection ' . $collection . ' pages not found');
+        }
+
+        $setFilterFunction = 'set'.$this->extractClassName($filterClass);
+        if (method_exists($this, $setFilterFunction)) {
+            $filter = $this->$setFilterFunction();
+            $modelList->setFilters($filter);
+
+            $filterFunction = 'filter' . $this->extractClassName($modelListClass);
+
+            if (method_exists($this, $filterFunction)) {
+                $collectionPages = $this->$filterFunction($collectionPages, $filter);
+            }
+        }
+
+        /** @var Page $collectionPage */
+        foreach ($collectionPages as $collectionPage) {
+            $model = $this->getSpecificModel($collectionPage, $modelClass);
+            $modelList->addListItem($model);
+        }
+
+        return $modelList;
+    }
+
 
     /**
      * @param string $pageId
