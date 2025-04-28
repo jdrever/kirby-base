@@ -780,6 +780,10 @@ trait GenericKirbyHelper
                 $webPage->setMainContentBlocks($this->getContentBlocks($page));
             }
 
+            if ($this->isPageFieldNotEmpty($page, 'lowerContent')) {
+                $webPage->setLowerContentBlocks($this->getContentBlocks($page, 'lowerContent'));
+            }
+
             if ($this->isPageFieldNotEmpty($page, 'related')) {
                 $relatedContent = $this->getPageFieldAsStructure($page, 'related');
                 foreach ($relatedContent as $item) {
