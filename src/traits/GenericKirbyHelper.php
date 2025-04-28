@@ -1181,6 +1181,60 @@ trait GenericKirbyHelper
         return $page;
     }
 
+    public function getSpecificPage(string $pageId, string $pageClass = BaseWebPage::class, $checkUserRoles = true) : BaseWebPage {
+        try {
+            $kirbyPage = $this->getKirbyPage($pageId);
+            $page = $this->getPage($kirbyPage, $pageClass, $checkUserRoles);
+
+            if (method_exists($this, 'setCurrentPage')) {
+                $page = $this->setCurrentPage($kirbyPage, $page);
+            }
+
+            $setPageFunction = 'set'.$this->extractClassName($pageClass);
+
+            if (method_exists($this, $setPageFunction)) {
+                $page = $this->$setPageFunction($kirbyPage, $page);
+            }
+
+        } catch (KirbyRetrievalException $e) {
+            $page = $this->recordPageError($e, $pageClass);
+        }
+        return $page;
+    }
+
+    private function extractClassName(string $fullClassName ): string {
+        $afterLastBackslash = strrchr($fullClassName, '\\');
+        if ($afterLastBackslash === false) {
+            // No backslash found, the string is the content
+            return $fullClassName;
+        } else {
+            // Remove the leading backslash
+            return substr($afterLastBackslash, 1);
+        }
+    }
+
+
+    public function getSpecificModel(string $pageId, string $modelClass) : BaseModel {
+        try {
+            $kirbyPage = $this->getKirbyPage($pageId);
+            if (!(is_a($modelClass, BaseModel::class, true))) {
+                throw new KirbyRetrievalException("Page class must extend BaseModel.");
+            }
+
+            $model = new $modelClass($kirbyPage->title()->toString(), $kirbyPage->url());
+
+            $setModelFunction = 'set'.$this->extractClassName($modelClass);
+
+            if (method_exists($this, $setModelFunction)) {
+                $model = $this->$setModelFunction($kirbyPage, $model);
+            }
+        } catch (KirbyRetrievalException $e) {
+            $model = $this->recordModelError($e, $modelClass);
+        }
+        return $model;
+    }
+
+
     /**
      * @param string $pageId
      * @param class-string<BaseModel> $modelClass
