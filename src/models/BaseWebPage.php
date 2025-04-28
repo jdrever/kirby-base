@@ -44,6 +44,8 @@ class BaseWebPage extends BaseModel
      */
     protected WebPageBlocks $mainContentBlocks;
 
+    protected WebPageBlocks $lowerContentBlocks;
+
     /**
      * @var WebPageLinks
      */
@@ -194,6 +196,16 @@ class BaseWebPage extends BaseModel
     {
         $this->mainContentBlocks = $mainContentBlocks;
         return $this;
+    }
+
+    public function getLowerContentBlocks(): WebPageBlocks
+    {
+        return $this->lowerContentBlocks;
+    }
+
+    public function setLowerContentBlocks(WebPageBlocks $lowerContentBlocks): void
+    {
+        $this->lowerContentBlocks = $lowerContentBlocks;
     }
 
     /**
