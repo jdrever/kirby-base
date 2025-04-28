@@ -1,21 +1,24 @@
 <?php
 
-namespace BSBI\WebBase\traits;
+namespace BSBI\WebBase\models;
 
-use BSBI\WebBase\models\BaseFilter;
-use BSBI\WebBase\models\BaseModel;
-use BSBI\WebBase\models\Pagination;
+use BSBI\WebBase\traits\ListHandling;
 
 /**
- * @deprecated
- * Use BaseList instead
- * @template T of BaseModel
- * @template U of BaseFilter
- *
- * @package BSBI\Web
+ * @template T
  */
-trait ListHandling
+
+abstract class BaseList
 {
+    use ListHandling;
+
+    /**
+     * @return T[]
+     */
+    abstract function getListItems(): array;
+
+    abstract function getItemType(): string;
+
     /** @var T[] $list */
     protected array $list = [];
 
@@ -129,7 +132,6 @@ trait ListHandling
         $this->filter = $filter;
         return $this;
     }
-
 
 
 }

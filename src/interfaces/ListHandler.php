@@ -3,6 +3,7 @@
 namespace BSBI\WebBase\interfaces;
 
 /**
+ * @deprecated
  * @template T
  */
 interface ListHandler
@@ -12,4 +13,5 @@ interface ListHandler
      * @return T[]
      */
     public function getListItems(): array;
+
 }

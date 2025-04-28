@@ -4,6 +4,7 @@ namespace BSBI\WebBase\traits;
 
 use BSBI\WebBase\helpers\KirbyRetrievalException;
 use BSBI\WebBase\models\BaseFilter;
+use BSBI\WebBase\models\BaseList;
 use BSBI\WebBase\models\BaseModel;
 use BSBI\WebBase\models\BaseWebPage;
 use BSBI\WebBase\models\CoreLink;
@@ -85,6 +86,19 @@ trait GenericKirbyHelper
             throw new KirbyRetrievalException('Current page not found');
         }
         return $this->getPageFieldAsString($this->page, $fieldName);
+    }
+
+    /**
+     * Gets the field - if the field is empty, returns an empty string
+     * @return string
+     * @throws KirbyRetrievalException if the page or field cannot be found
+     */
+    public function getCurrentPageTitle(): string
+    {
+        if (!isset($this->page)) {
+            throw new KirbyRetrievalException('Current page not found');
+        }
+        return $this->page->title()->toString();
     }
 
     /**
@@ -1073,6 +1087,7 @@ trait GenericKirbyHelper
     }
 
     /**
+     * @deprecated
      * @param string $collection
      * @param string $modelListClass
      * @param class-string<BaseModel> $modelClass
@@ -1138,6 +1153,7 @@ trait GenericKirbyHelper
 
 
     /**
+     * @deprecated
      * @param string $pageId
      * @param class-string<BaseWebPage> $pageClass
      * @param callable|null $getPageFunction
@@ -1206,6 +1222,10 @@ trait GenericKirbyHelper
         return $page;
     }
 
+    /**
+     * @param string $fullClassName
+     * @return string
+     */
     private function extractClassName(string $fullClassName ): string {
         $afterLastBackslash = strrchr($fullClassName, '\\');
         if ($afterLastBackslash === false) {
@@ -1218,6 +1238,11 @@ trait GenericKirbyHelper
     }
 
 
+    /**
+     * @param string $pageId
+     * @param string $modelClass
+     * @return BaseModel
+     */
     public function getSpecificModel(string $pageId, string $modelClass) : BaseModel {
         try {
             $kirbyPage = $this->getKirbyPage($pageId);
@@ -1241,23 +1266,22 @@ trait GenericKirbyHelper
     /**
      * @param string $collection
      * @param string $modelListClass
-     * @param class-string<BaseModel> $modelClass
-     * @param BaseFilter|null $filter
-     * @param callable|null $filterFunction
-     * @param callable|null $setModelFunction
-     * @return BaseModel
+     * @param string $filterClass
+     * @param callable|null $setFilterFunction
+     * @return BaseList
      * @throws KirbyRetrievalException
      */
-    private function getSpecificModelList(string      $collection,
-                                  string      $modelListClass = BaseModel::class,
-                                  string      $modelClass = BaseModel::class,
-                                  string      $filterClass = BaseFilter::class) : BaseModel
+    private function getSpecificModelList(string        $collection,
+                                  string                $modelListClass = BaseList::class,
+                                  string                $filterClass = BaseFilter::class,
+                                  callable|null         $setFilterFunction = null,
+    ) : BaseList
     {
 
 
         // Ensure $pageClass is a subclass of WebPage
-        if (!(is_a($modelListClass, BaseModel::class, true))) {
-            throw new KirbyRetrievalException("Model list class must extend BaseModel.");
+        if (!(is_a($modelListClass, BaseList::class, true))) {
+            throw new KirbyRetrievalException("Model list class must extend BaseList.");
         }
 
         $modelList = new $modelListClass();
@@ -1269,6 +1293,9 @@ trait GenericKirbyHelper
         if (!method_exists($modelList, 'setFilters')) {
             throw new KirbyRetrievalException("The class {$modelListClass} does not have an setFilters function.");
         }
+
+        $modelClassName = $modelList->getItemType();
+        $modelClass = $modelClassName;
         // Ensure $modelClass is a subclass of BaseModel
         if (!(is_a($modelClass, BaseModel::class, true))) {
             throw new KirbyRetrievalException("Model class must extend BaseModel.");
@@ -1285,11 +1312,19 @@ trait GenericKirbyHelper
             throw new KirbyRetrievalException('Collection ' . $collection . ' pages not found');
         }
 
-        $setFilterFunction = 'set'.$this->extractClassName($filterClass);
-        if (method_exists($this, $setFilterFunction)) {
-            $filter = $this->$setFilterFunction();
-            $modelList->setFilters($filter);
+        $filter = null;
 
+        if ($setFilterFunction) {
+            $filter = $setFilterFunction();
+        } else {
+
+            $setFilterFunction = 'set' . $this->extractClassName($filterClass);
+            if (method_exists($this, $setFilterFunction)) {
+                $filter = $this->$setFilterFunction();
+            }
+        }
+        if ($filter) {
+            $modelList->setFilters($filter);
             $filterFunction = 'filter' . $this->extractClassName($modelListClass);
 
             if (method_exists($this, $filterFunction)) {
@@ -1308,6 +1343,7 @@ trait GenericKirbyHelper
 
 
     /**
+     * @deprecated
      * @param string $pageId
      * @param class-string<BaseModel> $modelClass
      * @return BaseModel
