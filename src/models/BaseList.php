@@ -10,7 +10,6 @@ use BSBI\WebBase\traits\ListHandling;
 
 abstract class BaseList
 {
-    use ListHandling;
 
     /**
      * @return T[]
@@ -18,6 +17,8 @@ abstract class BaseList
     abstract function getListItems(): array;
 
     abstract function getItemType(): string;
+
+    abstract function getFilterType(): string;
 
     /** @var T[] $list */
     protected array $list = [];

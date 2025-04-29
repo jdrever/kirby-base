@@ -1264,17 +1264,16 @@ trait GenericKirbyHelper
     }
 
     /**
-     * @param string $collection
      * @param string $modelListClass
-     * @param string $filterClass
      * @param callable|null $setFilterFunction
+     * @param string|null $collection
      * @return BaseList
      * @throws KirbyRetrievalException
      */
-    private function getSpecificModelList(string        $collection,
-                                  string                $modelListClass = BaseList::class,
-                                  string                $filterClass = BaseFilter::class,
-                                  callable|null         $setFilterFunction = null,
+    private function getSpecificModelList(string        $modelListClass = BaseList::class,
+                                          callable|null $setFilterFunction = null,
+                                          string|null   $collection = null,
+
     ) : BaseList
     {
 
@@ -1286,13 +1285,6 @@ trait GenericKirbyHelper
 
         $modelList = new $modelListClass();
 
-        // Check if the created $modelList instance has the addListItem/setFilters function
-        if (!method_exists($modelList, 'addListItem')) {
-            throw new KirbyRetrievalException("The class {$modelListClass} does not have an addListItem function.");
-        }
-        if (!method_exists($modelList, 'setFilters')) {
-            throw new KirbyRetrievalException("The class {$modelListClass} does not have an setFilters function.");
-        }
 
         $modelClassName = $modelList->getItemType();
         $modelClass = $modelClassName;
@@ -1301,9 +1293,12 @@ trait GenericKirbyHelper
             throw new KirbyRetrievalException("Model class must extend BaseModel.");
         }
 
-        // Ensure $filterClass is a subclass of BaseModel
-        if (!(is_a($filterClass, BaseFilter::class, true))) {
-            throw new KirbyRetrievalException("Filter class must extend BaseFilter.");
+        $filterClassName = $this->extractClassName($modelList->getFilterType());
+        $filterClass = $filterClassName;
+
+        if ($collection === null) {
+            $collection = str_replace("List", "", $this->extractClassName($modelListClass));;
+            $collection = lcfirst($collection);
         }
 
         $collectionPages = $this->kirby->collection($collection);
