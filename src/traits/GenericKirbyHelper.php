@@ -1267,14 +1267,15 @@ trait GenericKirbyHelper
      * @param string $modelListClass
      * @param BaseFilter|null $filter
      * @param string|null $collection
+     * @param array|null $templates
      * @return BaseList
      * @throws KirbyRetrievalException
      */
-    private function getSpecificModelList(string        $modelListClass = BaseList::class,
+    private function getSpecificModelList(string          $modelListClass = BaseList::class,
                                           BaseFilter|null $filter = null,
-                                          string|null   $collection = null,
-
-    ) : BaseList
+                                          string|null     $collection = null,
+                                          array|null      $templates = null
+    ): BaseList
     {
 
 
@@ -1296,15 +1297,19 @@ trait GenericKirbyHelper
         $filterClassName = $this->extractClassName($modelList->getFilterType());
         $filterClass = $filterClassName;
 
-        if ($collection === null) {
-            $collection = str_replace("List", "", $this->extractClassName($modelListClass));;
-            $collection = lcfirst($collection);
+        if (isset($templates)) {
+            $collectionPages = $this->getSubPagesUsingTemplates($this->page, $templates)->sortBy('title');
         }
+        else {
 
-        $collectionPages = $this->kirby->collection($collection);
-
-        if (!isset($collectionPages)) {
-            throw new KirbyRetrievalException('Collection ' . $collection . ' pages not found');
+            if ($collection === null) {
+                $collection = str_replace("List", "", $this->extractClassName($modelListClass));;
+                $collection = lcfirst($collection);
+            }
+            $collectionPages = $this->kirby->collection($collection);
+            if (!isset($collectionPages)) {
+                throw new KirbyRetrievalException('Collection ' . $collection . ' pages not found');
+            }
         }
 
         if ($filter === null) {
@@ -1326,6 +1331,14 @@ trait GenericKirbyHelper
         foreach ($collectionPages as $collectionPage) {
             $model = $this->getSpecificModel($collectionPage, $modelClass);
             $modelList->addListItem($model);
+        }
+
+        if ($modelList->usePagination()) {
+            $paginationFromKirby = $collectionPages->pagination();
+
+            if (isset($paginationFromKirby)) {
+                $modelList->setPagination($this->getPagination($paginationFromKirby));
+            }
         }
 
         return $modelList;

@@ -2,7 +2,7 @@
 
 namespace BSBI\WebBase\models;
 
-use BSBI\WebBase\traits\ListHandling;
+use BSBI\WebBase\traits\ErrorHandling;
 
 /**
  * @template T
@@ -10,6 +10,7 @@ use BSBI\WebBase\traits\ListHandling;
 
 abstract class BaseList
 {
+    use ErrorHandling;
 
     /**
      * @return T[]
@@ -89,6 +90,13 @@ abstract class BaseList
         } else {
             return null;
         }
+    }
+
+    /**
+     * @return bool
+     */
+    public function usePagination(): bool {
+        return false;
     }
 
     /**
