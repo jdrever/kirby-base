@@ -1265,13 +1265,13 @@ trait GenericKirbyHelper
 
     /**
      * @param string $modelListClass
-     * @param callable|null $setFilterFunction
+     * @param BaseFilter|null $filter
      * @param string|null $collection
      * @return BaseList
      * @throws KirbyRetrievalException
      */
     private function getSpecificModelList(string        $modelListClass = BaseList::class,
-                                          callable|null $setFilterFunction = null,
+                                          BaseFilter|null $filter = null,
                                           string|null   $collection = null,
 
     ) : BaseList
@@ -1307,12 +1307,7 @@ trait GenericKirbyHelper
             throw new KirbyRetrievalException('Collection ' . $collection . ' pages not found');
         }
 
-        $filter = null;
-
-        if ($setFilterFunction) {
-            $filter = $setFilterFunction();
-        } else {
-
+        if ($filter === null) {
             $setFilterFunction = 'set' . $this->extractClassName($filterClass);
             if (method_exists($this, $setFilterFunction)) {
                 $filter = $this->$setFilterFunction();
