@@ -3,6 +3,7 @@
 namespace BSBI\WebBase\traits;
 
 use BSBI\WebBase\helpers\KirbyRetrievalException;
+use BSBI\WebBase\models\ActionStatus;
 use BSBI\WebBase\models\BaseFilter;
 use BSBI\WebBase\models\BaseList;
 use BSBI\WebBase\models\BaseModel;
@@ -18,7 +19,6 @@ use BSBI\WebBase\models\WebPageBlocks;
 use BSBI\WebBase\models\WebPageLink;
 use BSBI\WebBase\models\WebPageLinks;
 use BSBI\WebBase\models\User;
-use BSBI\WebBase\models\WebPageTagLinks;
 use BSBI\WebBase\models\WebPageTagLinkSet;
 use DateTime;
 use Kirby\Cms\Block;
@@ -59,6 +59,7 @@ trait GenericKirbyHelper
                 $srcSetType = ($imageType === ImageType::SQUARE) ? 'square' : 'main';
                 $srcSet = $pageImage->srcset($srcSetType);
                 $webpSrcSet = $pageImage->srcset($srcSetType . '-webp');
+                /** @noinspection PhpUndefinedMethodInspection */
                 $alt = $pageImage->alt()->isNotEmpty() ? $pageImage->alt()->value() : '';
                 if ($src !== null && $srcSet !== null && $webpSrcSet !== null) {
                     return new Image ($src, $srcSet, $webpSrcSet, $alt, $width, $height);
@@ -99,6 +100,15 @@ trait GenericKirbyHelper
             throw new KirbyRetrievalException('Current page not found');
         }
         return $this->page->title()->toString();
+    }
+
+    /**
+     * Gets the field - if the field is empty, returns an empty string
+     * @throws KirbyRetrievalException if the page or field cannot be found
+     */
+    public function getPageTitle($page): string
+    {
+        return $page->title()->toString();
     }
 
     /**
@@ -239,6 +249,7 @@ trait GenericKirbyHelper
     /**
      * @param Page $page
      * @param string $fieldName
+     * @param bool $required
      * @return string
      * @throws KirbyRetrievalException
      */
@@ -260,6 +271,8 @@ trait GenericKirbyHelper
     /**
      * @param Page $page
      * @param string $fieldName
+     * @param bool $required
+     * @param int $excerpt
      * @return string
      * @throws KirbyRetrievalException
      */
@@ -298,6 +311,7 @@ trait GenericKirbyHelper
     /**
      * @param Page $page
      * @param string $fieldName
+     * @param bool $required
      * @return string[]
      * @throws KirbyRetrievalException
      */
@@ -352,9 +366,7 @@ trait GenericKirbyHelper
     /**
      * @param Page $page
      * @param string $fieldName
-     * @param string $tagType
      * @return WebPageLinks
-     * @throws KirbyRetrievalException
      */
     private function getPageFieldAsWebPageTagLinks(Page $page, string $fieldName): WebPageLinks
     {
@@ -476,6 +488,7 @@ trait GenericKirbyHelper
     /**
      * @param StructureObject $structure
      * @param string $fieldName
+     * @param bool $required
      * @return string
      * @throws KirbyRetrievalException
      */
@@ -503,6 +516,7 @@ trait GenericKirbyHelper
     private function getStructureFieldAsBool(StructureObject $structure, string $fieldName): bool
     {
         $structureField = $this->getStructureField($structure, $fieldName);
+        /** @noinspection PhpUndefinedMethodInspection */
         return $structureField->toBool();
     }
 
@@ -515,9 +529,10 @@ trait GenericKirbyHelper
     private function getStructureFieldAsUrl(StructureObject $structure, string $fieldName): string
     {
         $structureField = $this->getStructureField($structure, $fieldName);
-
+        /** @noinspection PhpUndefinedMethodInspection */
         $page = $structureField->toPage();
         if ($page) {
+            /** @noinspection PhpUndefinedMethodInspection */
             return $structureField->toUrl();
         } else {
             return '';
@@ -533,7 +548,7 @@ trait GenericKirbyHelper
     private function getStructureFieldAsPageTitle(StructureObject $structure, string $fieldName): string
     {
         $structureField = $this->getStructureField($structure, $fieldName);
-
+        /** @noinspection PhpUndefinedMethodInspection */
         $page = $structureField->toPage();
         if ($page) {
             return $page->title()->value();
@@ -551,6 +566,7 @@ trait GenericKirbyHelper
     private function getStructureFieldAsPageUrl(StructureObject $structure, string $fieldName): string
     {
         $structureField = $this->getStructureField($structure, $fieldName);
+        /** @noinspection PhpUndefinedMethodInspection */
         return $structureField->toPage()->url();
     }
 
@@ -619,9 +635,12 @@ trait GenericKirbyHelper
     /**
      * @param Block $block
      * @param string $fieldName
-     * @param bool $required
+     * @param int $width
+     * @param int|null $height
+     * @param ImageType $imageType
+     * @param bool $fixedWidth
      * @return Image
-     * @throws KirbyRetrievalException
+     * @throws InvalidArgumentException
      */
     private function getBlockFieldAsImage(Block $block, string $fieldName, int $width, ?int $height, ImageType $imageType = ImageType::SQUARE, bool $fixedWidth = false): Image
     {
@@ -630,7 +649,9 @@ trait GenericKirbyHelper
             //var_dump($blockImage);
             if ($blockImage != null) {
                 if ($fixedWidth) {
+                    /** @noinspection PhpUndefinedMethodInspection */
                     if ($blockImage->width() < $width) {
+                        /** @noinspection PhpUndefinedMethodInspection */
                         $width = $blockImage->width();
                     }
                     $blockImage = $blockImage->resize($width);
@@ -640,6 +661,7 @@ trait GenericKirbyHelper
                         '2x' => ['width' => $width * 2],
                         '3x' => ['width' => $width * 3],
                     ]);
+                    /** @noinspection PhpUndefinedMethodInspection */
                     $height = $blockImage->height();
                     $webpSrcSet = $blockImage->srcset('webp');
                 } else {
@@ -648,6 +670,7 @@ trait GenericKirbyHelper
                     $srcSet = $blockImage->srcset($srcSetType);
                     $webpSrcSet = $blockImage->srcset($srcSetType . '-webp');
                 }
+                /** @noinspection PhpUndefinedMethodInspection */
                 $alt = $blockImage->alt()->isNotEmpty() ? $blockImage->alt()->value() : '';
                 if ($src !== null && $srcSet !== null && $webpSrcSet !== null) {
                     return new Image ($src, $srcSet, $webpSrcSet, $alt, $width, $height);
@@ -662,6 +685,7 @@ trait GenericKirbyHelper
     /**
      * @param Block $block
      * @param string $fieldName
+     * @param bool $required
      * @return string
      * @throws KirbyRetrievalException
      */
@@ -682,6 +706,7 @@ trait GenericKirbyHelper
     /**
      * @param Block $block
      * @param string $fieldName
+     * @param bool $required
      * @return string
      * @throws KirbyRetrievalException
      */
@@ -730,7 +755,7 @@ trait GenericKirbyHelper
     }
 
     /**
-     * @param Page $page
+     * @param Block $block
      * @param string $fieldName
      * @return File|null
      * @throws KirbyRetrievalException
@@ -749,6 +774,7 @@ trait GenericKirbyHelper
     /**
      * @param Page $page
      * @param string $pageClass the type of class to return (must extend WebPage)
+     * @param bool $checkUserRoles
      * @return BaseWebPage
      */
     private function getPage(Page $page, string $pageClass = BaseWebPage::class, bool $checkUserRoles = true): BaseWebPage
@@ -813,11 +839,6 @@ trait GenericKirbyHelper
                 }
             }
 
-            if ($this->isPageFieldNotEmpty($page, 'mainImage')) {
-                $image = $this->getImage($page, 'mainImage', 2000, 500, ImageType::MAIN);
-                $webPage->setMainImage($image);
-            }
-
 
             $openGraphTitle = $this->isPageFieldNotEmpty($page, 'og_title')
                 ? $this->getPageFieldAsString($page, 'og_title')
@@ -862,6 +883,7 @@ trait GenericKirbyHelper
 
     /**
      * @return WebPageLinks
+     * @throws KirbyRetrievalException
      */
     public function getMenuPages(): WebPageLinks
     {
@@ -876,6 +898,7 @@ trait GenericKirbyHelper
 
     /**
      * @param Page $page
+     * @param bool $simpleLink
      * @return WebPageLinks
      * @throws KirbyRetrievalException
      */
@@ -1030,6 +1053,7 @@ trait GenericKirbyHelper
 
     /**
      * @param \Kirby\Toolkit\Collection $collection
+     * @param bool $simpleLink
      * @return WebPageLinks
      * @throws KirbyRetrievalException
      */
@@ -1046,6 +1070,7 @@ trait GenericKirbyHelper
 
     /**
      * @param Page $page
+     * @param bool $simpleLink
      * @return WebPageLink
      * @throws KirbyRetrievalException
      */
@@ -1303,7 +1328,7 @@ trait GenericKirbyHelper
         else {
 
             if ($collection === null) {
-                $collection = str_replace("List", "", $this->extractClassName($modelListClass));;
+                $collection = str_replace("List", "", $this->extractClassName($modelListClass));
                 $collection = lcfirst($collection);
             }
             $collectionPages = $this->kirby->collection($collection);
@@ -1392,17 +1417,39 @@ trait GenericKirbyHelper
      */
     private function recordPageError(KirbyRetrievalException $e, string $pageClass = BaseWebPage::class): BaseWebPage
     {
-        /** @var BaseWebPage $webPage */
-        $webPage = new $pageClass('Error', '', 'error');
-        $pageName = str_replace('BSBI\\models\\', '', $pageClass);
-        $user = $this->getCurrentUser();
-        $webPage->setCurrentUser($user);
+        $webPage = $this->getEmptyWebPage($this->page, $pageClass);
         $webPage
             ->recordError(
                 $e->getMessage(),
-                'An error occurred while retrieving the ' . $pageName . ' page.',
+                'An error occurred while retrieving the ' . $webPage->getTitle() . ' page.',
             );
         $this->sendErrorEmail($e);
+        return $webPage;
+    }
+
+    /**
+     * @param ActionStatus $actionStatus
+     * @param class-string<BaseWebPage> $pageClass
+     * @return BaseWebPage
+     */
+    private function recordActionStatusError(ActionStatus $actionStatus, string $pageClass = BaseWebPage::class): BaseWebPage
+    {
+        $webPage = $this->getErrorPage($pageClass);
+        $webPage
+            ->recordError(
+                $actionStatus->getFirstErrorMessage(),
+                'An error occurred while retrieving the ' . $webPage->getTitle() . ' page.',
+            );
+        $this->sendErrorEmail($actionStatus->getException());
+        return $webPage;
+    }
+
+    private function getErrorPage(string $pageClass = BaseWebPage::class) : BaseWebPage {
+        /** @var BaseWebPage $webPage */
+        $pageName = $this->extractClassName($pageClass);
+        $webPage = new $pageClass($pageName, '', 'error');
+        $user = $this->getCurrentUser();
+        $webPage->setCurrentUser($user);
         return $webPage;
     }
 
@@ -1581,6 +1628,7 @@ trait GenericKirbyHelper
 
     /**
      * @return WebPageLinks
+     * @throws KirbyRetrievalException
      */
     private function getBreadcrumb(): WebPageLinks
     {
@@ -1609,6 +1657,7 @@ trait GenericKirbyHelper
             // Check if the field is not empty
             if ($postedByField instanceof Field && $postedByField->isNotEmpty()) :
                 // Get the users from the 'postedBy' field
+                /** @noinspection PhpUndefinedMethodInspection */
                 $users = $postedByField->toUsers();
 
                 // Initialize an array to hold usernames
@@ -1714,6 +1763,7 @@ trait GenericKirbyHelper
      * @param string|null $query
      * @param string $params
      * @param int $perPage the number of records per field
+     * @param Collection|null $collection
      * @return Collection
      */
     private function getSearchCollection(
@@ -1823,7 +1873,7 @@ trait GenericKirbyHelper
     }
 
     /**
-     * Adds span class="highlight" to term
+     * Adds span class="highlight" to the term
      * @param string $text
      * @param string $term
      * @return string
@@ -1867,6 +1917,7 @@ trait GenericKirbyHelper
             if ($pageFile != null) {
 
                 $url = $pageFile->url();
+                /** @noinspection PhpUndefinedMethodInspection */
                 $size = $pageFile->niceSize();
                 $document = new Document('questionSheet',$url);
                 $document->setSize($size);
@@ -1961,7 +2012,6 @@ trait GenericKirbyHelper
      * @param string $tagType
      * @param string $fieldName
      * @return WebPageTagLinkSet
-     * @throws KirbyRetrievalException
      */
     private function getWebPageTagLinkSet(Page $kirbyPage, string $tagType, string $fieldName): WebPageTagLinkSet
     {
@@ -2047,13 +2097,17 @@ trait GenericKirbyHelper
             throw new KirbyRetrievalException('The Turnstile secret key is not configured');
         }
 
-        $response = Remote::request($verificationUrl, [
-            'method' => 'POST',
-            'data' => [
-                'secret' => $secretKey,
-                'response' => $turnstileChallenge,
-            ],
-        ]);
+        try {
+            $response = Remote::request($verificationUrl, [
+                'method' => 'POST',
+                'data' => [
+                    'secret' => $secretKey,
+                    'response' => $turnstileChallenge,
+                ],
+            ]);
+        } catch (\Exception) {
+            throw new KirbyRetrievalException('Error when trying to verify the Turnstile secret key');
+        }
 
         $jsonResponse = $response->json();
 
@@ -2110,10 +2164,6 @@ trait GenericKirbyHelper
         echo "[{$timestamp}.{$milliseconds}]<br>";
     }
 
-    function doesClassUseTrait($class, $trait) {
-        $traits = class_uses_recursive($class);
-        return in_array($trait, $traits);
-    }
 
     #endregion
 
