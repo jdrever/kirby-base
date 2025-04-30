@@ -3,6 +3,7 @@
 namespace BSBI\WebBase\traits;
 
 use BSBI\WebBase\helpers\KirbyRetrievalException;
+use BSBI\WebBase\models\ActionStatus;
 use BSBI\WebBase\models\BaseFilter;
 use BSBI\WebBase\models\BaseList;
 use BSBI\WebBase\models\BaseModel;
@@ -99,6 +100,16 @@ trait GenericKirbyHelper
             throw new KirbyRetrievalException('Current page not found');
         }
         return $this->page->title()->toString();
+    }
+
+    /**
+     * Gets the field - if the field is empty, returns an empty string
+     * @return string
+     * @throws KirbyRetrievalException if the page or field cannot be found
+     */
+    public function getPageTitle($page): string
+    {
+        return $page->title()->toString();
     }
 
     /**
@@ -1392,17 +1403,39 @@ trait GenericKirbyHelper
      */
     private function recordPageError(KirbyRetrievalException $e, string $pageClass = BaseWebPage::class): BaseWebPage
     {
-        /** @var BaseWebPage $webPage */
-        $webPage = new $pageClass('Error', '', 'error');
-        $pageName = str_replace('BSBI\\models\\', '', $pageClass);
-        $user = $this->getCurrentUser();
-        $webPage->setCurrentUser($user);
+        $webPage = $this->getEmptyWebPage($this->page, $pageClass);
         $webPage
             ->recordError(
                 $e->getMessage(),
-                'An error occurred while retrieving the ' . $pageName . ' page.',
+                'An error occurred while retrieving the ' . $webPage->getTitle() . ' page.',
             );
         $this->sendErrorEmail($e);
+        return $webPage;
+    }
+
+    /**
+     * @param KirbyRetrievalException $e
+     * @param class-string<BaseWebPage> $pageClass
+     * @return BaseWebPage
+     */
+    private function recordActionStatusError(ActionStatus $actionStatus, string $pageClass = BaseWebPage::class): BaseWebPage
+    {
+        $webPage = $this->getErrorPage($pageClass);
+        $webPage
+            ->recordError(
+                $actionStatus->getFirstErrorMessage(),
+                'An error occurred while retrieving the ' . $webPage->getTitle() . ' page.',
+            );
+        $this->sendErrorEmail($e);
+        return $webPage;
+    }
+
+    private function getErrorPage(string $pageClass = BaseWebPage::class) : BaseWebPage {
+        /** @var BaseWebPage $webPage */
+        $pageName = $this->extractClassName($pageClass);
+        $webPage = new $pageClass($pageName, '', 'error');
+        $user = $this->getCurrentUser();
+        $webPage->setCurrentUser($user);
         return $webPage;
     }
 

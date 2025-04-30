@@ -22,6 +22,10 @@ trait ErrorHandling {
         return $this->errorMessages;
     }
 
+    public function getFirstErrorMessage(): string {
+        return $this->errorMessages[0] ?? '';
+    }
+
 
 
     /**

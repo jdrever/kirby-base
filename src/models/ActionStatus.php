@@ -3,26 +3,37 @@
 namespace BSBI\WebBase\models;
 
 
+use BSBI\WebBase\helpers\KirbyRetrievalException;
+use BSBI\WebBase\traits\ErrorHandling;
+use Kirby\Exception\Exception;
+
 /**
  * Class ActionStatus
  * Represents a simple action with status/error messages
  *
  * @package BSBI\Web
  */
-class ActionStatus extends BaseModel
+class ActionStatus
 {
 
+    use ErrorHandling;
+    private KirbyRetrievalException $exception;
     /**
      * @param bool $status
      * @param string $errorMessage
      * @param string $friendlyMessage
      */
-    public function __construct(bool $status, string $errorMessage = '', string $friendlyMessage = '')
+    public function __construct(bool $status, string $errorMessage = '', string $friendlyMessage = '', KirbyRetrievalException $exception = null)
     {
         $this->status = $status;
         $this->errorMessages[] = $errorMessage;
         $this->friendlyMessages[] = $friendlyMessage;
+        $this->exception = $exception;
     }
 
+    public function getException(): KirbyRetrievalException
+    {
+        return $this->exception;
+    }
 
 }
