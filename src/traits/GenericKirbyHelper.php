@@ -775,7 +775,7 @@ trait GenericKirbyHelper
 
     /**
      * @param Page $page
-     * @param string $pageClass the type of class to return (must extend WebPage)
+     * @param string $pageClass the type of class to return (must extend BaseWebPage)
      * @param bool $checkUserRoles
      * @return BaseWebPage
      */

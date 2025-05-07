@@ -772,6 +772,28 @@ abstract class KirbyBaseHelper
 
     abstract function getCurrentPage(): BaseWebPage;
 
+    abstract function setCurrentPage(Page $kirbyPage, BaseWebPage $currentPage): BaseWebPage;
+
+    protected function getBaseWebPage(string $pageClass): BaseWebPage
+    {
+        try {
+            if (!isset($this->page)) {
+                throw new KirbyRetrievalException('Page not found');
+            }
+            $kirbyPage = $this->page;
+            $currentPage = $this->getPage($kirbyPage, $pageClass);
+
+            if (method_exists($this, 'setCurrentPage')) {
+                $currentPage = $this->setCurrentPage($kirbyPage, $currentPage);
+            }
+
+
+        } catch (KirbyRetrievalException $e) {
+            $currentPage = $this->recordPageError($e, $pageClass);
+        }
+        return $currentPage;
+    }
+
     /**
      * @param Page $page
      * @param string $pageClass the type of class to return (must extend WebPage)
@@ -1369,6 +1391,8 @@ abstract class KirbyBaseHelper
 
         return $modelList;
     }
+
+
 
 
     /**

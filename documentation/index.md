@@ -42,7 +42,9 @@
 
 # Extending KirbyBase
 
-- Create a WebPage model class that extends BaseWebPage. Add the fields each page for your site will need
+- Create a WebPage model class that extends BaseWebPage. Add the fields each page for your site will need.
 - Then create whatever other specialised WebPage models you need that extend WebPage
-- Create a KirbyHelper class that extends KirbyBaseHelper.  Implement getCurrentPage to return your basic WebPage class.
+- Create a KirbyHelper class that extends KirbyBaseHelper.  
+  - Implement getCurrentPage to return your basic WebPage class.
+  - Implement setCurrentPage to populate the fields in your WebPage model
 - Then implement settter functions in KirbyHelper for each of the specialised pages
