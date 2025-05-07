@@ -10,6 +10,9 @@ columns:
           description:
             type: textarea
             buttons: false
+          keywords:
+            type: textarea
+            buttons: false
       og-info:
         type: info
         label: " "

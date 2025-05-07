@@ -1793,7 +1793,7 @@ abstract class KirbyBaseHelper
      */
     private function getSearchCollection(
         ?string     $query = null,
-        string     $params = 'title|mainContent|description',
+        string     $params = 'title|mainContent|description|keywords',
         int        $perPage = 10,
         ?Collection $collection = null
     ): Collection
@@ -1829,6 +1829,7 @@ abstract class KirbyBaseHelper
                 'id' => 64,
                 'title' => 64,
                 'description' => 64,
+                'keywords' => 64,
                 'maincontent' => 32
             ], $options['score']);
 
