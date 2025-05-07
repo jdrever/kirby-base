@@ -1990,6 +1990,10 @@ abstract class KirbyBaseHelper
         return $this->kirby->user() ? $this->kirby->user()->role()->name() : '';
     }
 
+    protected function isUserLoggedIn(): bool {
+        return $this->kirby->user() != null;
+    }
+
     #endregion
 
     #region TAGS
