@@ -1,8 +1,7 @@
 <?php
 
-namespace BSBI\WebBase\traits;
+namespace BSBI\WebBase\helpers;
 
-use BSBI\WebBase\helpers\KirbyRetrievalException;
 use BSBI\WebBase\models\ActionStatus;
 use BSBI\WebBase\models\BaseFilter;
 use BSBI\WebBase\models\BaseList;
@@ -36,9 +35,7 @@ use Kirby\Http\Cookie;
 use Kirby\Http\Remote;
 use Kirby\Toolkit\Str;
 
-
-/** @deprecated  */
-trait GenericKirbyHelper
+abstract class KirbyBaseHelper
 {
 
 #region IMAGES
@@ -772,6 +769,8 @@ trait GenericKirbyHelper
     #endregion
 
     #region PAGES
+
+    abstract function getCurrentPage(): BaseWebPage;
 
     /**
      * @param Page $page
