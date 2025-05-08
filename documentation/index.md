@@ -74,3 +74,7 @@
         return $this->coreLinks->getPage($linkType->value);
     }
 ```
+
+## Search Page
+Create a search page by extending your WebPage class and using the SearchPageProperties trait
+
