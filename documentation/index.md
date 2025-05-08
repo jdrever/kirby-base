@@ -74,3 +74,7 @@
         return $this->coreLinks->getPage($linkType->value);
     }
 ```
+
+## Menu Pages
+
+Set up a collection called menuPages - this will be used to setMenuPages for the BaseWebPage class.

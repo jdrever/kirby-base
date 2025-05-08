@@ -873,8 +873,9 @@ abstract class KirbyBaseHelper
 
             $webPage->setMenuPages($this->getMenuPages());
 
-            $webPage->setSubPages($this->getSubPages($page, $webPage->isUsingSimpleLinksForSubPages()));
-
+            if ($webPage->doSimpleGetSubPages()) {
+                $webPage->setSubPages($this->getSubPages($page, $webPage->isUsingSimpleLinksForSubPages()));
+            }
             if ($this->isPageFieldNotEmpty($page, 'mainContent')) {
                 $webPage->setMainContentBlocks($this->getContentBlocks($page));
             }
@@ -1021,6 +1022,10 @@ abstract class KirbyBaseHelper
     protected function getSubPagesUsingTemplates(Page $page, array $templates): Pages
     {
         return $page->children()->template($templates);
+    }
+
+    protected function getSiblingsUsingTemplates(Page $page, array $templates): Pages {
+        return $page->siblings(false)->listed()->template($templates);
     }
 
 
