@@ -23,6 +23,8 @@ class WebPageLink extends BaseModel
      */
     private string $panelDescription;
 
+    private string $requirements;
+
     /**
      * @param string $title
      * @param string $url
@@ -103,5 +105,15 @@ class WebPageLink extends BaseModel
         return $this;
     }
 
+    public function getRequirements(): string
+    {
+        return $this->requirements;
+    }
 
+    public function setRequirements(string $requirements): WebPageLink
+    {
+        $this->requirements = $requirements;
+        return $this;
+    }
+    
 }

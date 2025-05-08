@@ -1150,6 +1150,9 @@ abstract class KirbyBaseHelper
         $webPageLink = new WebPageLink($page->title()->toString(), $pageUrl , $page->id(), $page->template()->name());
         $webPageLink->setDescription($this->getPageFieldAsString($page, 'description'));
         $webPageLink->setPanelDescription($this->getPageFieldAsKirbyText($page, 'panelDescription'));
+        if ($this->isPageFieldNotEmpty($page, 'requirements')) {
+            $webPageLink->setRequirements($this->getPageFieldAsString($page, 'requirements'));
+        }
         if ($simpleLink) {
             return $webPageLink;
         }
