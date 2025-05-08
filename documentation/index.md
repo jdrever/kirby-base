@@ -6,7 +6,8 @@
 
 - Create your own Kirby plugin for the additonal code for the site, including a composer.json file like the below
 
-> {
+```
+{
 "name": "bsbi/bsbi-docs",
 "description": "A set of Kirby elements and models for the BSBI docs website",
 "type": "project",
@@ -38,7 +39,7 @@
 },
 "minimum-stability": "stable"
 }
-
+```
 
 # Extending KirbyBase
 
@@ -48,3 +49,28 @@
   - Implement getCurrentPage to return your basic WebPage class.
   - Implement setCurrentPage to populate the fields in your WebPage model
 - Then implement settter functions in KirbyHelper for each of the specialised pages
+
+## CoreLinks
+
+- Create a CoreLinkTypes enum, and add has/get functions using the enum to the WebPage model to allow easy handling of core links
+
+```
+    /**
+     * @param CoreLinkType $linkType
+     * @return bool
+     */
+    public function hasCoreLink(CoreLinkType $linkType): bool {
+        $coreLink = $this->getCoreLink($linkType);
+        return  ($coreLink->getStatus() !== false);
+    }
+
+    /**
+     * returns null if no link found.  Use hasCoreLink to check first.
+     * @param CoreLinkType $linkType
+     * @return CoreLink
+     */
+    public function getCoreLink(CoreLinkType $linkType): CoreLink
+    {
+        return $this->coreLinks->getPage($linkType->value);
+    }
+```
