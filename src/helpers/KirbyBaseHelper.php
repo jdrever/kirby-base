@@ -12,6 +12,7 @@ use BSBI\WebBase\models\Document;
 use BSBI\WebBase\models\Image;
 use BSBI\WebBase\models\ImageType;
 use BSBI\WebBase\models\Pagination;
+use BSBI\WebBase\models\PrevNextPageNavigation;
 use BSBI\WebBase\models\RelatedContent;
 use BSBI\WebBase\models\WebPageBlock;
 use BSBI\WebBase\models\WebPageBlocks;
@@ -1026,6 +1027,29 @@ abstract class KirbyBaseHelper
 
     protected function getSiblingsUsingTemplates(Page $page, array $templates): Pages {
         return $page->siblings(false)->listed()->template($templates);
+    }
+
+    /**
+     * Generates previous and next page navigation details for a given page within a specified collection.
+     *
+     * @param Page $kirbyPage The current page for which the navigation is being generated.
+     * @param string $collectionName The name of the collection from which the navigation should be computed.
+     * @return PrevNextPageNavigation Object containing previous and next page navigation data.
+     */
+    protected function getPrevNextNavigation(Page $kirbyPage, string $collectionName) : PrevNextPageNavigation {
+        $navigation = new PrevNextPageNavigation();
+        $contentCollection = $this->kirby->collection($collectionName, ['page' => $kirbyPage]);
+        $previousPage = $this->page->prev($contentCollection);
+        $nextPage = $this->page->next($contentCollection);
+        if ($previousPage) {
+            $navigation->setPreviousPageLink($previousPage->url());
+            $navigation->setPreviousPageTitle($previousPage->title()->value());
+        }
+        if ($nextPage) {
+            $navigation->setNextPageLink($nextPage->url());
+            $navigation->setNextPageTitle($nextPage->title()->value());
+        }
+        return $navigation;
     }
 
 

@@ -105,6 +105,11 @@ class WebPageLink extends BaseModel
         return $this;
     }
 
+    public function hasRequirements(): bool
+    {
+        return !empty($this->requirements);
+    }
+
     public function getRequirements(): string
     {
         return $this->requirements;
