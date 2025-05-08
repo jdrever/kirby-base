@@ -1996,6 +1996,28 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * Checks if a request exists for the given key.
+     *
+     * @param string $key The key to check in the request.
+     * @return bool Returns true if the request with the given key exists, false otherwise.
+     */
+    protected function hasRequest(string $key): bool {
+        return get($key) !== null;
+    }
+
+    /**
+     * Retrieves a request parameter or cookie value by the given key, returning a fallback value if neither is available.
+     *
+     * @param string $key The key to look for in request parameters or cookies.
+     * @param string $fallBack The fallback value to return if the key does not exist in both request and cookie data.
+     * @return string The value retrieved from the request parameter, cookie, or the provided fallback.
+     */
+    protected function getRequestOrCookie(string $key, string $fallBack): string {
+        return get($key) ?: cookie::get($key) ?: $fallBack;
+    }
+
+
+    /**
      * @return string
      * @throws KirbyRetrievalException
      */
