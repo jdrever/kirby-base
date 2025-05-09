@@ -75,6 +75,6 @@
     }
 ```
 
-## Search Page
-Create a search page by extending your WebPage class and using the SearchPageProperties trait
+## Menu Pages
 
+Set up a collection called menuPages - this will be used to setMenuPages for the BaseWebPage class.

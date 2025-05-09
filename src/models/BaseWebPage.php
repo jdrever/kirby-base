@@ -524,5 +524,12 @@ class BaseWebPage extends BaseModel
         return $this->urlWithQueryString . $separator . $queryString;
     }
 
+    /**
+     * override to stop KirbyBaseHelper getting subPages
+     * @return bool
+     */
+    public function doSimpleGetSubPages(): bool {
+        return true;
+    }
 
 }
