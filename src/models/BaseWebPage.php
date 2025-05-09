@@ -58,7 +58,7 @@ class BaseWebPage extends BaseModel
     protected WebPageLinks $breadcrumb;
 
     /**
-     * @var \BSBI\WebBase\models\CoreLinks
+     * @var CoreLinks
      */
     protected CoreLinks $coreLinks;
 
@@ -73,9 +73,9 @@ class BaseWebPage extends BaseModel
     protected string $query = '';
 
     /**
-     * @var RelatedContent[]
+     * @var RelatedContentList
      */
-    protected array $relatedContent = [];
+    protected RelatedContentList $relatedContent;
 
     /**
      * @var WebPageTagLinks
@@ -265,7 +265,7 @@ class BaseWebPage extends BaseModel
     }
 
     /**
-     * @return \BSBI\WebBase\models\CoreLinks
+     * @return CoreLinks
      */
     public function getCoreLinks(): CoreLinks
     {
@@ -283,7 +283,7 @@ class BaseWebPage extends BaseModel
     }
 
     /**
-     * @param \BSBI\WebBase\models\CoreLinks $coreLinks
+     * @param CoreLinks $coreLinks
      * @return $this
      */
     public function setCoreLinks(CoreLinks $coreLinks): self
@@ -298,7 +298,7 @@ class BaseWebPage extends BaseModel
      */
     public function addRelatedContent(RelatedContent $relatedContent): self
     {
-        $this->relatedContent[] = $relatedContent;
+        $this->relatedContent->addListItem($relatedContent);
         return $this;
     }
 
@@ -306,13 +306,21 @@ class BaseWebPage extends BaseModel
      * @return bool
      */
     public function hasRelatedContent(): bool {
-        return count($this->relatedContent)>0;
+        return isset($this->relatedContent)&&$this->relatedContent->count()>0;
     }
 
     /**
-     * @return RelatedContent[]
+     * @return $this
      */
-    public function getRelatedContent(): array {
+    public function setRelatedContentList(RelatedContentList $relatedContentList): self {
+        $this->relatedContent = $relatedContentList;
+        return $this;
+    }
+
+    /**
+     * @return RelatedContentList
+     */
+    public function getRelatedContentList(): RelatedContentList {
         return $this->relatedContent;
     }
 
