@@ -2,19 +2,14 @@
 
 namespace BSBI\WebBase\models;
 
-use BSBI\WebBase\traits\ListHandling;
 
 /**
  * Class CoreLinks
  * Represents a BSBI core link (e.g. Contact Page) with various properties and methods.
  * @package BSBI\Web
  */
-class CoreLinks
+class CoreLinks extends BaseList
 {
-    /**
-     * @use ListHandling<CoreLink,BaseFilter>
-     */
-    use ListHandling;
 
     /**
      * Add a link
@@ -45,5 +40,22 @@ class CoreLinks
             return $linkNotFound;
         }
         return reset($matchingPage);
+    }
+
+    /**
+     * @return CoreLink[]
+     */
+    public function getListItems(): array {
+        return $this->list;
+    }
+
+    function getItemType(): string
+    {
+        return CoreLink::class;
+    }
+
+    function getFilterType(): string
+    {
+        return BaseFilter::class;
     }
 }

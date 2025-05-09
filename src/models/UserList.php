@@ -2,25 +2,17 @@
 
 namespace BSBI\WebBase\models;
 
-use BSBI\WebBase\traits\ListHandling;
-
-
 /**
- * Represents a user list
- *
- * @package BSBI\Web
+ * Represents a list of User objects, extending the BaseList functionality.
+ * Provides methods to retrieve, add, and manage Users within the list.
  */
-class UserList
+class UserList extends BaseList
 {
-    /**
-     * @use ListHandling<User,BaseFilter>
-     */
-    use ListHandling;
 
     /**
      * @return User[]
      */
-    public function getUsers(): array
+    public function getListItems(): array
     {
         return $this->list;
     }
@@ -28,9 +20,18 @@ class UserList
     /**
      * @param User $user
      */
-    public function addUser(User $user): void
+    public function addListItem(User $user): void
     {
         $this->add($user);
     }
 
+    function getItemType(): string
+    {
+        return User::class;
+    }
+
+    function getFilterType(): string
+    {
+        return BaseFilter::class;
+    }
 }

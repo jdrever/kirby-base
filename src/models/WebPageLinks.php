@@ -1,30 +1,15 @@
 <?php
 
-namespace BSBI\WebBase\models;
-
-use BSBI\WebBase\interfaces\ListHandler;
-use BSBI\WebBase\traits\ListHandling;
-use BSBI\WebBase\traits\ErrorHandling;
-
 /**
  * Class WebPageLinks
- * Represents a list of web pages with various properties and methods.
- * @package BSBI\Web
+ * Represents a collection of web page links and provides functionality
+ * for managing and retrieving these links.
  */
-class WebPageLinks extends BaseModel implements ListHandler
+namespace BSBI\WebBase\models;
+
+
+class WebPageLinks extends BaseList
 {
-    /**
-     * @use ListHandling<WebPageLink, BaseFilter>
-     */
-    use ListHandling;
-    use ErrorHandling;
-
-    public function __construct()
-    {
-        $this->status = true;
-        parent::__construct('WebPageLinks', '');
-    }
-
 
     /**
      * Add a web page
@@ -38,7 +23,6 @@ class WebPageLinks extends BaseModel implements ListHandler
         return $this;
     }
 
-    //TODO: update this class to use ListHandler (would need to update all projects)
     /**
      * @return WebPageLink[]
      */
@@ -68,4 +52,13 @@ class WebPageLinks extends BaseModel implements ListHandler
         return reset($matchingLink);
     }
 
+    function getItemType(): string
+    {
+        return WebPageLink::class;
+    }
+
+    function getFilterType(): string
+    {
+        return BaseFilter::class;
+    }
 }

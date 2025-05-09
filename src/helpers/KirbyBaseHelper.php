@@ -1461,7 +1461,7 @@ abstract class KirbyBaseHelper
             if (!empty($itemTitle)) {
                 $content = new RelatedContent(
                     $itemTitle,
-                    $item,
+                    $item->url(),
                     false
                 );
                 $relatedContentList->addListItem($content);
