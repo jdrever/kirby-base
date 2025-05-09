@@ -2,14 +2,12 @@
 
 declare(strict_types=1);
 
-use BSBI\Web\models\FeedbackPage;
-
 if (!isset($currentPage)) :
     throw new Exception('$currentPage not provided');
 endif;
 
-if (!$currentPage instanceOf FeedbackPage) :
-    throw new Exception('$currentPage not instance of FeedbackPage');
+if (!(method_exists($currentPage, 'getFeedbackForm'))) :
+    throw new Exception('$currentPage does not have getFeedbackForm method');
 endif;
 
 $feedbackForm = $currentPage->getFeedbackForm();
