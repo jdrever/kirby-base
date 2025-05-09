@@ -22,7 +22,6 @@ if ($feedbackForm->hasFriendlyMessages()) : ?>
         </h2>
     </div>
 <?php endif ?>
-?>
 
 <form method="post">
   <div class="mb-3">
