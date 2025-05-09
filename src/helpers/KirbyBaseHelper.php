@@ -43,6 +43,7 @@ use Throwable;
 abstract class KirbyBaseHelper
 {
 
+
     #region CONSTRUCTOR
     /**
      * The Kirby object
