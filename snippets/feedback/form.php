@@ -13,7 +13,15 @@ if (!$currentPage instanceOf FeedbackPage) :
 endif;
 
 $feedbackForm = $currentPage->getFeedbackForm();
-
+if ($feedbackForm->hasFriendlyMessages()) : ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert" id="statusAlert">
+        <h2>
+            <?php foreach ($feedbackForm->getFriendlyMessages() as $message) : ?>
+                <?=$message?> <br>
+            <?php endforeach ?>
+        </h2>
+    </div>
+<?php endif ?>
 ?>
 
 <form method="post">
