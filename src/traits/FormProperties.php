@@ -2,10 +2,10 @@
 
 namespace BSBI\WebBase\traits;
 
-use BSBI\WebBase\models\WebPageLink;
-use BSBI\WebBase\models\WebPageLinks;
 
 trait FormProperties {
+
+    use ErrorHandling;
 
     private string $turnstileSiteKey;
 

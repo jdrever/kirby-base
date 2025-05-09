@@ -9,6 +9,7 @@ use BSBI\WebBase\models\BaseModel;
 use BSBI\WebBase\models\BaseWebPage;
 use BSBI\WebBase\models\CoreLink;
 use BSBI\WebBase\models\Document;
+use BSBI\WebBase\models\FeedbackForm;
 use BSBI\WebBase\models\Image;
 use BSBI\WebBase\models\ImageType;
 use BSBI\WebBase\models\Pagination;
@@ -1854,6 +1855,80 @@ abstract class KirbyBaseHelper
     }
 
 
+    #endregion
+
+
+    #region FEEDBACK
+
+
+    /**
+     * @return FeedbackForm
+     * @throws KirbyRetrievalException
+     */
+    protected function getFeedbackForm(): FeedbackForm
+    {
+        $feedbackForm = new FeedbackForm();
+        $feedbackForm->setTurnstileSiteKey($this->getTurnstileSiteKey());
+        if ($this->kirby->request()->is('POST') && get('submit')) {
+
+            $this->getTurnstileResponse();
+
+            $name = get('name', '');
+            $email = get('email', '');
+            $feedback = get('feedback', '');
+            $fromPage = get('page', '');
+
+            $data = [
+                'name' => is_string($name) ? $name : '',
+                'email' => is_string($email) ? $email : '',
+                'feedback' => is_string($feedback) ? $feedback : '',
+                'feedbackPage' => is_string($fromPage) ? $fromPage : '',
+            ];
+
+            $rules = [
+                'name' => ['required', 'minLength' => 3],
+                'email' => ['required', 'email'],
+                'feedback' => ['required', 'minLength' => 3, 'maxLength' => 3000],
+            ];
+
+            $messages = [
+                'name' => 'Please enter a valid name',
+                'email' => 'Please enter a valid email address',
+                'feedback' => 'Please enter a text between 3 and 3000 characters'
+            ];
+
+            if ($invalid = invalid($data, $rules, $messages)) {
+                $feedbackForm
+                    ->setNameValue($data['name'])
+                    ->setNameAlert($invalid['name'] ?? '')
+                    ->setEmailValue($data['email'])
+                    ->setEmailAlert($invalid['email'] ?? '')
+                    ->setFeedbackValue($data['feedback'])
+                    ->setFeedbackAlert($invalid['feedback'] ?? '')
+                    ->addFriendlyMessage(
+                        'The form was not sent.  Please review the messages below.'
+                    );
+            } else {
+                $emailData = [
+                    'text' => esc($data['feedback']),
+                    'sender' => esc($data['name']),
+                    'feedbackPage' => esc($data['feedbackPage'])
+                ];
+
+                $this->sendEmail('email',
+                    'james.drever@bsbi-web.org',
+                    $data['email'],
+                    'james.drever@bsbi-web.org',
+                    esc($data['name']) . ' sent you feedback from the BSBI website',
+                    $emailData
+                );
+                $feedbackForm->addFriendlyMessage(
+                    'Your feedback has been sent, thank you.'
+                );
+            }
+        }
+        return $feedbackForm;
+    }
     #endregion
 
     #region FILES

@@ -8,4 +8,7 @@ return [
     'form/select' => __DIR__ . '/snippets/form/select.php',
     'form/checkbox' => __DIR__ . '/snippets/form/checkbox.php',
     'form/turnstile' => __DIR__ . '/snippets/form/turnstile.php',
+
+    //feedback
+    'feedback/form' => __DIR__ . '/snippets/feedback/form.php',
 ];
