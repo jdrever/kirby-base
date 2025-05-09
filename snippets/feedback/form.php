@@ -11,13 +11,14 @@ if (!(method_exists($currentPage, 'getFeedbackForm'))) :
 endif;
 
 $feedbackForm = $currentPage->getFeedbackForm();
-if ($feedbackForm->hasFriendlyMessages()) : ?>
-    <div class="alert alert-success alert-dismissible fade show" role="alert" id="statusAlert">
-        <h2>
+if ($feedbackForm->hasFriendlyMessages()) :
+    $alertType = $feedbackForm->getStatus() ? 'success' : 'danger';?>
+    <div class="alert alert-<?=$alertType?> alert-dismissible fade show" role="alert" id="statusAlert">
+        <p>
             <?php foreach ($feedbackForm->getFriendlyMessages() as $message) : ?>
                 <?=$message?> <br>
             <?php endforeach ?>
-        </h2>
+        </p>
     </div>
 <?php endif ?>
 
@@ -35,6 +36,7 @@ if ($feedbackForm->hasFriendlyMessages()) : ?>
       <?php snippet('form/textbox', [
           'id' => 'email',
           'name' => 'email',
+          'type' => 'email',
           'label' => 'Your email:',
           'value' => $feedbackForm->getEmailValue(),
           'alert' => $feedbackForm->getEmailAlert(),

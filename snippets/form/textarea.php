@@ -40,9 +40,7 @@ if (isset($label)) : ?>
     name="<?=$name?>"
     id="<?=$id?>"
     rows="<?=$rows?>"
-    class="form-control p-2 m-1"
+    class="form-control p-2 m-1<?= !empty($alert) ? ' is-invalid' : '' ?>"
     <?= $isRequired ?>
->
-    <?= esc($value, 'attr') ?>
-</textarea>
-<?= isset($alert) ? '<span class="alert error">' . esc($alert) . '</span>' : '' ?>
+><?= esc($value, 'attr') ?></textarea>
+<?= !empty($alert) ? '<span class="invalid-feedback">' . esc($alert) . '</span>' : '' ?>

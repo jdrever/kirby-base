@@ -1906,6 +1906,7 @@ abstract class KirbyBaseHelper
                     ->setEmailAlert($invalid['email'] ?? '')
                     ->setFeedbackValue($data['feedback'])
                     ->setFeedbackAlert($invalid['feedback'] ?? '')
+                    ->setStatus(false)
                     ->addFriendlyMessage(
                         'The form was not sent.  Please review the messages below.'
                     );
@@ -1923,9 +1924,11 @@ abstract class KirbyBaseHelper
                     esc($data['name']) . ' sent you feedback from the BSBI website',
                     $emailData
                 );
-                $feedbackForm->addFriendlyMessage(
+                $feedbackForm
+                    ->addFriendlyMessage(
                     'Your feedback has been sent, thank you.'
-                );
+                    )
+                    ->setStatus(true);
             }
         }
         return $feedbackForm;

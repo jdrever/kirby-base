@@ -14,6 +14,10 @@ if (!isset($value)) :
     throw new Exception('textbox snippet: $value not provided');
 endif;
 
+if (!isset($type)) :
+    $type = 'text';
+endif;
+
 if (!isset($required)) :
     $required = false;
 endif;
@@ -32,11 +36,12 @@ if (isset($label)) : ?>
     </label>
 <?php endif ?>
 <input
-    type="textbox"
+    type="<?=$type?>"
     name="<?=$name?>"
     id="<?=$id?>"
     value="<?= esc($value, 'attr') ?>"
-    class="form-control p-2 m-1"
+    class="form-control p-2 m-1<?= !empty($alert) ? ' is-invalid' : '' ?>"
     <?= $isRequired ?>
+
 >
-<?= isset($alert) ? '<span class="alert error">' . esc($alert) . '</span>' : '' ?>
+<?= !empty($alert) ? '<span class="invalid-feedback">' . esc($alert) . '</span>' : '' ?>
