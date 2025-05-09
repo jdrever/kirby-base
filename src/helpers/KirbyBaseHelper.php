@@ -171,6 +171,24 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * Retrieves the specified field from the page as a string. If the field is empty or an exception occurs, returns the provided fallback value.
+     *
+     * @param Page $page The page object containing the field.
+     * @param string $fieldName The name of the field to retrieve.
+     * @param string $fallback The fallback value to return if the field is empty or an error occurs.
+     * @return string The field value as a string, or the fallback value if the field is empty or an exception is caught.
+     */
+    protected function getPageFieldAsStringWithFallback(Page $page, string $fieldName, string $fallback): string
+    {
+        try {
+            $pageField = $this->getPageField($page, $fieldName);
+            return $pageField->isNotEmpty() ? $pageField->toString() : $fallback;
+        } catch (KirbyRetrievalException $e) {
+            return $fallback;;
+        }
+    }
+
+    /**
      * @param Page $page
      * @param string $fieldName
      * @param bool $required
@@ -453,6 +471,24 @@ abstract class KirbyBaseHelper
                 throw new KirbyRetrievalException('The field ' . $fieldName . ' is empty');
             }
             return $pageField;
+        } catch (InvalidArgumentException) {
+            throw new KirbyRetrievalException('The field ' . $fieldName . ' does not exist');
+        }
+    }
+
+    /**
+     * Retrieves the type of the specified field from the page's content.
+     * @param Page $page The page from which the field's type is to be retrieved.
+     * @param string $fieldName The name of the field whose type is to be retrieved.
+     * @return string The type of the field as a string.
+     * @throws KirbyRetrievalException if the field does not exist.
+     */
+    protected function getPageFieldType(Page $page, string $fieldName): string
+    {
+        try {
+            $pageField = $page->content()->get($fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $pageField->type();
         } catch (InvalidArgumentException) {
             throw new KirbyRetrievalException('The field ' . $fieldName . ' does not exist');
         }
@@ -813,6 +849,38 @@ abstract class KirbyBaseHelper
 
     abstract function setCurrentPage(Page $kirbyPage, BaseWebPage $currentPage): BaseWebPage;
 
+    /**
+     * Retrieves a specific page by its ID and casts it to the specified page class type.
+     * Optionally checks user roles during the process. Handles errors and allows for
+     * additional processing via customizable methods.
+     *
+     * @param string $pageId The unique identifier of the page to be retrieved.
+     * @param string $pageClass The class to which the page should be cast. Defaults to BaseWebPage.
+     * @param bool $checkUserRoles Whether to validate user roles during the retrieval process. Defaults to true.
+     * @return BaseWebPage The retrieved and processed page object.
+     * @throws KirbyRetrievalException if there is an error during the page retrieval process.
+     */
+    public function getSpecificPage(string $pageId, string $pageClass = BaseWebPage::class, $checkUserRoles = true) : BaseWebPage {
+        try {
+            $kirbyPage = $this->getKirbyPage($pageId);
+            $page = $this->getPage($kirbyPage, $pageClass, $checkUserRoles);
+
+            if (method_exists($this, 'setCurrentPage')) {
+                $page = $this->setCurrentPage($kirbyPage, $page);
+            }
+
+            $setPageFunction = 'set'.$this->extractClassName($pageClass);
+
+            if (method_exists($this, $setPageFunction)) {
+                $page = $this->$setPageFunction($kirbyPage, $page);
+            }
+
+        } catch (KirbyRetrievalException $e) {
+            $page = $this->recordPageError($e, $pageClass);
+        }
+        return $page;
+    }
+
     protected function getBaseWebPage(string $pageClass): BaseWebPage
     {
         try {
@@ -938,11 +1006,107 @@ abstract class KirbyBaseHelper
         return $webPage;
     }
 
-    protected function redirectToLogin(): void
+    /**
+     * @param Page $kirbyPage
+     * @param string $pageClass
+     * @return BaseWebPage
+     */
+    protected function getEmptyWebPage(Page $kirbyPage, string $pageClass = BaseWebPage::class): BaseWebPage
     {
-        $loginPage = $this->findKirbyPage('login');
-        $loginPage->go();
+        $webPage = new $pageClass($kirbyPage->title()->toString(), $kirbyPage->url(), $kirbyPage->template()->name());
+        $webPage->setPageId($kirbyPage->id());
+        $user = $this->getCurrentUser();
+        $webPage->setCurrentUser($user);
+        return $webPage;
     }
+
+    /**
+     * @param string $title
+     * @return BaseWebPage
+     */
+    protected function findPage(string $title): BaseWebPage
+    {
+        $page = $this->findKirbyPage($title);
+        if ($page !== null) {
+            $webPage = new BaseWebPage($page->title()->toString(), $page->url(), $page->template()->name());
+        } else {
+            $webPage = new BaseWebPage('', '', '');
+            $webPage->setStatus(false);
+        }
+        return $webPage;
+    }
+
+    /**
+     * @param string $pageId
+     * @return Page
+     * @throws KirbyRetrievalException
+     */
+    protected function getKirbyPage(string $pageId): Page
+    {
+        $page = $this->kirby->page($pageId);
+        if (!$page instanceof Page) {
+            throw new KirbyRetrievalException('Page not found');
+        }
+        return $page;
+    }
+
+    /**
+     * @param string $title
+     * @param Page|null $parentPage
+     * @return Page|null
+     */
+    protected function findKirbyPage(string $title, ?Page $parentPage = null): Page|null
+    {
+        $page = $parentPage === null
+            ? $this->site->children()->find($title)
+            : $parentPage->children()->find($title);
+        if ($page !== null) {
+            if ($page instanceof Page) {
+                return $page;
+            }
+            if ($page instanceof Collection) {
+                if ($page->first() instanceof Page) {
+                    return $page->first();
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param string $collectionName
+     * @return \Kirby\Toolkit\Collection
+     * @throws KirbyRetrievalException
+     */
+    protected function getPagesFromCollection(string $collectionName): \Kirby\Toolkit\Collection
+    {
+        $pages = $this->kirby->collection($collectionName);
+        if (!isset($pages)) {
+            throw new KirbyRetrievalException('Collection ' . $collectionName . ' pages not found');
+        }
+        return $pages;
+    }
+
+    /**
+     * @param string $pageId
+     * @return string
+     */
+    public function getParentPageName(string $pageId): string
+    {
+        $page = $this->kirby->page($pageId);
+        if ($page instanceof Page) {
+            $parentPage = $page->parent();
+            if ($parentPage instanceof Page) {
+                return $parentPage->title()->toString();
+            }
+        }
+        return '';
+    }
+
+    #endregion
+
+    #region MENU PAGES/NAVIGATION
+
 
     /**
      * @return WebPageLinks
@@ -1055,44 +1219,13 @@ abstract class KirbyBaseHelper
     }
 
 
-    /**
-     * @param string $title
-     * @return BaseWebPage
-     */
-    protected function findPage(string $title): BaseWebPage
-    {
-        $page = $this->findKirbyPage($title);
-        if ($page !== null) {
-            $webPage = new BaseWebPage($page->title()->toString(), $page->url(), $page->template()->name());
-        } else {
-            $webPage = new BaseWebPage('', '', '');
-            $webPage->setStatus(false);
-        }
-        return $webPage;
-    }
 
-    /**
-     * @param string $title
-     * @param Page|null $parentPage
-     * @return Page|null
-     */
-    protected function findKirbyPage(string $title, ?Page $parentPage = null): Page|null
-    {
-        $page = $parentPage === null
-            ? $this->site->children()->find($title)
-            : $parentPage->children()->find($title);
-        if ($page !== null) {
-            if ($page instanceof Page) {
-                return $page;
-            }
-            if ($page instanceof Collection) {
-                if ($page->first() instanceof Page) {
-                    return $page->first();
-                }
-            }
-        }
-        return null;
-    }
+
+
+
+    #endregion
+
+    #region LINKS
 
     /**
      * @param string $title
@@ -1127,19 +1260,7 @@ abstract class KirbyBaseHelper
         return $coreLink;
     }
 
-    /**
-     * @param string $pageId
-     * @return Page
-     * @throws KirbyRetrievalException
-     */
-    protected function getKirbyPage(string $pageId): Page
-    {
-        $page = $this->kirby->page($pageId);
-        if (!$page instanceof Page) {
-            throw new KirbyRetrievalException('Page not found');
-        }
-        return $page;
-    }
+
 
     /**
      * @param \Kirby\Toolkit\Collection $collection
@@ -1190,57 +1311,12 @@ abstract class KirbyBaseHelper
         return $webPageLink;
     }
 
-    /**
-     * @param string $collectionName
-     * @return \Kirby\Toolkit\Collection
-     * @throws KirbyRetrievalException
-     */
-    protected function getPagesFromCollection(string $collectionName): \Kirby\Toolkit\Collection
-    {
-        $pages = $this->kirby->collection($collectionName);
-        if (!isset($pages)) {
-            throw new KirbyRetrievalException('Collection ' . $collectionName . ' pages not found');
-        }
-        return $pages;
-    }
-
-    public function getSpecificPage(string $pageId, string $pageClass = BaseWebPage::class, $checkUserRoles = true) : BaseWebPage {
-        try {
-            $kirbyPage = $this->getKirbyPage($pageId);
-            $page = $this->getPage($kirbyPage, $pageClass, $checkUserRoles);
-
-            if (method_exists($this, 'setCurrentPage')) {
-                $page = $this->setCurrentPage($kirbyPage, $page);
-            }
-
-            $setPageFunction = 'set'.$this->extractClassName($pageClass);
-
-            if (method_exists($this, $setPageFunction)) {
-                $page = $this->$setPageFunction($kirbyPage, $page);
-            }
-
-        } catch (KirbyRetrievalException $e) {
-            $page = $this->recordPageError($e, $pageClass);
-        }
-        return $page;
-    }
-
-    /**
-     * @param string $fullClassName
-     * @return string
-     */
-    private function extractClassName(string $fullClassName ): string {
-        $afterLastBackslash = strrchr($fullClassName, '\\');
-        if ($afterLastBackslash === false) {
-            // No backslash found, the string is the content
-            return $fullClassName;
-        } else {
-            // Remove the leading backslash
-            return substr($afterLastBackslash, 1);
-        }
-    }
 
 
+
+    #endregion
+
+    #region MODELS
     /**
      * @param string $pageId
      * @param string $modelClass
@@ -1346,22 +1422,9 @@ abstract class KirbyBaseHelper
 
         return $modelList;
     }
+    #endregion
 
-
-    /**
-     * @param Page $kirbyPage
-     * @param string $pageClass
-     * @return BaseWebPage
-     */
-    protected function getEmptyWebPage(Page $kirbyPage, string $pageClass = BaseWebPage::class): BaseWebPage
-    {
-        $webPage = new $pageClass($kirbyPage->title()->toString(), $kirbyPage->url(), $kirbyPage->template()->name());
-        $webPage->setPageId($kirbyPage->id());
-        $user = $this->getCurrentUser();
-        $webPage->setCurrentUser($user);
-        return $webPage;
-    }
-
+    #region ERROR HANDLING
 
     /**
      * @param KirbyRetrievalException $e
@@ -1551,21 +1614,7 @@ abstract class KirbyBaseHelper
         }
     }
 
-    /**
-     * @param string $pageId
-     * @return string
-     */
-    public function getParentPageName(string $pageId): string
-    {
-        $page = $this->kirby->page($pageId);
-        if ($page instanceof Page) {
-            $parentPage = $page->parent();
-            if ($parentPage instanceof Page) {
-                return $parentPage->title()->toString();
-            }
-        }
-        return '';
-    }
+
 
     #endregion
 
@@ -2129,6 +2178,21 @@ abstract class KirbyBaseHelper
 
 
     /**
+     * @param string $fullClassName
+     * @return string
+     */
+    private function extractClassName(string $fullClassName ): string {
+        $afterLastBackslash = strrchr($fullClassName, '\\');
+        if ($afterLastBackslash === false) {
+            // No backslash found, the string is the content
+            return $fullClassName;
+        } else {
+            // Remove the leading backslash
+            return substr($afterLastBackslash, 1);
+        }
+    }
+
+    /**
      * @return string
      * @throws KirbyRetrievalException
      */
@@ -2192,6 +2256,12 @@ abstract class KirbyBaseHelper
     {
         $optionValue = $this->kirby->option($optionKey);
         return $this->asString($optionValue);
+    }
+
+    protected function redirectToLogin(): void
+    {
+        $loginPage = $this->findKirbyPage('login');
+        $loginPage->go();
     }
 
     protected function asString(mixed $value): string
