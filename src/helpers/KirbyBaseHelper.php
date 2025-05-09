@@ -1478,7 +1478,7 @@ abstract class KirbyBaseHelper
      */
     protected function getRelatedContentListFromStructureField(Page $page, string $fieldName) : RelatedContentList
     {
-        $relatedContent = $this->getPageFieldAsPages($page, 'related');
+        $relatedContent = $this->getPageFieldAsStructure($page, 'related');
         $relatedContentList = new RelatedContentList();
         foreach ($relatedContent as $item) {
             $itemTitle = $this->getStructureFieldAsString($item, 'title', false);
