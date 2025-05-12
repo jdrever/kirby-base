@@ -1,6 +1,7 @@
 <?php
 return [
     'scripts' => __DIR__ . '/snippets/scripts.php',
+    'on-this-page' => __DIR__ . '/snippets/on-this-page.php',
     'related-content' => __DIR__ . '/snippets/related-content.php',
     // form blocks
     'form/textbox' => __DIR__ . '/snippets/form/textbox.php',
