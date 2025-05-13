@@ -78,3 +78,17 @@
 ## Menu Pages
 
 Set up a collection called menuPages - this will be used to setMenuPages for the BaseWebPage class.
+
+# Updates
+
+## Changing the KirbyBase version number
+
+You need to do this to update the plugin in your project
+
+- Change the composer.json version number
+- Commit that change, and add a tag with the version number
+- Push that change, along with the new tag
+
+## Getting the latest version of KirbyBase in your project
+
+- Run composer update
