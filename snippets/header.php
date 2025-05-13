@@ -19,7 +19,7 @@ endif;
     <meta charset="utf-8">
     <title><?=$currentPage->getTitle() ?></title>
     <?php if ($currentPage->hasDescription()) : ?>
-        <meta name="description" content="<?=$currentPage->getDescription()?>">
+    <meta name="description" content="<?=$currentPage->getDescription()?>">
     <?php endif ?>
     <meta name="author" content="<?=$currentPage->getAuthors()?>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -46,11 +46,6 @@ endif;
 if ($lowerHead = $slots->lowerHead()) : ?>
         <?= $lowerHead ?>
 <?php endif ?>
-
-    <link href="/assets/css/custom.css" rel="stylesheet" >
-    <!-- Fathom - beautiful, simple website analytics -->
-    <script src="https://cdn.usefathom.com/script.js" data-site="GBVRYUKF" defer></script>
-    <!-- / Fathom -->
 </head>
 
 <body>
