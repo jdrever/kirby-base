@@ -49,6 +49,6 @@ if ($lowerHead = $slots->lowerHead()) : ?>
 </head>
 
 <body>
-<a class="skip-link" href="#skipToContent">Skip to Content</a>
+<a class="visually-hidden-focusable" href="#skipToContent">Skip to Content</a>
 
 
