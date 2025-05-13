@@ -410,6 +410,8 @@ abstract class KirbyBaseHelper
         }
     }
 
+
+
     /**
      * @param Page $page
      * @param string $fieldName
@@ -886,6 +888,27 @@ abstract class KirbyBaseHelper
         /** @noinspection PhpUndefinedMethodInspection */
         return $structureField->toPage()->url();
     }
+
+    /**
+     * Retrieves a field from a structure object and converts it to a URL if possible.
+     * If the field's link object is empty, an empty string is returned.
+     *
+     * @param StructureObject $structure The structure object containing the field.
+     * @param string $fieldName The name of the field to retrieve.
+     * @return WebPageLink
+     * @throws KirbyRetrievalException
+     */
+    protected function getStructureFieldAsWebPageLink(StructureObject $structure, string $fieldName): WebPageLink
+    {
+        $structureField = $this->getStructureField($structure, $fieldName);
+        /** @noinspection PhpUndefinedMethodInspection */
+        $linkPage = $structureField->toPage();
+        if ($linkPage->isNotEmpty()) {
+            return new WebPageLink($linkPage->title()->value(), $linkPage->url(), $linkPage->id(), $linkPage->template()->name());
+        }
+        return $this->get;
+    }
+
 
     /**
      * @param StructureObject $structure
