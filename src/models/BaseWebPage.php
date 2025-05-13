@@ -39,6 +39,8 @@ class BaseWebPage extends BaseModel
      */
     protected string $openGraphImage = '';
 
+    protected string $authors = '';
+
     /**
      * @var WebPageBlocks
      */
@@ -96,6 +98,8 @@ class BaseWebPage extends BaseModel
     protected bool $usingSimpleLinksForSubPages = false;
 
     protected string $urlWithQueryString = '';
+
+
 
     /**
      * @param string $title
@@ -168,6 +172,19 @@ class BaseWebPage extends BaseModel
         $this->openGraphImage = $imageUrl;
         return $this;
     }
+
+    public function getAuthors(): string
+    {
+        return $this->authors;
+    }
+
+    public function setAuthors(string $authors): BaseWebPage
+    {
+        $this->authors = $authors;
+        return $this;
+    }
+
+
 
     /**
      * @return WebPageBlocks

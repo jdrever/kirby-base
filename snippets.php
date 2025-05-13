@@ -3,6 +3,8 @@ return [
     'scripts' => __DIR__ . '/snippets/scripts.php',
     'on-this-page' => __DIR__ . '/snippets/on-this-page.php',
     'related-content' => __DIR__ . '/snippets/related-content.php',
+    'base/header' => __DIR__ . '/snippets/header.php',
+    'base/breadcrumb' => __DIR__ . '/snippets/breadcrumb.php',
     // form blocks
     'form/textbox' => __DIR__ . '/snippets/form/textbox.php',
     'form/textarea' => __DIR__ . '/snippets/form/textarea.php',
