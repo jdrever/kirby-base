@@ -906,7 +906,9 @@ abstract class KirbyBaseHelper
         if ($linkPage->isNotEmpty()) {
             return new WebPageLink($linkPage->title()->value(), $linkPage->url(), $linkPage->id(), $linkPage->template()->name());
         }
-        return $this->get;
+        $webPageLink =  new WebPageLink('Not found', '', '', '');
+        $webPageLink->setStatus(false);
+        return $webPageLink;
     }
 
 
