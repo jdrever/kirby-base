@@ -16,17 +16,17 @@ return [
     'form/turnstile' => __DIR__ . '/snippets/form/turnstile.php',
 
     // snippet blocks
-    'blocks/accordion' => __DIR__ . '/../snippets/blocks/accordion.php',
-    'blocks/description-list' => __DIR__ . '/../snippets/blocks/description-list.php',
-    'blocks/faq' => __DIR__ . '/../snippets/blocks/faq.php',
-    'blocks/file' => __DIR__ . '/../snippets/blocks/file.php',
-    'blocks/gallery' => __DIR__ . '/../snippets/blocks/gallery.php',
-    'blocks/image' => __DIR__ . '/../snippets/blocks/image.php',
-    'blocks/note' => __DIR__ . '/../snippets/blocks/note.php',
-    'blocks/ready-made' => __DIR__ . '/../snippets/blocks/ready-made.php',
-    'blocks/table-2col' => __DIR__ . '/../snippets/blocks/table-2col.php',
-    'blocks/table-3col' => __DIR__ . '/../snippets/blocks/table-3col.php',
-    'blocks/video' => __DIR__ . '/../snippets/blocks/video.php',
+    'blocks/accordion' => __DIR__ . '/snippets/blocks/accordion.php',
+    'blocks/description-list' => __DIR__ . '/snippets/blocks/description-list.php',
+    'blocks/faq' => __DIR__ . '/snippets/blocks/faq.php',
+    'blocks/file' => __DIR__ . '/snippets/blocks/file.php',
+    'blocks/gallery' => __DIR__ . '/snippets/blocks/gallery.php',
+    'blocks/image' => __DIR__ . '/snippets/blocks/image.php',
+    'blocks/note' => __DIR__ . '/snippets/blocks/note.php',
+    'blocks/ready-made' => __DIR__ . '/snippets/blocks/ready-made.php',
+    'blocks/table-2col' => __DIR__ . '/snippets/blocks/table-2col.php',
+    'blocks/table-3col' => __DIR__ . '/snippets/blocks/table-3col.php',
+    'blocks/video' => __DIR__ . '/snippets/blocks/video.php',
 
     //feedback
     'feedback/form' => __DIR__ . '/snippets/feedback/form.php',

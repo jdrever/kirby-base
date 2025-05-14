@@ -3,17 +3,11 @@
 declare(strict_types=1);
 
 use Kirby\Cms\Block;
-use Kirby\Cms\Html;
-use models\WebPage;
-
-if (!isset($currentPage)) :
-    throw new Exception('add-to-basket-button snippet: $currentPage not provided');
-endif;
 
 /**
  * @var Block $block
- * @var WebPage $currentPage
  */
+
 ?>
 <?php if (str_contains($block->url(), 'youtu')) : ?>
     <?php
