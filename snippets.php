@@ -6,7 +6,7 @@ return [
     'base/related-content' => __DIR__ . '/snippets/related-content.php',
     'base/header' => __DIR__ . '/snippets/header.php',
     'base/breadcrumb' => __DIR__ . '/snippets/breadcrumb.php',
-
+    'base/menu' => __DIR__ . '/snippets/menu.php',
 
     // form blocks
     'form/textbox' => __DIR__ . '/snippets/form/textbox.php',
@@ -14,6 +14,11 @@ return [
     'form/select' => __DIR__ . '/snippets/form/select.php',
     'form/checkbox' => __DIR__ . '/snippets/form/checkbox.php',
     'form/turnstile' => __DIR__ . '/snippets/form/turnstile.php',
+
+    //search blocks
+    'search/highlight' => __DIR__ . '/snippets/search/highlight.php',
+    'search/pagination' => __DIR__ . '/snippets/search/pagination.php',
+    'search/results' => __DIR__ . '/snippets/search/results.php',
 
     // snippet blocks
     'blocks/accordion' => __DIR__ . '/snippets/blocks/accordion.php',
