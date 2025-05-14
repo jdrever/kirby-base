@@ -1,0 +1,55 @@
+<?php
+
+declare(strict_types=1);
+
+use Kirby\Cms\Block;
+use Kirby\Cms\Html;
+use models\WebPage;
+
+if (!isset($currentPage)) :
+    throw new Exception('add-to-basket-button snippet: $currentPage not provided');
+endif;
+
+/**
+ * @var Block $block
+ * @var WebPage $currentPage
+ */
+?>
+<?php if (str_contains($block->url(), 'youtu')) : ?>
+    <?php
+    $ytUrl = str_replace("https://", "", $block->url());
+
+    if (!is_string($ytUrl) || empty($ytUrl)) {
+        throw new Exception('video snippet: $ytUrl is not set or is not a string');
+    }
+
+    if (str_starts_with($ytUrl, "youtu.be/")) {
+        $ytId = str_replace("youtu.be/", "", $ytUrl);
+    } elseif (str_starts_with($ytUrl, "www.youtube.com/embed/")) {
+        $ytId = substr(str_replace("www.youtube.com/embed/", "", $ytUrl), 0, 11);
+    } else {
+        $parsedYtUrl = parse_url($ytUrl, PHP_URL_QUERY);
+        if (!is_string($parsedYtUrl)) {
+            throw new Exception('video snippet: $parsedYtUrl is not a string');
+        }
+        parse_str($parsedYtUrl, $ytUrlVars);
+        $ytId = $ytUrlVars['v'];
+    }
+
+    if (!is_string($ytId) || empty($ytId)) {
+        throw new Exception('video snippet: $ytId is not set or is not a string');
+    }
+    ?>
+    <lite-youtube videoid="<?= $ytId ?>" playlabel="<?= $block->caption()->value() ?>">
+        <a href="../../../../../index.php" class="lty-playbtn" title="Play Video">
+            <span class="lyt-visually-hidden">Play Video: <?= $block->caption() ?></span>
+        </a>
+    </lite-youtube>
+<?php elseif ($video = Html::video($block->url())) : ?>
+    <?= $video ?>
+<?php endif ?>
+<?php if ($block->caption()->isNotEmpty()) : ?>
+    <p style="font-size:0.7em;"><?= $block->caption() ?></p>
+<?php endif;
+
+$currentPage->addScript('lite-youtube');
