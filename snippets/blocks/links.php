@@ -3,10 +3,15 @@
 declare(strict_types=1);
 
 /**
- * @var \Kirby\Cms\App $kirby
- * @var \Kirby\Cms\Site $site
- * @var \Kirby\Cms\Block $block
+ * @var App $kirby
+ * @var Site $site
+ * @var Block $block
  */
+
+use Kirby\Cms\App;
+use Kirby\Cms\Block;
+use Kirby\Cms\Site;
+
 ?>
 <h2><?=$block->title()?></h2>
 

@@ -13,7 +13,7 @@ return [
                 'publishedDate' => date('Y-m-d H:i:s'),
                 'publishedBy' => $user ? $user->id() : null
             ]);
-        };
+        }
         return $newPage;
     },
     'page.create:after' => function ($page) {

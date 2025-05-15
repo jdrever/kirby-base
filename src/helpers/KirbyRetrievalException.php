@@ -1,6 +1,8 @@
 <?php
 namespace BSBI\WebBase\helpers;
 
-class KirbyRetrievalException extends \Exception
+use Exception;
+
+class KirbyRetrievalException extends Exception
 {
 }

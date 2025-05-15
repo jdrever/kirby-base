@@ -9,9 +9,9 @@ use Kirby\Cms\Block;
  */
 
 ?>
-<?php if (str_contains($block->url(), 'youtu')) : ?>
+<?php if (str_contains($block->url()->value(), 'youtu')) : ?>
     <?php
-    $ytUrl = str_replace("https://", "", $block->url());
+    $ytUrl = str_replace("https://", "", $block->url()->value());
 
     if (!is_string($ytUrl) || empty($ytUrl)) {
         throw new Exception('video snippet: $ytUrl is not set or is not a string');
@@ -45,5 +45,3 @@ use Kirby\Cms\Block;
 <?php if ($block->caption()->isNotEmpty()) : ?>
     <p style="font-size:0.7em;"><?= $block->caption() ?></p>
 <?php endif;
-
-$currentPage->addScript('lite-youtube');

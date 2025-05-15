@@ -217,9 +217,12 @@ abstract class KirbyBaseHelper
                 $webPage->setOpenGraphDescription($this->site->url() . '/assets/images/BSBI-long-colour.svg');
             }
 
-
             $webPage->setColourMode($this->getColourMode());
 
+            //add scripts for blocks
+            if ($webPage->hasBlockofType('video')) {
+                $webPage->addScript('lite-youtube');
+            }
 
             $query = $this->getSearchQuery();
 
@@ -406,7 +409,7 @@ abstract class KirbyBaseHelper
             $pageField = $this->getPageField($page, $fieldName);
             return $pageField->isNotEmpty() ? $pageField->toString() : $fallback;
         } catch (KirbyRetrievalException $e) {
-            return $fallback;;
+            return $fallback;
         }
     }
 
