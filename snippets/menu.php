@@ -27,7 +27,11 @@ $menuPages = $currentPage->getMenuPages();
   </button>
   <div class="collapse navbar-collapse m-0 p-0" id="navBar">
     <ul class="navbar-nav ms-2">
-      <li class="nav-item border-end"><a href="https://bsbi.org/" class="nav-link text-white ms-2 px-2">&larr; BSBI Home</a></li>
+<?php
+/** @noinspection PhpUndefinedMethodInspection */
+if ($startOfMenu = $slots->startOfMenu()) : ?>
+    <?= $startOfMenu ?>
+<?php endif ?>
       <li class="nav-item"><a href="/" class="nav-link text-white ms-2 px-2">Home</a></li>
       <?php 
 
