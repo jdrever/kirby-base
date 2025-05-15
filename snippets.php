@@ -27,6 +27,7 @@ return [
     'blocks/file' => __DIR__ . '/snippets/blocks/file.php',
     'blocks/gallery' => __DIR__ . '/snippets/blocks/gallery.php',
     'blocks/image' => __DIR__ . '/snippets/blocks/image.php',
+    'blocks/links' => __DIR__ . '/snippets/blocks/links.php',
     'blocks/note' => __DIR__ . '/snippets/blocks/note.php',
     'blocks/ready-made' => __DIR__ . '/snippets/blocks/ready-made.php',
     'blocks/table-2col' => __DIR__ . '/snippets/blocks/table-2col.php',
