@@ -1,0 +1,9 @@
+icon: sitemap
+preview: fields
+wysiwyg: true
+fields:
+  title:
+    type: text
+  links:
+    label: Links
+    type: pages
