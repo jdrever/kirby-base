@@ -11,6 +11,7 @@ return [
     'blocks/file' => __DIR__ . '/blueprints/blocks/file.yml',
     'blocks/gallery' => __DIR__ . '/blueprints/blocks/gallery.yml',
     'blocks/heading' => __DIR__ . '/blueprints/blocks/heading.yml',
+    'blocks/links' => __DIR__ . '/blueprints/blocks/links.yml',
     'blocks/image' => __DIR__ . '/blueprints/blocks/image.yml',
     'blocks/note' => __DIR__ . '/blueprints/blocks/note.yml',
     'blocks/ready-made' => __DIR__ . '/blueprints/blocks/ready-made.yml',
