@@ -2,16 +2,21 @@
 
 declare(strict_types=1);
 
-use BSBI\Docs\models\SearchPage;
+use BSBI\WebBase\models\BaseWebPage;
 
 if (!isset($currentPage)) :
     throw new Exception('$currentPage was not provided');
 endif;
 
-if (!$currentPage instanceof SearchPage) :
-    throw new Exception('$currentPage not instance of SearchPage');
+/** @var BaseWebPage $currentPage */
+
+if (!method_exists($currentPage, 'hasSearchResults')) :
+    throw new Exception('$currentPage must implement hasSearchResults method');
 endif;
 
+if (!method_exists($currentPage, 'getSearchResults')) :
+    throw new Exception('$currentPage must implement getSearchResults method');
+endif;
 
 $query = $currentPage->getQuery();
 ?>
