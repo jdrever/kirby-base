@@ -1158,7 +1158,6 @@ abstract class KirbyBaseHelper
     protected function getSubPagesAsCollection(Page $page): mixed
     {
         if ($page->template()->name() !== 'home') {
-            //TODO: need to not hard-code option location
             $excludedTemplates = option('subPagesExclude');
 
             // Ensure it returns an array
