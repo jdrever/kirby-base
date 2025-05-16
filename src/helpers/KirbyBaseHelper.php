@@ -1159,7 +1159,7 @@ abstract class KirbyBaseHelper
     {
         if ($page->template()->name() !== 'home') {
             //TODO: need to not hard-code option location
-            $excludedTemplates = option('bsbi.bsbiweb.subPagesExclude');
+            $excludedTemplates = option('subPagesExclude');
 
             // Ensure it returns an array
             if (!is_array($excludedTemplates)) {
