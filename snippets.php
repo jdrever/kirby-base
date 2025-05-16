@@ -10,6 +10,7 @@ return [
     'base/page-title' => __DIR__ . '/snippets/page-title.php',
 
     // form blocks
+    'form/button' => __DIR__ . '/snippets/form/button.php',
     'form/textbox' => __DIR__ . '/snippets/form/textbox.php',
     'form/textarea' => __DIR__ . '/snippets/form/textarea.php',
     'form/select' => __DIR__ . '/snippets/form/select.php',
