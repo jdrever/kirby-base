@@ -29,7 +29,7 @@ class LoginDetails
      * The username provided during login attempt
      * @var string
      */
-    private string $userName;
+    private string $userName = '';
 
     /**
      * Message to display to user about login attempt result

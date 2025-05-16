@@ -2183,7 +2183,7 @@ abstract class KirbyBaseHelper
      * @return bool Returns true if the user has permission to access the page, false otherwise
      */
     protected function checkPagePermissions(Page $currentPage) : bool {
-        $user = kirby()->user();
+        $user = $this->kirby->user();
         $currentPage = page();
 
         // Allow access for logged-in Admin and Editor roles,
@@ -2236,7 +2236,7 @@ abstract class KirbyBaseHelper
         return $this->kirby->user() != null;
     }
 
-    protected function processLogin() : LoginDetails {
+    protected function getLoginDetails() : LoginDetails {
         $loginDetails = new LoginDetails();
         // handle the form submission
         if ($this->kirby->request()->is('POST') && get('userName')) {
@@ -2263,8 +2263,8 @@ abstract class KirbyBaseHelper
             }
         }
         else {
-            $loginDetails->setCSRFToken(csrf());
-            $loginDetails->setRedirectPage(get('redirectPage'));
+            $loginDetails->setCSRFToken(csrf() ?? '');
+            $loginDetails->setRedirectPage(get('redirectPage', ''));
         }
         return $loginDetails;
     }
