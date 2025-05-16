@@ -39,6 +39,7 @@ return [
     'tabs/panel' => __DIR__ . '/blueprints/tabs/panel.yml',
     'tabs/related' => __DIR__ . '/blueprints/tabs/related.yml',
     'tabs/info' => __DIR__ . '/blueprints/tabs/info.yml',
+    'tabs/permissions' => __DIR__ . '/blueprints/tabs/permissions.yml',
 
     //layout blueprints
     'layouts/page' => __DIR__ . '/blueprints/layouts/page.yml',

@@ -1,0 +1,12 @@
+label: Permissions
+icon: lock
+fields:
+  requiredRoles:
+    label: Required Roles
+    type: multiselect
+    options:
+      type: query
+      query: kirby.roles
+      text: "{{ item.title }}"
+      value: "{{ item.name }}
+

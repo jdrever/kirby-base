@@ -165,7 +165,7 @@ abstract class KirbyBaseHelper
             $webPage->setCurrentUser($user);
 
             if ($checkUserRoles) {
-                if (!$webPage->checkUserAgainstRequiredRoles()) {
+                if (!$this->checkPagePermissions($page)) {
                     $this->redirectToLogin();
                 }
             }
@@ -2169,6 +2169,67 @@ abstract class KirbyBaseHelper
      */
     protected function getCurrentUserRole(): string {
         return $this->kirby->user() ? $this->kirby->user()->role()->name() : '';
+    }
+
+    /**
+     * Checks whether the current user has the necessary permissions to access the given page.
+     *
+     * This function evaluates the user's role against the required roles defined in
+     * the current page or inherited from its parent pages. It grants access to users
+     * with 'admin' or 'editor' roles by default. If no roles are explicitly defined,
+     * access is allowed.
+     *
+     * @param Page $currentPage The page for which permission is being checked
+     * @return bool Returns true if the user has permission to access the page, false otherwise
+     */
+    protected function checkPagePermissions(Page $currentPage) : bool {
+        $user = kirby()->user();
+        $currentPage = page();
+
+        // Allow access for logged-in Admin and Editor roles,
+        // but exclude the virtual 'kirby' user.
+        if ($user && !$user->isKirby() && ($user->role()->name() === 'admin' || $user->role()->name() === 'editor')) {
+            return true;
+        }
+
+        // If no user is logged in (or it's the kirby user), we will check for required roles later.
+        // If roles are required and no eligible user is logged in, access will be denied.
+
+        $applicableRoles = []; // Array to store the roles that apply based on inheritance
+
+        // Traverse up the page hierarchy to find the first non-empty requiredRoles field
+        $page = $currentPage;
+        while ($page) {
+            $requiredRolesField = $page->requiredRoles(); // Access the field
+
+            // Convert the multiselect field value to a plain array
+            $currentRoles = $requiredRolesField->toData('array');
+
+            // If this page has required roles set, these are the applicable roles due to inheritance
+            if (!empty($currentRoles)) {
+                $applicableRoles = $currentRoles;
+                break; // Found the most specific required roles in the hierarchy
+            }
+
+            // Move up to the parent page
+            $page = $page->parent();
+        }
+
+        // Now check if the user has permission based on the applicable roles found
+
+        // If no applicable roles were found throughout the hierarchy, access is allowed
+        if (empty($applicableRoles)) {
+            return true;
+        }
+
+        // If applicable roles exist, check if a *non-kirby* user is logged in
+        // and if their role is in the list
+        if ($user && !$user->isKirby() && in_array($user->role()->name(), $applicableRoles)) {
+            return true;
+        }
+
+        // If none of the above conditions are met, the user does not have permission
+        return false;
     }
 
     protected function isUserLoggedIn(): bool {

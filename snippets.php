@@ -6,6 +6,7 @@ return [
     'base/related-content' => __DIR__ . '/snippets/related-content.php',
     'base/header' => __DIR__ . '/snippets/header.php',
     'base/breadcrumb' => __DIR__ . '/snippets/breadcrumb.php',
+    'base/login' => __DIR__ . '/snippets/login.php',
     'base/menu' => __DIR__ . '/snippets/menu.php',
     'base/page-title' => __DIR__ . '/snippets/page-title.php',
 
