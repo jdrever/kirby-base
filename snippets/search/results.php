@@ -20,9 +20,6 @@ endif;
 
 $query = $currentPage->getQuery();
 ?>
-
-<h1>Search</h1>
-
 <form method="get" action="/search" role="search">
     <p>Searching for:
         <input type="search" aria-label="Search" name="q" class="form-control-sm ms-2 me-2" value="<?=$query ?>">
