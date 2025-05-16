@@ -12,6 +12,7 @@ use BSBI\WebBase\models\Document;
 use BSBI\WebBase\models\FeedbackForm;
 use BSBI\WebBase\models\Image;
 use BSBI\WebBase\models\ImageType;
+use BSBI\WebBase\models\LoginDetails;
 use BSBI\WebBase\models\Pagination;
 use BSBI\WebBase\models\PrevNextPageNavigation;
 use BSBI\WebBase\models\RelatedContent;
@@ -2172,6 +2173,39 @@ abstract class KirbyBaseHelper
 
     protected function isUserLoggedIn(): bool {
         return $this->kirby->user() != null;
+    }
+
+    protected function processLogin() : LoginDetails {
+        $loginDetails = new LoginDetails();
+        // handle the form submission
+        if ($this->kirby->request()->is('POST') && get('userName')) {
+            $loginDetails->setHasBeenProcessed(true);
+            // try to log the user in with the provided credentials
+            try {
+                // validate CSRF token
+                if (csrf(get('csrf')) === true) {
+                    $userName = trim(get('userName'));
+                    $userName = str_replace(' ', '-', $userName);
+                    $loginDetails->setUserName($userName);
+                    $this->kirby->auth()->login($userName, trim(get('password')), true);
+
+                    $loginDetails->setLoginStatus(true);
+                    $loginDetails->setLoginMessage('You have successfully logged in');
+
+                } else {
+                    $loginDetails->setLoginStatus(false);
+                    $loginDetails->setLoginMessage('Invalid CSRF token.');
+                }
+            } catch (Exception $e) {
+                $loginDetails->setLoginStatus(false);
+                $loginDetails->setLoginMessage('You do not have access.');
+            }
+        }
+        else {
+            $loginDetails->setCSRFToken(csrf());
+            $loginDetails->setRedirectPage(get('redirectPage'));
+        }
+        return $loginDetails;
     }
 
     #endregion
