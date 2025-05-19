@@ -9,6 +9,7 @@ return [
     'base/login' => __DIR__ . '/snippets/login.php',
     'base/menu' => __DIR__ . '/snippets/menu.php',
     'base/page-title' => __DIR__ . '/snippets/page-title.php',
+    'base/colour-mode' => __DIR__ . '/snippets/colour-mode.php',
 
     // form blocks
     'form/button' => __DIR__ . '/snippets/form/button.php',
@@ -19,6 +20,7 @@ return [
     'form/turnstile' => __DIR__ . '/snippets/form/turnstile.php',
 
     //search blocks
+    'search/bar' => __DIR__ . '/snippets/search/bar.php',
     'search/highlight' => __DIR__ . '/snippets/search/highlight.php',
     'search/pagination' => __DIR__ . '/snippets/search/pagination.php',
     'search/results' => __DIR__ . '/snippets/search/results.php',
