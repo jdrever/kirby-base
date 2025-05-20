@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use BSBI\Web\models\WebPage;
+use BSBI\WebBase\models\BaseWebPage;
 
 if (!isset($currentPage)) :
     throw new Exception('$currentPage not provided');
 endif;
 
 /**
- * @var WebPage $currentPage
+ * @var BaseWebPage $currentPage
  */
 $scripts = $currentPage->getScripts();
 foreach ($scripts as $script) : ?>
