@@ -2183,14 +2183,23 @@ abstract class KirbyBaseHelper
      * @return bool Returns true if the user has permission to access the page, false otherwise
      */
     protected function checkPagePermissions(Page $currentPage) : bool {
-        $user = $this->kirby->user();
+
         $currentPage = page();
+
+        if ($currentPage->template()->name() === 'login') { return true; }
+
+        $user = $this->kirby->user();
 
         // Allow access for logged-in Admin and Editor roles,
         // but exclude the virtual 'kirby' user.
         if ($user && !$user->isKirby() && ($user->role()->name() === 'admin' || $user->role()->name() === 'editor')) {
             return true;
         }
+
+        if ($this->site->requiredRoles()->isNotEmpty()) {
+            return ($user && !$user->isKirby() && in_array($user->role()->name(), $this->site->requiredRoles()));
+        }
+
 
         // If no user is logged in (or it's the kirby user), we will check for required roles later.
         // If roles are required and no eligible user is logged in, access will be denied.
