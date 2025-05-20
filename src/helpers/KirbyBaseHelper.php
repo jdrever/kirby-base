@@ -2258,6 +2258,8 @@ abstract class KirbyBaseHelper
 
                     $loginDetails->setLoginStatus(true);
                     $loginDetails->setLoginMessage('You have successfully logged in');
+                    //TODO: implement per role redirection/redirect to previous page
+                   $this->redirectToHome();
 
                 } else {
                     $loginDetails->setLoginStatus(false);
@@ -2464,6 +2466,12 @@ abstract class KirbyBaseHelper
     {
         $loginPage = $this->findKirbyPage('login');
         $loginPage->go();
+    }
+
+    protected function redirectToHome(): void
+    {
+        $homePage = $this->findKirbyPage('home');
+        $homePage->go();
     }
 
     protected function asString(mixed $value): string
