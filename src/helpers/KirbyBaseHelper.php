@@ -2250,28 +2250,43 @@ abstract class KirbyBaseHelper
             // try to log the user in with the provided credentials
             try {
                 // validate CSRF token
-                if (csrf(get('csrf')) === true) {
+                //if (csrf(get('csrf')) === true) {
                     $userName = trim(get('userName'));
                     $userName = str_replace(' ', '-', $userName);
                     $loginDetails->setUserName($userName);
-                    $this->kirby->auth()->login($userName, trim(get('password')), true);
+
+
+                    $loginResult = $this->kirby->auth()->login($userName, trim(get('password')), true);
+
+
+                    if ($loginResult) { // Check the actual return value!
+                        $loginDetails->setLoginStatus(true);
+                        $loginDetails->setLoginMessage('You have successfully logged in');
+
+                    } else {
+                        $loginDetails->setLoginStatus(false);
+                        $loginDetails->setLoginMessage('Login failed. Please check your username and password.');
+                        var_dump("Login Failed! Current user (should be virtual):", $this->kirby->user()->email());
+                        $this->redirectToLogin(); // Redirect back to login with error
+                    }
 
                     $loginDetails->setLoginStatus(true);
                     $loginDetails->setLoginMessage('You have successfully logged in');
                     //TODO: implement per role redirection/redirect to previous page
-                   $this->redirectToHome();
+                    //$this->redirectToHome();
 
-                } else {
-                    $loginDetails->setLoginStatus(false);
-                    $loginDetails->setLoginMessage('Invalid CSRF token.');
-                }
+                //} else {
+                //    $loginDetails->setLoginStatus(false);
+                //    $loginDetails->setLoginMessage('Invalid CSRF token.');
+                //}
             } catch (Exception $e) {
                 $loginDetails->setLoginStatus(false);
                 $loginDetails->setLoginMessage('You do not have access.');
             }
         }
         else {
-            $loginDetails->setCSRFToken(csrf() ?? '');
+            //$csrfToken = csrf();
+            //$loginDetails->setCSRFToken($csrfToken);
             $loginDetails->setRedirectPage(get('redirectPage', ''));
         }
         return $loginDetails;
