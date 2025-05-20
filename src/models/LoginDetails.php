@@ -41,7 +41,7 @@ class LoginDetails
      * CSRF token for form security validation
      * @var string
      */
-    private string $CSRFToken;
+    private string $CSRFToken = '';
 
     private string $redirectPage;
 
