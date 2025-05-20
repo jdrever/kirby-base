@@ -2190,8 +2190,7 @@ abstract class KirbyBaseHelper
 
         $user = $this->kirby->user();
 
-        // Allow access for logged-in Admin and Editor roles,
-        // but exclude the virtual 'kirby' user.
+        //TODO: create helper functions to get user role as array
         if ($user && !$user->isKirby() && ($user->role()->name() === 'admin' || $user->role()->name() === 'editor')) {
             return true;
         }
@@ -2200,11 +2199,9 @@ abstract class KirbyBaseHelper
             return ($user && !$user->isKirby() && in_array($user->role()->name(), $this->site->requiredRoles()));
         }
 
-
         // If no user is logged in (or it's the kirby user), we will check for required roles later.
         // If roles are required and no eligible user is logged in, access will be denied.
-
-        $applicableRoles = []; // Array to store the roles that apply based on inheritance
+        $applicableRoles = [];
 
         // Traverse up the page hierarchy to find the first non-empty requiredRoles field
         $page = $currentPage;
