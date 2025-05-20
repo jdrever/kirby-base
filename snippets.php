@@ -10,6 +10,7 @@ return [
     'base/login' => __DIR__ . '/snippets/login.php',
     'base/menu' => __DIR__ . '/snippets/menu.php',
     'base/page-title' => __DIR__ . '/snippets/page-title.php',
+    'base/show-user' => __DIR__ . '/snippets/show-user.php',
     'base/colour-mode' => __DIR__ . '/snippets/colour-mode.php',
 
     // form blocks
