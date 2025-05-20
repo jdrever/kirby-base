@@ -9,6 +9,7 @@ Kirby::plugin(
             'blueprints' => require __DIR__ . '/blueprints.php',
             'snippets' => require __DIR__ . '/snippets.php',
             'hooks' => require __DIR__ . '/hooks.php',
+            'routes' => require __DIR__ . '/routes.php',
             'templates' => [
                 'file_link' => __DIR__ . '/templates/file_link.php',
             ]
