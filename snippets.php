@@ -4,6 +4,7 @@ return [
     'base/on-this-page' => __DIR__ . '/snippets/on-this-page.php',
     'base/fathom-analytics' => __DIR__ . '/snippets/fathom-analytics.php',
     'base/related-content' => __DIR__ . '/snippets/related-content.php',
+    'base/footer' => __DIR__ . '/snippets/footer.php',
     'base/header' => __DIR__ . '/snippets/header.php',
     'base/breadcrumb' => __DIR__ . '/snippets/breadcrumb.php',
     'base/login' => __DIR__ . '/snippets/login.php',
