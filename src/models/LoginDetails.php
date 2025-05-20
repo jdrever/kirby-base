@@ -35,7 +35,7 @@ class LoginDetails
      * Message to display to user about login attempt result
      * @var string
      */
-    private string $loginMessage;
+    private string $loginMessage = '';
 
     /**
      * CSRF token for form security validation
@@ -43,7 +43,7 @@ class LoginDetails
      */
     private string $CSRFToken = '';
 
-    private string $redirectPage;
+    private string $redirectPage = '';
 
     /**
      * @return bool
