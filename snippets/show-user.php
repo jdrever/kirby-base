@@ -16,7 +16,7 @@ if ($currentPage->hasCurrentUser()) :
     $currentUser = $currentPage->getCurrentUser();
     $userRole = $currentUser->getRole();
     if ($currentUser->isLoggedIn()) : ?>
-        <a class="btn btn-primary mt-2 mb-1" href="<?= url('logout') ?>">
+        <a class="btn btn-primary-outline mt-2 mb-1" href="<?= url('logout') ?>">
             <span style="font-size:0.7em;"><?= $currentUser->getUserName() ?></span>
 
             <?= svg('/assets/icons/door-closed-fill.svg') ?><?= t('Logout', 'Logout') ?>
