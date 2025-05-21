@@ -114,6 +114,10 @@ class LoginDetails
         $this->CSRFToken = $CSRFToken;
     }
 
+    public function hasRedirectPage(): bool {
+        return !empty($this->redirectPage);
+    }
+
     /**
      * @return string
      */

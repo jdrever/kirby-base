@@ -165,7 +165,7 @@ abstract class KirbyBaseHelper
 
             if ($checkUserRoles) {
                 if (!$this->checkPagePermissions($page)) {
-                    $this->redirectToLogin();
+                    $this->redirectToLogin($page->url());
                 }
             }
 
@@ -2241,6 +2241,7 @@ abstract class KirbyBaseHelper
 
     protected function getLoginDetails() : LoginDetails {
         $loginDetails = new LoginDetails();
+        $loginDetails->setRedirectPage(get('redirectPage', ''));
         // handle the form submission
         if ($this->kirby->request()->is('POST') && get('userName')) {
             $loginDetails->setHasBeenProcessed(true);
@@ -2266,7 +2267,9 @@ abstract class KirbyBaseHelper
 
                     $loginDetails->setLoginStatus(true);
                     $loginDetails->setLoginMessage('You have successfully logged in');
-                    //TODO: implement per role redirection/redirect to previous page
+                    if ($loginDetails->hasRedirectPage()) {
+                        go($loginDetails->getRedirectPage());
+                    }
                     $this->redirectToHome();
 
                 } else {
@@ -2281,7 +2284,7 @@ abstract class KirbyBaseHelper
         else {
             $csrfToken = csrf();
             $loginDetails->setCSRFToken($csrfToken);
-            $loginDetails->setRedirectPage(get('redirectPage', ''));
+
         }
         return $loginDetails;
     }
@@ -2471,10 +2474,15 @@ abstract class KirbyBaseHelper
         return $this->asString($optionValue);
     }
 
-    protected function redirectToLogin(): void
+    protected function redirectToLogin(string $redirectPage=''): void
     {
         $loginPage = $this->findKirbyPage('login');
-        $loginPage->go();
+        $url = $loginPage->url();
+
+        if (!empty($redirectPage)) {
+            $url .= '?' . http_build_query(['redirectPage' => $redirectPage]);
+        }
+        go($url);
     }
 
     protected function redirectToHome(): void
