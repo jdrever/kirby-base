@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Kirby\Template\Slots;
 
 if (!isset($currentPage)) :
-    throw new Exception('footer snippet: $currentPage not provided');
+    throw new Exception('$currentPage not provided');
 endif;
 
 /**

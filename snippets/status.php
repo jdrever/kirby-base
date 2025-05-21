@@ -11,8 +11,9 @@ endif;
 
 /** @var BaseWebPage $currentPage */
 
-if ($currentPage->hasFriendlyMessages()) : ?>
-<div class="alert alert-success alert-dismissible fade show" role="alert" id="statusAlert">
+if ($currentPage->hasFriendlyMessages()) :
+    $messageStatus = $currentPage->getStatus() ? 'success' : 'danger';?>
+<div class="alert alert-<?=$messageStatus?> alert-dismissible fade show" role="alert" id="statusAlert">
     <h2>
         <?php foreach ($currentPage->getFriendlyMessages() as $message) : ?>
             <?=$message?> <br>

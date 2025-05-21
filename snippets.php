@@ -11,6 +11,7 @@ return [
     'base/menu' => __DIR__ . '/snippets/menu.php',
     'base/page-title' => __DIR__ . '/snippets/page-title.php',
     'base/show-user' => __DIR__ . '/snippets/show-user.php',
+    'base/status' => __DIR__ . '/snippets/status.php',
     'base/styles' => __DIR__ . '/snippets/styles.php',
 
 
