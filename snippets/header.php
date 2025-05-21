@@ -14,7 +14,7 @@ endif;
 
 ?>
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="<?=htmlspecialchars($currentPage->getColourMode(), ENT_QUOTES, 'UTF-8')?>">
+<html lang="en" <?php snippet('colour-mode/tag') ?>>
 <head>
     <meta charset="utf-8">
     <title><?=$currentPage->getTitle() ?></title>
@@ -28,20 +28,8 @@ endif;
     <meta property="og:image" content="<?= $currentPage->getOpenGraphImage() ?>" />
     <meta property="og:url" content="<?= $currentPage->getUrl() ?>" />
     <meta property="og:type" content="website" />
-
-    <script>
-        ;(function () {
-            const htmlElement = document.querySelector("html")
-            if(htmlElement.getAttribute("data-bs-theme") === 'auto') {
-                function updateTheme() {
-                    document.querySelector("html").setAttribute("data-bs-theme",
-                        window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
-                }
-                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateTheme)
-                updateTheme()
-            }
-        })()
-    </script>
+    <?php snippet('colour-mode/script') ?>
+    <?php snippet('base/styles') ?>
 <?php /** @noinspection PhpUndefinedMethodInspection */
 if ($lowerHead = $slots->lowerHead()) : ?>
         <?= $lowerHead ?>
@@ -49,6 +37,6 @@ if ($lowerHead = $slots->lowerHead()) : ?>
 </head>
 
 <body>
-<a class="visually-hidden-focusable" href="#skipToContent">Skip to Content</a>
+<?php snippet('skip-to-content') ?>
 
 

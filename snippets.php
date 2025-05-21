@@ -11,7 +11,13 @@ return [
     'base/menu' => __DIR__ . '/snippets/menu.php',
     'base/page-title' => __DIR__ . '/snippets/page-title.php',
     'base/show-user' => __DIR__ . '/snippets/show-user.php',
-    'base/colour-mode' => __DIR__ . '/snippets/colour-mode.php',
+    'base/styles' => __DIR__ . '/snippets/styles.php',
+
+
+    //colour mode
+    'colour-mode/selector' => __DIR__ . '/snippets/colour-mode/selector.php',
+    'colour-mode/script' => __DIR__ . '/snippets/colour-mode/script.php',
+    'colour-mode/tags' => __DIR__ . '/snippets/colour-mode/tags.php',
 
     // form blocks
     'form/button' => __DIR__ . '/snippets/form/button.php',
