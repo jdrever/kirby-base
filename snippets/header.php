@@ -37,6 +37,7 @@ if ($lowerHead = $slots->lowerHead()) : ?>
 </head>
 
 <body>
+<?php snippet('base/status') ?>
 <?php snippet('skip-to-content') ?>
 
 

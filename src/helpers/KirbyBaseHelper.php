@@ -93,9 +93,8 @@ abstract class KirbyBaseHelper
      * @param string $pageClass The class to which the page should be cast. Defaults to BaseWebPage.
      * @param bool $checkUserRoles Whether to validate user roles during the retrieval process. Defaults to true.
      * @return BaseWebPage The retrieved and processed page object.
-     * @throws KirbyRetrievalException if there is an error during the page retrieval process.
      */
-    public function getSpecificPage(string $pageId, string $pageClass = BaseWebPage::class, $checkUserRoles = true) : BaseWebPage {
+    public function getSpecificPage(string $pageId, string $pageClass = BaseWebPage::class, bool $checkUserRoles = true) : BaseWebPage {
         try {
             $kirbyPage = $this->getKirbyPage($pageId);
             $page = $this->getPage($kirbyPage, $pageClass, $checkUserRoles);
