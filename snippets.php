@@ -18,7 +18,7 @@ return [
     //colour mode
     'colour-mode/selector' => __DIR__ . '/snippets/colour-mode/selector.php',
     'colour-mode/script' => __DIR__ . '/snippets/colour-mode/script.php',
-    'colour-mode/tags' => __DIR__ . '/snippets/colour-mode/tags.php',
+    'colour-mode/tag' => __DIR__ . '/snippets/colour-mode/tag.php',
 
     // form blocks
     'form/button' => __DIR__ . '/snippets/form/button.php',
