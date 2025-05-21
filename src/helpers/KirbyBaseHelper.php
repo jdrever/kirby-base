@@ -80,9 +80,13 @@ abstract class KirbyBaseHelper
 
     #region PAGES
 
-    abstract function getCurrentPage(): BaseWebPage;
+    abstract function getBasicPage(): BaseWebPage;
 
-    abstract function setCurrentPage(Page $kirbyPage, BaseWebPage $currentPage): BaseWebPage;
+    abstract function setBasicPage(Page $kirbyPage, BaseWebPage $currentPage): BaseWebPage;
+
+    public function getCurrentPage(string $pageClass = BaseWebPage::class) : BaseWebPage {
+        return $this->getSpecificPage($this->page->id(), $pageClass);
+    }
 
     /**
      * Retrieves a specific page by its ID and casts it to the specified page class type.
@@ -99,8 +103,8 @@ abstract class KirbyBaseHelper
             $kirbyPage = $this->getKirbyPage($pageId);
             $page = $this->getPage($kirbyPage, $pageClass, $checkUserRoles);
 
-            if (method_exists($this, 'setCurrentPage')) {
-                $page = $this->setCurrentPage($kirbyPage, $page);
+            if (method_exists($this, 'setBasicPage')) {
+                $page = $this->setBasicPage($kirbyPage, $page);
             }
 
             $setPageFunction = 'set'.$this->extractClassName($pageClass);
@@ -115,25 +119,6 @@ abstract class KirbyBaseHelper
         return $page;
     }
 
-    protected function getBaseWebPage(string $pageClass): BaseWebPage
-    {
-        try {
-            if (!isset($this->page)) {
-                throw new KirbyRetrievalException('Page not found');
-            }
-            $kirbyPage = $this->page;
-            $currentPage = $this->getPage($kirbyPage, $pageClass);
-
-            if (method_exists($this, 'setCurrentPage')) {
-                $currentPage = $this->setCurrentPage($kirbyPage, $currentPage);
-            }
-
-
-        } catch (KirbyRetrievalException $e) {
-            $currentPage = $this->recordPageError($e, $pageClass);
-        }
-        return $currentPage;
-    }
 
     /**
      * @param Page $page
