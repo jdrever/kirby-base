@@ -12,6 +12,7 @@ endif;
 
 $loginDetails = $currentPage->getLoginDetails();
 
+
 ?>
 
 <?php if ($loginDetails->hasBeenProcessed()) :?>
