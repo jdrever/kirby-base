@@ -2452,7 +2452,7 @@ abstract class KirbyBaseHelper
      * @param string $optionKey
      * @return string
      */
-    protected function getOption(string $optionKey): string
+    public function getOption(string $optionKey): string
     {
         $optionValue = $this->kirby->option($optionKey);
         return $this->asString($optionValue);
