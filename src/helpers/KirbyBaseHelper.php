@@ -1509,6 +1509,15 @@ abstract class KirbyBaseHelper
 
     #endregion
 
+    #region FORMS
+
+    protected function hasPostRequest(): bool
+    {
+        return ($this->kirby->request()->is('POST'));
+    }
+
+    #endregion
+
     #region ERROR HANDLING
 
     /**
