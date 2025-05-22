@@ -5,7 +5,6 @@ namespace BSBI\WebBase\models;
 
 use BSBI\WebBase\helpers\KirbyRetrievalException;
 use BSBI\WebBase\traits\ErrorHandling;
-use Kirby\Exception\Exception;
 
 /**
  * Class ActionStatus
@@ -17,7 +16,7 @@ class ActionStatus
 {
 
     use ErrorHandling;
-    private KirbyRetrievalException $exception;
+    private KirbyRetrievalException|null $exception;
     /**
      * @param bool $status
      * @param string $errorMessage
