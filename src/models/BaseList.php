@@ -5,8 +5,22 @@ namespace BSBI\WebBase\models;
 use BSBI\WebBase\traits\ErrorHandling;
 
 /**
- * @template T
+ * Base abstract class for managing lists of model objects.
+ *
+ * This class provides common functionality for storing, filtering, and paginating
+ * collections of model objects. It uses a generic type parameter T which should
+ * extend BaseModel to ensure type safety across implementations.
+ *
+ * Features:
+ * - Generic type support for list items
+ * - Filtering capabilities through BaseFilter
+ * - Optional pagination support
+ * - Basic list operations (add, get, count)
+ * - Item search functionality
+ *
+ * @template T of BaseModel
  */
+
 
 abstract class BaseList
 {
@@ -24,7 +38,6 @@ abstract class BaseList
     /** @var T[] $list */
     protected array $list = [];
 
-    /** @var U $filter */
     protected BaseFilter $filter;
 
     /**

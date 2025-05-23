@@ -27,4 +27,14 @@ abstract class BaseFilter
         ];
 
     }
+
+    protected function getSimpleSelectOptions(array $options): array
+    {
+        $selectOptions = [];
+        $selectOptions[] = $this->createOption('', 'Any');
+        foreach ($options as $option) {
+            $selectOptions[] = $this->createOption($option, $option);
+        }
+        return $selectOptions;
+    }
 }

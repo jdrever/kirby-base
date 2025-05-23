@@ -45,7 +45,6 @@ use Throwable;
 abstract class KirbyBaseHelper
 {
 
-
     #region CONSTRUCTOR
     /**
      * The Kirby object
@@ -300,6 +299,17 @@ abstract class KirbyBaseHelper
             throw new KirbyRetrievalException('Collection ' . $collectionName . ' pages not found');
         }
         return $pages;
+    }
+
+    /**
+     * @param string $collectionName
+     * @return array
+     * @throws KirbyRetrievalException
+     */
+    protected function getPageTitlesFromCollection(string $collectionName): array
+    {
+        $pages = $this->getPagesFromCollection($collectionName);
+        return $pages->pluck('title');
     }
 
     /**
@@ -1509,12 +1519,38 @@ abstract class KirbyBaseHelper
 
     #endregion
 
-    #region FORMS
+    #region REQUESTS
 
     protected function hasPostRequest(): bool
     {
         return ($this->kirby->request()->is('POST'));
     }
+
+    /**
+     * Checks if a request exists for the given key.
+     *
+     * @param string $key The key to check in the request.
+     * @return bool Returns true if the request with the given key exists, false otherwise.
+     */
+    protected function hasRequest(string $key): bool {
+        return get($key) !== null;
+    }
+
+    protected function getRequestAsString(string $key, string $fallback = ''): string {
+        return $this->asString(get($key),$fallback);
+    }
+
+    /**
+     * Retrieves a request parameter or cookie value by the given key, returning a fallback value if neither is available.
+     *
+     * @param string $key The key to look for in request parameters or cookies.
+     * @param string $fallBack The fallback value to return if the key does not exist in both request and cookie data.
+     * @return string The value retrieved from the request parameter, cookie, or the provided fallback.
+     */
+    protected function getRequestOrCookie(string $key, string $fallBack): string {
+        return get($key) ?: cookie::get($key) ?: $fallBack;
+    }
+
 
     #endregion
 
@@ -2317,89 +2353,7 @@ abstract class KirbyBaseHelper
 
     #endregion
 
-    #region MISC
-
-    /**
-     * @param KirbyRetrievalException $e
-     * @param string $friendlyMessage
-     * @return ActionStatus
-     */
-    protected function actionStatusError(KirbyRetrievalException $e, string $friendlyMessage): ActionStatus
-    {
-        return (new ActionStatus(false, $e->getMessage(), $friendlyMessage, $e));
-    }
-
-    /**
-     * gets the colour mode (getting/setting a colourMode cookie as required)
-     * @return string
-     * @throws KirbyRetrievalException
-     */
-    protected function getColourMode(): string
-    {
-        $colourMode = get('colourMode') ?: Cookie::get('colourMode') ?: 'auto';
-
-        if (!is_string($colourMode)) {
-            throw new KirbyRetrievalException('site controller: $colourMode is not set to a string');
-        }
-
-        if (get('colourMode')) {
-            $this->setCookie('colourMode', $colourMode);
-        }
-        return $colourMode;
-    }
-
-    /**
-     * @param string $key
-     * @param string $value
-     * @return void
-     */
-    protected function setCookie(string $key, string $value): void
-    {
-        //allow insecure cookies on localhost only
-        $secure = $_SERVER['HTTP_HOST'] != 'localhost:8095';
-        Cookie::set(
-            $key,
-            $value,
-            ['expires' => time() + 60 * 60 * 24 * 30, 'path' => '/', 'secure' => $secure, 'httpOnly' => true]
-        );
-    }
-
-    /**
-     * Checks if a request exists for the given key.
-     *
-     * @param string $key The key to check in the request.
-     * @return bool Returns true if the request with the given key exists, false otherwise.
-     */
-    protected function hasRequest(string $key): bool {
-        return get($key) !== null;
-    }
-
-    /**
-     * Retrieves a request parameter or cookie value by the given key, returning a fallback value if neither is available.
-     *
-     * @param string $key The key to look for in request parameters or cookies.
-     * @param string $fallBack The fallback value to return if the key does not exist in both request and cookie data.
-     * @return string The value retrieved from the request parameter, cookie, or the provided fallback.
-     */
-    protected function getRequestOrCookie(string $key, string $fallBack): string {
-        return get($key) ?: cookie::get($key) ?: $fallBack;
-    }
-
-
-    /**
-     * @param string $fullClassName
-     * @return string
-     */
-    private function extractClassName(string $fullClassName ): string {
-        $afterLastBackslash = strrchr($fullClassName, '\\');
-        if ($afterLastBackslash === false) {
-            // No backslash found, the string is the content
-            return $fullClassName;
-        } else {
-            // Remove the leading backslash
-            return substr($afterLastBackslash, 1);
-        }
-    }
+    #region TURNSTILE
 
     /**
      * @return string
@@ -2457,6 +2411,74 @@ abstract class KirbyBaseHelper
     }
 
 
+    #endregion
+
+    #region MISC
+
+    /**
+     * @param KirbyRetrievalException $e
+     * @param string $friendlyMessage
+     * @return ActionStatus
+     */
+    protected function actionStatusError(KirbyRetrievalException $e, string $friendlyMessage): ActionStatus
+    {
+        return (new ActionStatus(false, $e->getMessage(), $friendlyMessage, $e));
+    }
+
+    /**
+     * gets the colour mode (getting/setting a colourMode cookie as required)
+     * @return string
+     * @throws KirbyRetrievalException
+     */
+    protected function getColourMode(): string
+    {
+        $colourMode = get('colourMode') ?: Cookie::get('colourMode') ?: 'auto';
+
+        if (!is_string($colourMode)) {
+            throw new KirbyRetrievalException('site controller: $colourMode is not set to a string');
+        }
+
+        if (get('colourMode')) {
+            $this->setCookie('colourMode', $colourMode);
+        }
+        return $colourMode;
+    }
+
+    /**
+     * @param string $key
+     * @param string $value
+     * @return void
+     */
+    protected function setCookie(string $key, string $value): void
+    {
+        //allow insecure cookies on localhost only
+        $secure = $_SERVER['HTTP_HOST'] != 'localhost:8095';
+        Cookie::set(
+            $key,
+            $value,
+            ['expires' => time() + 60 * 60 * 24 * 30, 'path' => '/', 'secure' => $secure, 'httpOnly' => true]
+        );
+    }
+
+
+
+
+    /**
+     * @param string $fullClassName
+     * @return string
+     */
+    private function extractClassName(string $fullClassName ): string {
+        $afterLastBackslash = strrchr($fullClassName, '\\');
+        if ($afterLastBackslash === false) {
+            // No backslash found, the string is the content
+            return $fullClassName;
+        } else {
+            // Remove the leading backslash
+            return substr($afterLastBackslash, 1);
+        }
+    }
+
+
     /**
      * @param string $optionKey
      * @return string
@@ -2484,21 +2506,17 @@ abstract class KirbyBaseHelper
         $homePage->go();
     }
 
-    protected function asString(mixed $value): string
+    protected function asString(mixed $value, string $fallback = ''): string
     {
         if (is_string($value)) {
-            // The value is already a string
-            $stringValue = $value;
+            return $value;
+        } else if (is_array($value)) {
+            return implode(', ', $value);
+        } elseif (is_null($value)) {
+            return $fallback;
         } else {
-            // Handle non-string values
-            $stringValue = $value !== null ? json_encode($value) : '';
-
-            // Ensure json_encode did not return false
-            if ($stringValue === false) {
-                $stringValue = ''; // Default to an empty string if encoding fails
-            }
+            return (string) $value;
         }
-        return $stringValue;
     }
 
 
