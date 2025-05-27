@@ -2,7 +2,9 @@
 return [
 
     //pages blueprints
+    'pages/file_archive' => __DIR__ . '/blueprints/pages/file_archive.yml',
     'pages/file_link' => __DIR__ . '/blueprints/pages/file_link.yml',
+    'pages/image_bank' => __DIR__ . '/blueprints/pages/image_bank.yml',
 
     //block blueprints
     'blocks/accordion' => __DIR__ . '/blueprints/blocks/accordion.yml',
@@ -28,6 +30,7 @@ return [
     //files blueprints
     'files/default' => __DIR__ . '/blueprints/files/default.yml',
     'files/image' => __DIR__ . '/blueprints/files/image.yml',
+    'files/image_bank_item' => __DIR__ . '/blueprints/files/image_bank_item.yml',
 
     //section blueprints
     'sections/corePageFields' => __DIR__ . '/blueprints/sections/corePageFields.yml',

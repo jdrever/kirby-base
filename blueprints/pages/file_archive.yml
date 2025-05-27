@@ -1,0 +1,33 @@
+title: File Archive
+icon: folder
+
+tabs:
+  images:
+    label: Files
+    icon: folder
+    columns:
+      - width: 1/4
+        sections:
+          info:
+            type: info
+            headline: About the File Archive
+            text: >
+              The File Archive allows you to upload and manage files
+              that can be reused across the site. <b>You must keep the filename the same in order for existing links to continue to work.</b>
+      - width: 3/4
+        sections:
+          allImages:
+            type: files
+            uploads:
+              parent: site.find('files')
+            headline: All Files
+            template: file
+            layout: cards
+            text: "{{ file.filename }}"
+            sortBy: filename asc
+            size: medium
+            search: true
+
+
+
+

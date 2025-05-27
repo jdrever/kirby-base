@@ -1,0 +1,57 @@
+title: Image Bank Item
+accept:
+  mime: image/jpeg, image/png, image/gif, image/webp, image/svg+xml
+
+tabs:
+  image:
+    label: Image
+    icon: image
+    fields:
+      alt:
+        label: Alt Text
+        type: text
+        help: Important for accessibility and SEO
+        width: 1/2
+        required: true
+
+      caption:
+        label: Caption
+        type: text
+        width: 1/2
+
+      tags:
+        label: Tags
+        type: tags
+        min: 1
+        max: 10
+        help: Add tags to make this image easier to find
+
+      category:
+        label: Category
+        type: select
+        options: query
+        query:
+          fetch: site.page("image_bank").categories.toStructure
+          value: "{{ structureItem.name }}"
+          text: "{{ structureItem.name }}"
+        width: 1/2
+
+      credits:
+        label: Credits
+        type: text
+        width: 1/2
+
+      description:
+        label: Description
+        type: textarea
+        buttons: false
+        size: small
+
+  usage:
+    label: Usage
+    icon: list
+    fields:
+      usageInfo:
+        type: info
+        headline: Where this image is used
+        text: This image is used in {{ file.usedIn }} places.

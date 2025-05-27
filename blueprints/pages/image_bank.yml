@@ -1,0 +1,48 @@
+title: Image Bank
+icon: image
+
+options:
+  changeTitle: false
+  changeStatus: false
+  duplicate: false
+  delete: false
+
+tabs:
+  images:
+    label: Images
+    icon: image
+    columns:
+      - width: 1/4
+        sections:
+          info:
+            type: info
+            headline: About the Image Bank
+            text: >
+              The Image Bank allows you to upload and manage images
+              that can be reused across the site. Tag your images
+              to make them easier to find.
+
+          tags:
+            type: fields
+            fields:
+              commonTags:
+                label: Common Tags
+                type: structure
+                max: 20
+                fields:
+                  tag:
+                    label: Tag Name
+                    type: text
+
+      - width: 3/4
+        sections:
+          allImages:
+            type: files
+            headline: All Images
+            template: image
+            layout: cards
+            info: "{{ file.tags }}"
+            text: "{{ file.filename }}"
+            sortBy: filename asc
+            size: medium
+            search: true
