@@ -11,6 +11,9 @@ fields:
   col3Title:
     label: Column 3 Title
     type: text
+  col4Title:
+    label: Column 4 Title
+    type: text
   rows:
     type: structure
     label: Columns
@@ -24,4 +27,6 @@ fields:
       col3:
         label: Column3
         type: textarea
-
+      col4:
+        label: Column4
+        type: textarea
