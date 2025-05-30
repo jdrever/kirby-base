@@ -46,6 +46,8 @@ return [
     'blocks/ready-made' => __DIR__ . '/snippets/blocks/ready-made.php',
     'blocks/table-2col' => __DIR__ . '/snippets/blocks/table-2col.php',
     'blocks/table-3col' => __DIR__ . '/snippets/blocks/table-3col.php',
+    'blocks/table-4col' => __DIR__ . '/snippets/blocks/table-4col.php',
+    'blocks/table-5col' => __DIR__ . '/snippets/blocks/table-5col.php',
     'blocks/video' => __DIR__ . '/snippets/blocks/video.php',
 
     //feedback

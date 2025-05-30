@@ -11,6 +11,8 @@ fieldsets:
       - note
       - table-2col
       - table-3col
+      - table-4col
+      - table-5col
       - description-list
       - accordion
       - faq

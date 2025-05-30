@@ -1,0 +1,38 @@
+name: Table (5 Column)
+icon: table
+preview: table
+fields:
+  col1Title:
+    label: Column 1 Title
+    type: text
+  col2Title:
+    label: Column 2 Title
+    type: text
+  col3Title:
+    label: Column 3 Title
+    type: text
+  col4Title:
+    label: Column 4 Title
+    type: text
+  col5Title:
+    label: Column 5 Title
+    type: text
+  rows:
+    type: structure
+    label: Columns
+    fields:
+      col1:
+        label: Column1
+        type: textarea
+      col2:
+        label: Column2
+        type: textarea
+      col3:
+        label: Column3
+        type: textarea
+      col4:
+        label: Column4
+        type: textarea
+      col5:
+        label: Column5
+        type: textarea
