@@ -12,10 +12,10 @@ $rows = $block->rows()->toStructure();
 if ($rows->isNotEmpty()) :?>
     <table class="table">
         <tr>
-            <th><?= $block->col1Title() ?></th>
-            <th><?= $block->col2Title() ?></th>
-            <th><?= $block->col3Title() ?></th>
-            <th><?= $block->col4Title() ?></th>
+            <th><?= $block->col1Title()->kt() ?></th>
+            <th><?= $block->col2Title()->kt() ?></th>
+            <th><?= $block->col3Title()->kt() ?></th>
+            <th><?= $block->col4Title()->kt() ?></th>
         </tr>
         <?php foreach ($rows as $row) : ?>
             <tr>

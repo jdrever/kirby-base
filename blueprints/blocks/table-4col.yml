@@ -4,16 +4,16 @@ preview: table
 fields:
   col1Title:
     label: Column 1 Title
-    type: text
+    type: textarea
   col2Title:
     label: Column 2 Title
-    type: text
+    type: textarea
   col3Title:
     label: Column 3 Title
-    type: text
+    type: textarea
   col4Title:
     label: Column 4 Title
-    type: text
+    type: textarea
   rows:
     type: structure
     label: Columns

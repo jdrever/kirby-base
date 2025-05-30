@@ -4,10 +4,10 @@ preview: table
 fields:
   col1Title:
     label: Column 1 Title
-    type: text
+    type: textarea
   col2Title:
     label: Column 2 Title
-    type: text
+    type: textarea
   rows:
     type: structure
     label: Columns
