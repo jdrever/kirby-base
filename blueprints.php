@@ -21,6 +21,7 @@ return [
     'blocks/table-3col' => __DIR__ . '/blueprints/blocks/table-3col.yml',
     'blocks/table-4col' => __DIR__ . '/blueprints/blocks/table-4col.yml',
     'blocks/table-5col' => __DIR__ . '/blueprints/blocks/table-5col.yml',
+    'blocks/table-6col' => __DIR__ . '/blueprints/blocks/table-6col.yml',
 
     //field blueprints
     'fields/mainContent' => __DIR__ . '/blueprints/fields/mainContent.yml',

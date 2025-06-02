@@ -13,6 +13,7 @@ fieldsets:
       - table-3col
       - table-4col
       - table-5col
+      - table-6col
       - description-list
       - accordion
       - faq
