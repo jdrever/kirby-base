@@ -84,6 +84,13 @@ class BaseWebPage extends BaseModel
      */
     private WebPageTagLinks $tagLinks;
 
+
+
+    /**
+     * @var WebPageTagLinks
+     */
+    private WebPageTagLinks $taggedByLinks;
+
     /**
      * @var string[]
      */
@@ -347,6 +354,32 @@ class BaseWebPage extends BaseModel
     public function hasTags():bool {
         return false;
     }
+
+
+    public function hasTaggedByLinks(): bool {
+
+        if (!isset($this->taggedByLinks) || $this->taggedByLinks->count() === 0) {
+            return false;
+        }
+        foreach ($this->taggedByLinks->getListItems() as $taggedByLink) {
+            if ($taggedByLink->hasLinks()) { return true; }
+        }
+        return false;
+
+    }
+
+    public function getTaggedByLinks(): WebPageTagLinks
+    {
+        return $this->taggedByLinks;
+    }
+
+    public function setTaggedByLinks(WebPageTagLinks $taggedByLinks): BaseWebPage
+    {
+        $this->taggedByLinks = $taggedByLinks;
+        return $this;
+    }
+
+
 
     /**
      * @return WebPageTagLinks

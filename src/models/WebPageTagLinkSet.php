@@ -19,6 +19,11 @@ class WebPageTagLinkSet extends BaseModel
 
     private WebPageLinks $tagLinks;
 
+    public function hasLinks(): bool
+    {
+        return isset($this->tagLinks) && $this->tagLinks->count() > 0;
+    }
+
     public function getLinks(): WebPageLinks
     {
         return $this->tagLinks;

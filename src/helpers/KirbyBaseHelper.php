@@ -2350,6 +2350,40 @@ abstract class KirbyBaseHelper
         return $tagLinkSet;
     }
 
+    /**
+     * @param string $modelListClass
+     * @param BaseFilter $filter
+     * @param string|null $listTitle
+     * @return WebPageTagLinkSet
+     * @throws KirbyRetrievalException
+     */
+    protected function getTaggedByList(string $modelListClass, BaseFilter $filter, string $listTitle = null): WebPageTagLinkSet
+    {
+        $tagLinkSet = new WebPageTagLinkSet();
+
+
+        // Ensure $pageClass is a subclass of WebPage
+        if (!(is_a($modelListClass, BaseList::class, true))) {
+            throw new KirbyRetrievalException("Model list class must extend BaseList.");
+        }
+        $modelListClassName = $this->extractClassName($modelListClass);
+
+        $collection = str_replace("List", "", $modelListClassName);
+        $tagLinkSet->setTagType($listTitle ?? $collection);
+        $collection = lcfirst($collection);
+        $collectionPages = $this->kirby->collection($collection);
+        if (!isset($collectionPages)) {
+            throw new KirbyRetrievalException('Collection ' . $collection . ' pages not found');
+        }
+
+        $filterFunction = 'filter' . $this->extractClassName($modelListClass);
+        if (method_exists($this, $filterFunction)) {
+            $collectionPages = $this->$filterFunction($collectionPages, $filter);
+        }
+
+        $tagLinkSet->setLinks($this->getWebPageLinks($collectionPages));
+        return $tagLinkSet;
+    }
 
     #endregion
 

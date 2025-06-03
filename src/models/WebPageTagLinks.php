@@ -2,17 +2,11 @@
 
 namespace BSBI\WebBase\models;
 
-use BSBI\WebBase\interfaces\ListHandler;
-use BSBI\WebBase\traits\ListHandling;
-
 /**
  */
-class WebPageTagLinks extends BaseModel implements ListHandler
+class WebPageTagLinks extends BaseList
 {
-    /**
-     * @use ListHandling<WebPageTagLinkSet,BaseFilter>
-     */
-    use ListHandling;
+
 
     /**
      * @param WebPageTagLinkSet $item
@@ -29,5 +23,21 @@ class WebPageTagLinks extends BaseModel implements ListHandler
     public function getListItems(): array
     {
         return $this->list;
+    }
+
+    /**
+     * @return string
+     */
+    function getItemType(): string
+    {
+        return WebPageTagLinkSet::class;
+    }
+
+    /**
+     * @return string
+     */
+    function getFilterType(): string
+    {
+        return BaseFilter::class;
     }
 }
