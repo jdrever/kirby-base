@@ -24,6 +24,7 @@ return [
     'blocks/table-6col' => __DIR__ . '/blueprints/blocks/table-6col.yml',
 
     //field blueprints
+    'fields/includeInMenu' => __DIR__ . '/blueprints/fields/includeInMenu.yml',
     'fields/mainContent' => __DIR__ . '/blueprints/fields/mainContent.yml',
     'fields/mainImage' => __DIR__ . '/blueprints/fields/mainImage.yml',
     'fields/panelContent' => __DIR__ . '/blueprints/fields/panelContent.yml',
