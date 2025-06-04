@@ -1195,6 +1195,15 @@ abstract class KirbyBaseHelper
         return $page->children()->template($templates);
     }
 
+    /**
+     * @param Page $page
+     * @param array $templates
+     * @return Page|null
+     */
+    protected function getFirstSubPageUsingTemplates(Page $page, array $templates): Page|null {
+        return $this->getSubPagesUsingTemplates($page, $templates)->first();
+    }
+
     protected function getSiblingsUsingTemplates(Page $page, array $templates): Pages {
         return $page->siblings(false)->listed()->template($templates);
     }
@@ -1357,7 +1366,8 @@ abstract class KirbyBaseHelper
     protected function getSpecificModelList(string          $modelListClass = BaseList::class,
                                           BaseFilter|null $filter = null,
                                           string|null     $collection = null,
-                                          array|null      $templates = null
+                                          array|null      $templates = null,
+                                          Page $parentPage = null
     ): BaseList
     {
 
@@ -1380,7 +1390,8 @@ abstract class KirbyBaseHelper
         $filterClass = $filterClassName;
 
         if (isset($templates)) {
-            $collectionPages = $this->getSubPagesUsingTemplates($this->page, $templates)->sortBy('title');
+            $parentPage = $parentPage ?? $this->page;
+            $collectionPages = $this->getSubPagesUsingTemplates($parentPage, $templates)->sortBy('title');
         }
         else {
 
