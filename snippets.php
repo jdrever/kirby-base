@@ -15,7 +15,7 @@ return [
     'base/status' => __DIR__ . '/snippets/status.php',
     'base/styles' => __DIR__ . '/snippets/styles.php',
     'base/tagged-by' => __DIR__ . '/snippets/tagged-by.php',
-
+    'base/robots' => __DIR__ . '/snippets/robots.php',
 
     //colour mode
     'colour-mode/selector' => __DIR__ . '/snippets/colour-mode/selector.php',
