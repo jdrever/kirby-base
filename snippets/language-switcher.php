@@ -22,8 +22,6 @@ $languages = kirby()->languages();
 // Get the default language
 $defaultLanguage = kirby()->defaultLanguage();
 
-var_dump($defaultLanguage);
-
 if ($defaultLanguage !== null) :
 
 
