@@ -22,7 +22,7 @@ $languages = kirby()->languages();
 // Get the default language
 $defaultLanguage = kirby()->defaultLanguage();
 
-if (!$defaultLanguage===null) :
+if ($defaultLanguage !== null) :
 
 // Get the current page
 $currentPage = $page;
