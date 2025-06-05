@@ -12,6 +12,8 @@ use BSBI\WebBase\models\Document;
 use BSBI\WebBase\models\FeedbackForm;
 use BSBI\WebBase\models\Image;
 use BSBI\WebBase\models\ImageType;
+use BSBI\WebBase\models\Language;
+use BSBI\WebBase\models\Languages;
 use BSBI\WebBase\models\LoginDetails;
 use BSBI\WebBase\models\Pagination;
 use BSBI\WebBase\models\PrevNextPageNavigation;
@@ -201,6 +203,7 @@ abstract class KirbyBaseHelper
             }
 
             $webPage->setColourMode($this->getColourMode());
+            $webPage->setLanguages($this->getLanguages());
 
             //add scripts for blocks
             if ($webPage->hasBlockofType('video')) {
@@ -2396,6 +2399,44 @@ abstract class KirbyBaseHelper
         return $tagLinkSet;
     }
 
+    #endregion
+
+    #region LANGUAGES
+
+    /**
+     * @return Languages
+     */
+    protected function getLanguages() : Languages {
+
+        $defaultLanguage = $this->kirby->defaultLanguage();
+        $languages = new Languages();
+        if ($defaultLanguage !== null) {
+            $languages->setUsingDefaultLanguage($this->kirby->language()->code() === $defaultLanguage->code());
+            $languages->setEnabled(true);
+            $languages->setCurrentLanguage($this->kirby->language()->name());
+            $languagesFromKirby = $this->kirby->languages();
+
+            foreach ($languagesFromKirby as $lang) {
+
+                $translatedPage = $this->page->translation($lang->code());
+                if ($translatedPage && $translatedPage->exists()) {
+
+                    $language = new Language();
+                    $language->setIsDefault($lang->code() === $defaultLanguage->code());
+                    if (!$language->isDefault()) {
+                        $languages->setIsPageTranslatedInCurrentLanguage(true);
+                    }
+                    $language->setIsActivePage($lang->code() === kirby()->language()->code());
+                    $language->setCode($lang->code());
+                    $language->setName($lang->name());
+                    $language->setCurrentPageUrl($translatedPage->parent()->url($lang->code()));
+                    $languages->addLanguage($language);
+                }
+
+            }
+        }
+        return $languages;
+    }
     #endregion
 
     #region TURNSTILE

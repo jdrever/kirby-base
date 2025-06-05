@@ -39,13 +39,24 @@ class BaseWebPage extends BaseModel
      */
     protected string $openGraphImage = '';
 
+    /**
+     * @var string
+     */
     protected string $authors = '';
+
+    /**
+     * @var Languages
+     */
+    protected Languages $languages;
 
     /**
      * @var WebPageBlocks
      */
     protected WebPageBlocks $mainContentBlocks;
 
+    /**
+     * @var WebPageBlocks
+     */
     protected WebPageBlocks $lowerContentBlocks;
 
     /**
@@ -102,8 +113,14 @@ class BaseWebPage extends BaseModel
      */
     protected array $customScripts;
 
+    /**
+     * @var bool
+     */
     protected bool $usingSimpleLinksForSubPages = false;
 
+    /**
+     * @var string
+     */
     protected string $urlWithQueryString = '';
 
 
@@ -180,11 +197,18 @@ class BaseWebPage extends BaseModel
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getAuthors(): string
     {
         return $this->authors;
     }
 
+    /**
+     * @param string $authors
+     * @return $this
+     */
     public function setAuthors(string $authors): BaseWebPage
     {
         $this->authors = $authors;
@@ -222,11 +246,18 @@ class BaseWebPage extends BaseModel
         return $this;
     }
 
+    /**
+     * @return WebPageBlocks
+     */
     public function getLowerContentBlocks(): WebPageBlocks
     {
         return $this->lowerContentBlocks;
     }
 
+    /**
+     * @param WebPageBlocks $lowerContentBlocks
+     * @return void
+     */
     public function setLowerContentBlocks(WebPageBlocks $lowerContentBlocks): void
     {
         $this->lowerContentBlocks = $lowerContentBlocks;
@@ -240,6 +271,9 @@ class BaseWebPage extends BaseModel
         return $this->mainContentBlocks->hasBlockOfType($blockType);
     }
 
+    /**
+     * @return bool
+     */
     public function hasHeadingBlock(): bool {
         return $this->mainContentBlocks->hasBlockOfType('heading');
     }
@@ -356,6 +390,9 @@ class BaseWebPage extends BaseModel
     }
 
 
+    /**
+     * @return bool
+     */
     public function hasTaggedByLinks(): bool {
 
         if (!isset($this->taggedByLinks) || $this->taggedByLinks->count() === 0) {
@@ -368,11 +405,18 @@ class BaseWebPage extends BaseModel
 
     }
 
+    /**
+     * @return WebPageTagLinks
+     */
     public function getTaggedByLinks(): WebPageTagLinks
     {
         return $this->taggedByLinks;
     }
 
+    /**
+     * @param WebPageTagLinks $taggedByLinks
+     * @return $this
+     */
     public function setTaggedByLinks(WebPageTagLinks $taggedByLinks): BaseWebPage
     {
         $this->taggedByLinks = $taggedByLinks;
@@ -398,6 +442,25 @@ class BaseWebPage extends BaseModel
         $this->tagLinks = $tagLinks;
         return $this;
     }
+
+    /**
+     * @return Languages
+     */
+    public function getLanguages(): Languages
+    {
+        return $this->languages;
+    }
+
+    /**
+     * @param Languages $languages
+     * @return $this
+     */
+    public function setLanguages(Languages $languages): self
+    {
+        $this->languages = $languages;
+        return $this;
+    }
+
 
     /**
      * @return string
@@ -466,6 +529,9 @@ class BaseWebPage extends BaseModel
         return $this->customScripts;
     }
 
+    /**
+     * @return bool
+     */
     public function hasCurrentUser(): bool {
         return isset($this->currentUser);
     }
@@ -521,6 +587,10 @@ class BaseWebPage extends BaseModel
         return ($this->checkRoleAgainstRequiredRoles($this->currentUser->getRole()));
     }
 
+    /**
+     * @param string $role
+     * @return bool
+     */
     public function checkRoleAgainstRequiredRoles(string $role): bool
     {
         if (count($this->requiredUserRoles) === 0) {
@@ -556,16 +626,26 @@ class BaseWebPage extends BaseModel
         return in_array($attributeType, $this->attributes, true);
     }
 
+    /**
+     * @return bool
+     */
     public function isUsingSimpleLinksForSubPages(): bool
     {
         return $this->usingSimpleLinksForSubPages;
     }
 
+    /**
+     * @return string
+     */
     public function getUrlWithQueryString(): string
     {
         return $this->urlWithQueryString;
     }
 
+    /**
+     * @param string $urlWithQueryString
+     * @return $this
+     */
     public function setUrlWithQueryString(string $urlWithQueryString): BaseWebPage
     {
         $this->urlWithQueryString = $urlWithQueryString;
