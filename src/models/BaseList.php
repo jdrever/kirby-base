@@ -106,6 +106,21 @@ abstract class BaseList
     }
 
     /**
+     * Sorts the list by the title of the items.
+     *
+     * @param bool $descending Optional. If true, sorts in descending order. Default is false (ascending).
+     * @return $this
+     */
+    public function sortByTitle(bool $descending = false): static
+    {
+        usort($this->list, function (BaseModel $a, BaseModel $b) use ($descending) {
+            $comparison = strcmp($a->getTitle(), $b->getTitle());
+            return $descending ? -$comparison : $comparison;
+        });
+        return $this;
+    }
+
+    /**
      * @return bool
      */
     public function usePagination(): bool {

@@ -1193,9 +1193,9 @@ abstract class KirbyBaseHelper
      * @param string[] $templates
      * @return Pages
      */
-    protected function getSubPagesUsingTemplates(Page $page, array $templates): Pages
+    protected function getSubPagesUsingTemplates(Page $page, array $templates, bool $childrenOnly = true): Pages
     {
-        return $page->children()->template($templates);
+        return $childrenOnly ? $page->children()->template($templates) : $page->index()->template($templates);
     }
 
     /**
@@ -1370,7 +1370,9 @@ abstract class KirbyBaseHelper
                                           BaseFilter|null $filter = null,
                                           string|null     $collection = null,
                                           array|null      $templates = null,
-                                          Page $parentPage = null
+                                          Page $parentPage = null,
+                                          bool $childrenOnly = true,
+                                          string $sortBy = 'title'
     ): BaseList
     {
 
@@ -1394,7 +1396,7 @@ abstract class KirbyBaseHelper
 
         if (isset($templates)) {
             $parentPage = $parentPage ?? $this->page;
-            $collectionPages = $this->getSubPagesUsingTemplates($parentPage, $templates)->sortBy('title');
+            $collectionPages = $this->getSubPagesUsingTemplates($parentPage, $templates, $childrenOnly)->sortBy($sortBy);
         }
         else {
 
