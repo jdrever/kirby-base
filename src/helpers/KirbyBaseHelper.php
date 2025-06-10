@@ -2354,6 +2354,24 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * @param Structure $structure
+     * @param string $tagName
+     * @param string $tagValue
+     * @return Structure
+     */
+    protected function filterStructureByPagesTag(Structure $structure, string $tagName, string $tagValue): Structure {
+        if (empty($tagValue)) { return $structure;}
+        $structure = $structure->filter(function ($structureItem) use ($tagName, $tagValue) {
+            $pages = $structureItem->content()->get($tagName)->toPages();
+            if ($pages->isNotEmpty()) {
+                return ($pages->filterBy('title', $tagValue)->count() > 0);
+            }
+            return false;
+        });
+        return $structure;
+    }
+
+    /**
      * @param Page $kirbyPage
      * @param string $tagType
      * @param string $fieldName
