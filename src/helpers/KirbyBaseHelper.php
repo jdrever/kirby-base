@@ -911,6 +911,39 @@ abstract class KirbyBaseHelper
         return $webPageLink;
     }
 
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @return WebPageLinks
+     * @throws KirbyRetrievalException
+     */
+    protected function getStructureAsWebPageLinks(Page $page, string $fieldName = 'related') : WebPageLinks
+    {
+        $webPageLinks = new WebPageLinks();
+        try {
+            $webPageLinksStructure = $this->getPageFieldAsStructure($page, $fieldName);
+
+            foreach ($webPageLinksStructure as $item) {
+                $itemTitle = $this->getStructureFieldAsString($item, 'title', false);
+                if (!empty($itemTitle)) {
+                    $webPageLink = new WebPageLink(
+                        strval($item->title()),
+                        $this->getStructureFieldAsUrl($item, 'url'),
+                        $item->id(),
+                        $item->template()->name()
+                    );
+                    $webPageLinks->addListItem($webPageLink);
+                }
+            }
+        }
+        catch (KirbyRetrievalException $e) {
+            $webPageLinks->setStatus(false);
+            $webPageLinks->addErrorMessage($e->getMessage());
+            $webPageLinks->addFriendlyMessage('No web page links found');
+        }
+        return $webPageLinks;
+    }
+
 
     /**
      * @param StructureObject $structure
@@ -1490,9 +1523,9 @@ abstract class KirbyBaseHelper
      * @return RelatedContentList The assembled list of related content items.
      * @throws KirbyRetrievalException
      */
-    protected function getRelatedContentListFromPagesField(Page $page, string $fieldName) : RelatedContentList
+    protected function getRelatedContentListFromPagesField(Page $page, string $fieldName = 'related') : RelatedContentList
     {
-        $relatedContent = $this->getPageFieldAsPages($page, 'related');
+        $relatedContent = $this->getPageFieldAsPages($page, $fieldName);;
         $relatedContentList = new RelatedContentList();
         foreach ($relatedContent as $item) {
             $itemTitle = $this->getPageTitle($item);
@@ -1514,9 +1547,9 @@ abstract class KirbyBaseHelper
      * @return RelatedContentList
      * @throws KirbyRetrievalException
      */
-    protected function getRelatedContentListFromStructureField(Page $page, string $fieldName) : RelatedContentList
+    protected function getRelatedContentListFromStructureField(Page $page, string $fieldName = 'related') : RelatedContentList
     {
-        $relatedContent = $this->getPageFieldAsStructure($page, 'related');
+        $relatedContent = $this->getPageFieldAsStructure($page, $fieldName);
         $relatedContentList = new RelatedContentList();
         foreach ($relatedContent as $item) {
             $itemTitle = $this->getStructureFieldAsString($item, 'title', false);
