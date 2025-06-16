@@ -27,6 +27,7 @@ return [
     'fields/includeInMenu' => __DIR__ . '/blueprints/fields/includeInMenu.yml',
     'fields/mainContent' => __DIR__ . '/blueprints/fields/mainContent.yml',
     'fields/mainImage' => __DIR__ . '/blueprints/fields/mainImage.yml',
+    'fields/pageLinks' => __DIR__ . '/blueprints/fields/pageLinks.yml',
     'fields/panelContent' => __DIR__ . '/blueprints/fields/panelContent.yml',
     'fields/panelImage' => __DIR__ . '/blueprints/fields/panelImage.yml',
     'fields/relatedContent' => __DIR__ . '/blueprints/fields/relatedContent.yml',

@@ -1,0 +1,20 @@
+type: structure
+label: Page Links
+fields:
+  page:
+    type: pages
+    multiple: false
+  title:
+    label: Link Title
+    type: text
+  description:
+    label: Link Description
+    type: textarea
+    buttons: false
+  image:
+    label: Image
+    type: files
+    query: page.images.template('image')
+    uploads:
+      template: image
+      crop: true

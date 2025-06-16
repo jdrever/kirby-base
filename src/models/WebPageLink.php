@@ -14,14 +14,14 @@ class WebPageLink extends BaseModel
 {
     use CoreWebPageProperties;
 
-    private Image $panelImage;
+    private Image $image;
 
     private bool $excludeFromMenus = false;
 
     /**
      * @var string
      */
-    private string $panelDescription;
+    private string $linkDescription;
 
     private string $requirements;
 
@@ -42,44 +42,44 @@ class WebPageLink extends BaseModel
     /**
      * @return bool
      */
-    public function hasPanelImage(): bool
+    public function hasImage(): bool
     {
-        return isset($this->panelImage);
+        return isset($this->image);
     }
 
     /**
      * @return Image
      */
-    public function getPanelImage(): Image
+    public function getImage(): Image
     {
-        return $this->panelImage;
+        return $this->image;
     }
 
     /**
      * @param Image $image
      * @return $this
      */
-    public function setPanelImage(Image $image): WebPageLink
+    public function setImage(Image $image): WebPageLink
     {
-        $this->panelImage = $image;
+        $this->image = $image;
         return $this;
     }
 
     /**
      * @return string
      */
-    public function getPanelDescription(): string
+    public function getLinkDescription(): string
     {
-        return $this->panelDescription;
+        return $this->linkDescription;
     }
 
     /**
-     * @param string $panelDescription
+     * @param string $linkDescription
      * @return $this
      */
-    public function setPanelDescription(string $panelDescription): WebPageLink
+    public function setLinkDescription(string $linkDescription): WebPageLink
     {
-        $this->panelDescription = $panelDescription;
+        $this->linkDescription = $linkDescription;
         return $this;
     }
 

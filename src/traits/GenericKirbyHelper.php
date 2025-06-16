@@ -1087,13 +1087,13 @@ trait GenericKirbyHelper
         }
         $webPageLink = new WebPageLink($page->title()->toString(), $pageUrl , $page->id(), $page->template()->name());
         $webPageLink->setDescription($this->getPageFieldAsString($page, 'description'));
-        $webPageLink->setPanelDescription($this->getPageFieldAsKirbyText($page, 'panelDescription'));
+        $webPageLink->setDescription($this->getPageFieldAsKirbyText($page, 'panelDescription'));
         if ($simpleLink) {
             return $webPageLink;
         }
         if ($this->isPageFieldNotEmpty($page, 'panelImage')) {
             $panelImage = $this->getImage($page, 'panelImage', 300, 300, ImageType::SQUARE);
-            $webPageLink->setPanelImage($panelImage);
+            $webPageLink->setImage($panelImage);
         }
         $webPageLink->setSubPages($this->getSubPages($page));
         return $webPageLink;

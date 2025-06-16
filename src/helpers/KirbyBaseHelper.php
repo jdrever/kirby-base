@@ -648,13 +648,13 @@ abstract class KirbyBaseHelper
      * @param string $fieldName
      * @return WebPageLinks
      */
-    protected function getPageFieldAsWebPageTagLinks(Page $page, string $fieldName): WebPageLinks
+    protected function getPageFieldAsWebPageLinks(Page $page, string $fieldName, bool $simpleLinks = true): WebPageLinks
     {
         try {
             $pageField = $this->getPageField($page, $fieldName);
             /** @noinspection PhpUndefinedMethodInspection */
             $pages = $pageField->toPages();
-            return $this->getWebPageLinks($pages);
+            return $this->getWebPageLinks($pages, $simpleLinks);
         } catch (KirbyRetrievalException $e) {
             return new WebPageLinks();
         }
@@ -845,17 +845,24 @@ abstract class KirbyBaseHelper
      * @return string
      * @throws KirbyRetrievalException
      */
-    protected function getStructureFieldAsUrl(StructureObject $structure, string $fieldName): string
+    protected function getStructureFieldAsLinkUrl(StructureObject $structure, string $fieldName): string
     {
         $structureField = $this->getStructureField($structure, $fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        $page = $structureField->toPage();
-        if ($page) {
+        if ($structureField) {
             /** @noinspection PhpUndefinedMethodInspection */
             return $structureField->toUrl();
         } else {
             return '';
         }
+    }
+
+
+
+    protected function getStructureFieldAsPage(StructureObject $structure, string $fieldName): Page
+    {
+        $structureField = $this->getStructureField($structure, $fieldName);
+        /** @noinspection PhpUndefinedMethodInspection */
+        return  $structureField->toPage();
     }
 
     /**
@@ -866,9 +873,7 @@ abstract class KirbyBaseHelper
      */
     protected function getStructureFieldAsPageTitle(StructureObject $structure, string $fieldName): string
     {
-        $structureField = $this->getStructureField($structure, $fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        $page = $structureField->toPage();
+        $page = $this->getStructureFieldAsPage($structure, $fieldName);
         if ($page) {
             return $page->title()->value();
         } else {
@@ -884,9 +889,8 @@ abstract class KirbyBaseHelper
      */
     protected function getStructureFieldAsPageUrl(StructureObject $structure, string $fieldName): string
     {
-        $structureField = $this->getStructureField($structure, $fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        return $structureField->toPage()->url();
+        $page = $this->getStructureFieldAsPage($structure, $fieldName);
+        return $page->url();
     }
 
     /**
@@ -925,14 +929,22 @@ abstract class KirbyBaseHelper
 
             foreach ($webPageLinksStructure as $item) {
                 $itemTitle = $this->getStructureFieldAsString($item, 'title', false);
-                if (!empty($itemTitle)) {
-                    $webPageLink = new WebPageLink(
-                        strval($item->title()),
-                        $this->getStructureFieldAsUrl($item, 'url'),
-                        $item->id(),
-                        $item->template()->name()
-                    );
+                if ($this->hasStructureField($item, 'page')) {
+                    $page = $this->getStructureFieldAsPage($item, 'page');
+                    $itemTitle = empty($itemTitle) ? $page->title()->value() : $itemTitle;
+                    $description = $this->getStructureFieldAsString($item, 'description', false);
+                    $webPageLink = $this->getWebPageLink($page, true, $itemTitle, $description);
                     $webPageLinks->addListItem($webPageLink);
+                } else {
+                    if (!empty($itemTitle)) {
+                        $webPageLink = new WebPageLink(
+                            strval($item->title()),
+                            $this->getStructureFieldAsLinkUrl($item, 'url'),
+                            '',
+                            ''
+                        );
+                        $webPageLinks->addListItem($webPageLink);
+                    }
                 }
             }
         }
@@ -943,6 +955,7 @@ abstract class KirbyBaseHelper
         }
         return $webPageLinks;
     }
+
 
 
     /**
@@ -959,6 +972,17 @@ abstract class KirbyBaseHelper
             throw new KirbyRetrievalException('Structure field not found or empty');
         }
         return $structureField;
+    }
+
+    /**
+     * @param StructureObject $structure
+     * @param string $fieldName
+     * @return bool
+     */
+    protected function hasStructureField(StructureObject $structure, string $fieldName): bool
+    {
+        $structureField = $structure->content()->get($fieldName);
+        return ($structureField->isNotEmpty() && $structureField instanceof Field);
     }
 
     #endregion
@@ -1269,10 +1293,6 @@ abstract class KirbyBaseHelper
     }
 
 
-
-
-
-
     #endregion
 
     #region LINKS
@@ -1328,6 +1348,16 @@ abstract class KirbyBaseHelper
         return $webPageLinks;
     }
 
+    protected function getWebPageLinksFromStructure(Structure $struture, bool $simpleLink = true): WebPageLinks
+    {
+        $webPageLinks = new WebPageLinks();
+        /** @var Page $collectionPage */
+        foreach ($collection as $collectionPage) {
+            $webPageLinks->addListItem($this->getWebPageLink($collectionPage, $simpleLink));
+        }
+        return $webPageLinks;
+    }
+
 
     /**
      * @param Page $page
@@ -1335,7 +1365,7 @@ abstract class KirbyBaseHelper
      * @return WebPageLink
      * @throws KirbyRetrievalException
      */
-    protected function getWebPageLink(Page $page, bool $simpleLink = true): WebPageLink
+    protected function getWebPageLink(Page $page, bool $simpleLink = true, string $linkTitle = null, string $linkDescription = null): WebPageLink
     {
         $templateName = $page->template()->name();
         if ($templateName === 'file_link') {
@@ -1344,9 +1374,11 @@ abstract class KirbyBaseHelper
         } else {
             $pageUrl = $page->url();
         }
-        $webPageLink = new WebPageLink($page->title()->toString(), $pageUrl , $page->id(), $page->template()->name());
-        $webPageLink->setDescription($this->getPageFieldAsString($page, 'description'));
-        $webPageLink->setPanelDescription($this->getPageFieldAsKirbyText($page, 'panelDescription'));
+
+        $linkDescription = $linkDescription ?? $this->getPageFieldAsString($page, 'description');
+        $linkTitle = $linkTitle ?? $this->getPageTitle($page);
+        $webPageLink = new WebPageLink($linkTitle, $pageUrl , $page->id(), $page->template()->name());
+        $webPageLink->setLinkDescription($linkDescription);
         if ($this->isPageFieldNotEmpty($page, 'requirements')) {
             $webPageLink->setRequirements($this->getPageFieldAsString($page, 'requirements'));
         }
@@ -1355,7 +1387,7 @@ abstract class KirbyBaseHelper
         }
         if ($this->isPageFieldNotEmpty($page, 'panelImage')) {
             $panelImage = $this->getImage($page, 'panelImage', 300, 300, ImageType::SQUARE);
-            $webPageLink->setPanelImage($panelImage);
+            $webPageLink->setImage($panelImage);
         }
         $webPageLink->setSubPages($this->getSubPages($page));
         return $webPageLink;
@@ -1556,7 +1588,7 @@ abstract class KirbyBaseHelper
             if (!empty($itemTitle)) {
                 $content = new RelatedContent(
                     strval($item->title()),
-                    $this->getStructureFieldAsUrl($item, 'url'),
+                    $this->getStructureFieldAsLinkUrl($item, 'url'),
                     $this->getStructureFieldAsBool($item, 'openInNewTab')
                 );
                 $relatedContentList->addListItem($content);
@@ -2414,7 +2446,7 @@ abstract class KirbyBaseHelper
     {
         $tagLinkSet = new WebPageTagLinkSet();
         $tagLinkSet->setTagType($tagType);
-        $tagLinkSet->setLinks($this->getPageFieldAsWebPageTagLinks($kirbyPage,$fieldName));
+        $tagLinkSet->setLinks($this->getPageFieldAsWebPageLinks($kirbyPage,$fieldName));
         return $tagLinkSet;
     }
 
