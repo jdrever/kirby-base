@@ -1438,7 +1438,8 @@ abstract class KirbyBaseHelper
                                           array|null      $templates = null,
                                           Page $parentPage = null,
                                           bool $childrenOnly = true,
-                                          string $sortBy = 'title'
+                                          string $sortBy = 'title',
+                                          string $sortDirection = 'desc'
     ): BaseList
     {
 
@@ -1462,7 +1463,8 @@ abstract class KirbyBaseHelper
 
         if (isset($templates)) {
             $parentPage = $parentPage ?? $this->page;
-            $collectionPages = $this->getSubPagesUsingTemplates($parentPage, $templates, $childrenOnly)->sortBy($sortBy);
+            $collectionPages = $this->getSubPagesUsingTemplates($parentPage, $templates, $childrenOnly)
+                ->sortBy($sortBy, $sortDirection);
         }
         else {
 
