@@ -2663,6 +2663,30 @@ abstract class KirbyBaseHelper
         return $this->asString($optionValue);
     }
 
+    protected function getFieldsInSection(Page $page, string $sectionName): array
+    {
+
+        $blueprint = $page->blueprint();
+
+        $fieldNamesInSection = [];
+
+        $sections = $blueprint->sections();
+
+        if (isset($sections[$sectionName])) {
+            $section = $sections[$sectionName];
+
+            // Ensure it's a 'fields' type section
+            if ($section->fields()) {
+                foreach ($section->fields() as $fieldName => $fieldDefinition) {
+                    $fieldNamesInSection[] = $fieldName;
+                }
+            }
+        }
+        // Remove duplicates as a field could theoretically be found via multiple paths
+        return array_unique($fieldNamesInSection);
+
+    }
+
     protected function redirectToLogin(string $redirectPage=''): void
     {
         $loginPage = $this->findKirbyPage('login');

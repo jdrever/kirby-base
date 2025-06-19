@@ -1,5 +1,7 @@
 <?php
 
+use BSBI\Web\helpers\KirbyHelper;
+
 return [
     'page.update:after' => function ($newPage, $oldPage) {
         $user = kirby()->user();
@@ -14,6 +16,12 @@ return [
                 'publishedBy' => $user ? $user->id() : null
             ]);
         }
+
+        //if ($newPage->template()->name() === 'vacancy') {
+            $helper = new KirbyHelper(kirby(), kirby()->site(), kirby()->page());
+            $helper->handleTwoWayTagging($newPage, $oldPage);
+        //}
+
         return $newPage;
     },
     'page.create:after' => function ($page) {
