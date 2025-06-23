@@ -1348,16 +1348,6 @@ abstract class KirbyBaseHelper
         return $webPageLinks;
     }
 
-    protected function getWebPageLinksFromStructure(Structure $struture, bool $simpleLink = true): WebPageLinks
-    {
-        $webPageLinks = new WebPageLinks();
-        /** @var Page $collectionPage */
-        foreach ($collection as $collectionPage) {
-            $webPageLinks->addListItem($this->getWebPageLink($collectionPage, $simpleLink));
-        }
-        return $webPageLinks;
-    }
-
 
     /**
      * @param Page $page
@@ -1375,7 +1365,7 @@ abstract class KirbyBaseHelper
             $pageUrl = $page->url();
         }
 
-        $linkDescription = $linkDescription ?? $this->getPageFieldAsString($page, 'description');
+        $linkDescription = $linkDescription ?? $this->getPageFieldAsString($page, 'panelContent');
         $linkTitle = $linkTitle ?? $this->getPageTitle($page);
         $webPageLink = new WebPageLink($linkTitle, $pageUrl , $page->id(), $page->template()->name());
         $webPageLink->setLinkDescription($linkDescription);
