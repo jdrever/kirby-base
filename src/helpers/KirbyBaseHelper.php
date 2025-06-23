@@ -1376,7 +1376,7 @@ abstract class KirbyBaseHelper
             return $webPageLink;
         }
         if ($this->isPageFieldNotEmpty($page, 'panelImage')) {
-            $panelImage = $this->getImage($page, 'panelImage', 300, 300, ImageType::SQUARE);
+            $panelImage = $this->getImage($page, 'panelImage', 400, 300, ImageType::FIXED);
             $webPageLink->setImage($panelImage);
         }
         $webPageLink->setSubPages($this->getSubPages($page));
