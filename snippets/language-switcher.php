@@ -20,7 +20,7 @@ if (!$languages->isEnabled()) :
 endif;
 
 //TODO: allow switcher to always display based on site config
-if ($languages->isPageTranslatedInCurrentLanguage() && !$languages->isUsingDefaultLanguage()) : ?>
+if ($languages->isPageTranslatedInCurrentLanguage()) : ?>
 <nav class="language-switcher my-3" aria-label="Language Selector">
     <ul class="nav nav-pills justify-content-center bg-light p-2 rounded">
     <?php foreach ($languages->getLanguages() as $language) : ?>

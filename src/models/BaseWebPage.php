@@ -216,6 +216,10 @@ class BaseWebPage extends BaseModel
         return $this;
     }
 
+    public function hasMainContent(): bool {
+        return isset($this->mainContentBlocks) && $this->mainContentBlocks->count()>0;
+    }
+
 
 
     /**
