@@ -139,6 +139,7 @@ class BaseWebPage extends BaseModel
         $this->breadcrumb = new WebPageLinks();
         $this->coreLinks = new CoreLinks();
         $this->customScripts = [];
+        $this->languages = new Languages();
         parent::__construct($title, $url);
     }
 
