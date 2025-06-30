@@ -2507,7 +2507,7 @@ abstract class KirbyBaseHelper
                     $language->setIsActivePage($lang->code() === kirby()->language()->code());
                     $language->setCode($lang->code());
                     $language->setName($lang->name());
-                    $language->setCurrentPageUrl($translatedPage->parent()->url($lang->code()));
+                    $language->setCurrentPageUrl($translatedPage->model()->url($lang->code()));
                     $languages->addLanguage($language);
                 }
 
