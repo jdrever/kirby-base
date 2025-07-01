@@ -24,6 +24,7 @@ use BSBI\WebBase\models\WebPageBlocks;
 use BSBI\WebBase\models\WebPageLink;
 use BSBI\WebBase\models\WebPageLinks;
 use BSBI\WebBase\models\User;
+use BSBI\WebBase\models\WebPageTagLinks;
 use BSBI\WebBase\models\WebPageTagLinkSet;
 use DateTime;
 use Kirby\Cms\App;
@@ -183,6 +184,8 @@ abstract class KirbyBaseHelper
                     $webPage->setRelatedContentList($this->getRelatedContentListFromPagesField($page, 'related'));
                 }
             }
+
+            $webPage->setTaggedByLinks($this->getTagLinks($page));
 
             $openGraphTitle = $this->isPageFieldNotEmpty($page, 'og_title')
                 ? $this->getPageFieldAsString($page, 'og_title')
@@ -1577,9 +1580,14 @@ abstract class KirbyBaseHelper
         $relatedContentList = new RelatedContentList();
         foreach ($relatedContent as $item) {
             $itemTitle = $this->getStructureFieldAsString($item, 'title', false);
+            if ($this->hasStructureField($item, 'url')) {
+                $itemPage = $this->getStructureFieldAsPage($item, 'url');
+                if (empty($itemTitle)) $itemTitle = $this->getPageTitle($itemPage);
+            }
+
             if (!empty($itemTitle)) {
                 $content = new RelatedContent(
-                    strval($item->title()),
+                    $itemTitle,
                     $this->getStructureFieldAsLinkUrl($item, 'url'),
                     $this->getStructureFieldAsBool($item, 'openInNewTab')
                 );
@@ -2442,6 +2450,15 @@ abstract class KirbyBaseHelper
         return $tagLinkSet;
     }
 
+    protected function getTagLinks(Page $kirbyPage) : WebPageTagLinks {
+        $tagFields = $this->getFieldsInSection($kirbyPage, 'tags');
+        $tags = new WebPageTagLinks();
+        foreach ($tagFields as $tagField) {
+            $tags->addListItem($this->getWebPageTagLinkSet($kirbyPage, $tagField['label'], $tagField['name']));
+        }
+        return $tags;
+    }
+
     /**
      * @param string $modelListClass
      * @param BaseFilter $filter
@@ -2452,7 +2469,6 @@ abstract class KirbyBaseHelper
     protected function getTaggedByList(string $modelListClass, BaseFilter $filter, string $listTitle = null): WebPageTagLinkSet
     {
         $tagLinkSet = new WebPageTagLinkSet();
-
 
         // Ensure $pageClass is a subclass of WebPage
         if (!(is_a($modelListClass, BaseList::class, true))) {
@@ -2664,16 +2680,19 @@ abstract class KirbyBaseHelper
 
         if (isset($sections[$sectionName])) {
             $section = $sections[$sectionName];
+        } else if (isset($sections[$sectionName.'-fields'])) {
+            $section = $sections[$sectionName.'-fields'];
+        }
+        if (isset($section) && $section->fields()) {
 
-            // Ensure it's a 'fields' type section
-            if ($section->fields()) {
-                foreach ($section->fields() as $fieldName => $fieldDefinition) {
-                    $fieldNamesInSection[] = $fieldName;
+            foreach ($section->fields() as $fieldName => $fieldDefinition) {
+                if ($fieldDefinition['type'] !== 'info') {
+                    $fieldNamesInSection[] = ['name' => $fieldName, 'label' => $fieldDefinition['label']];
                 }
             }
         }
-        // Remove duplicates as a field could theoretically be found via multiple paths
-        return array_unique($fieldNamesInSection);
+
+        return $fieldNamesInSection;
 
     }
 

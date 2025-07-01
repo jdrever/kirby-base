@@ -10,7 +10,7 @@ endif;
 
 /** @var BaseWebPage $currentPage */
 
-if ($currentPage->hasTaggedByLinks()) :
+if ($currentPage->hasRelatedLinks()) :
     $taggedByLinks = $currentPage->getTaggedByLinks();
     if ($taggedByLinks->hasListItems()) : ?>
 <div class="p-4 bg-success-subtle">

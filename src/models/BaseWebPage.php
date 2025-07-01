@@ -356,6 +356,16 @@ class BaseWebPage extends BaseModel
     }
 
     /**
+     * has any related links (tags or related content)
+     * @return bool
+     */
+    public function hasRelatedLinks(): bool {
+        return $this->hasRelatedContent()
+            || $this->hasTaggedByLinks()
+            || $this->hasTags();
+    }
+
+    /**
      * @param RelatedContent $relatedContent
      * @return $this
      */
