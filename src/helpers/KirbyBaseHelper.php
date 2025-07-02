@@ -9,6 +9,7 @@ use BSBI\WebBase\models\BaseModel;
 use BSBI\WebBase\models\BaseWebPage;
 use BSBI\WebBase\models\CoreLink;
 use BSBI\WebBase\models\Document;
+use BSBI\WebBase\models\Documents;
 use BSBI\WebBase\models\FeedbackForm;
 use BSBI\WebBase\models\Image;
 use BSBI\WebBase\models\ImageType;
@@ -32,6 +33,7 @@ use Kirby\Cms\Block;
 use Kirby\Cms\Blocks;
 use Kirby\Cms\Collection;
 use Kirby\Cms\File;
+use Kirby\Cms\Files;
 use Kirby\Cms\Page;
 use Kirby\Cms\Pages;
 use Kirby\Cms\Site;
@@ -336,7 +338,7 @@ abstract class KirbyBaseHelper
 
     #endregion
 
-    #region FIELDS
+    #region PAGE_FIELDS
 
     /**
      * Gets the field - if the field is empty, returns an empty string
@@ -649,6 +651,19 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $page
      * @param string $fieldName
+     * @return File|null
+     * @throws KirbyRetrievalException
+     */
+    protected function getPageFieldAsFiles(Page $page, string $fieldName): Files|null
+    {
+        $pageField = $this->getPageField($page, $fieldName);
+        /** @noinspection PhpUndefinedMethodInspection */
+        return $pageField->toFiles();
+    }
+
+    /**
+     * @param Page $page
+     * @param string $fieldName
      * @return WebPageLinks
      */
     protected function getPageFieldAsWebPageLinks(Page $page, string $fieldName, bool $simpleLinks = true): WebPageLinks
@@ -696,6 +711,55 @@ abstract class KirbyBaseHelper
             return $page->url();
         }
         return '';
+    }
+
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @return Document
+     */
+    protected function getPageFileAsDocument(Page $page, string $fieldName): Document
+    {
+        try {
+            $pageFile = $this->getPageFieldAsFile($page, $fieldName);
+            if ($pageFile != null) {
+                return $this->getDocumentFromFile($pageFile);
+            }
+            return (new Document())->recordError('Document not found');
+        } catch (KirbyRetrievalException) {
+            return (new Document())->recordError('Document not found');
+        }
+    }
+
+    protected function getPageFieldAsDocuments(Page $page, string $fieldName): Documents
+    {
+        $documents = new Documents();
+        try {
+            $pageFiles = $this->getPageFieldAsFiles($page, $fieldName);
+            if ($pageFiles != null) {
+                foreach($pageFiles as $pageFile) {
+                    $documents->addListItem($this->getDocumentFromFile($pageFile));
+                }
+                return $documents;
+            }
+            return (new Documents())->recordError('Documents not found');
+        } catch (KirbyRetrievalException) {
+            return (new Documents())->recordError('Documents not found');
+        }
+    }
+
+    private function getDocumentFromFile($pageFile): Document {
+        $url = $pageFile->url();
+        /** @noinspection PhpUndefinedMethodInspection */
+        $size = $pageFile->niceSize();
+        $document = new Document('questionSheet', $url);
+        $document->setSize($size);
+        return $document;
+    }
+
+    private function getFileModifiedAsDateTime(File $file): DateTime {
+        $modified = $file->modified();
+        return (new DateTime())->setTimestamp($modified);
     }
 
     /**
@@ -759,6 +823,10 @@ abstract class KirbyBaseHelper
             throw new KirbyRetrievalException($e->getMessage(), 0, $e);
         }
     }
+
+    #endregion
+
+    #region SITE_FIELDS
 
     /**
      * @param string $fieldName
@@ -824,6 +892,10 @@ abstract class KirbyBaseHelper
             throw new KirbyRetrievalException('Site field not found');
         }
     }
+
+    #endregion
+
+    #region STRUCTURE_FIELDS
 
     /**
      * @param StructureObject $structure
@@ -1008,7 +1080,7 @@ abstract class KirbyBaseHelper
 
     #endregion
 
-    #region BLOCKS
+    #region BLOCK_FIELDS
 
     /**
      * @param Block $block
@@ -2212,39 +2284,6 @@ abstract class KirbyBaseHelper
         }
         return $feedbackForm;
     }
-    #endregion
-
-    #region FILES
-    /**
-     * @param Page $page
-     * @param string $fieldName
-     * @return Document
-     */
-    protected function getDocument(Page $page, string $fieldName): Document
-    {
-        try {
-            $pageFile = $this->getPageFieldAsFile($page, $fieldName);
-            if ($pageFile != null) {
-
-                $url = $pageFile->url();
-                /** @noinspection PhpUndefinedMethodInspection */
-                $size = $pageFile->niceSize();
-                $document = new Document('questionSheet',$url);
-                $document->setSize($size);
-                return $document;
-            }
-            return (new Document())->recordError('Document not found');
-        } catch (KirbyRetrievalException) {
-            return (new Document())->recordError('Document not found');
-        }
-    }
-
-    private function getFileModifiedAsDateTime(File $file): DateTime {
-        $modified = $file->modified();
-        return (new DateTime())->setTimestamp($modified);
-
-    }
-
     #endregion
 
     #region USERS
