@@ -680,6 +680,24 @@ abstract class KirbyBaseHelper
         }
     }
 
+    protected function getPageFieldAsPageTitle(Page $page, string $fieldName): string {
+        $pages = $this->getPageFieldAsPages($page, $fieldName);
+        $page = $pages->first();
+        if ($page) {
+            return $page->title()->toString();
+        }
+        return '';
+    }
+
+    protected function getPageFieldAsPageUrl(Page $page, string $fieldName): string {
+        $pages = $this->getPageFieldAsPages($page, $fieldName);
+        $page = $pages->first();
+        if ($page) {
+            return $page->url();
+        }
+        return '';
+    }
+
     /**
      * @param Page $page
      * @param string $fieldName
