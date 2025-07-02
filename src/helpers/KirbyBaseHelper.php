@@ -718,7 +718,7 @@ abstract class KirbyBaseHelper
      * @param string $fieldName
      * @return Document
      */
-    protected function getPageFileAsDocument(Page $page, string $fieldName): Document
+    protected function getPageFieldAsDocument(Page $page, string $fieldName): Document
     {
         try {
             $pageFile = $this->getPageFieldAsFile($page, $fieldName);
