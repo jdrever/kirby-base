@@ -10,6 +10,7 @@ return [
     'base/login' => __DIR__ . '/snippets/login.php',
     'base/language-switcher' => __DIR__ . '/snippets/language-switcher.php',
     'base/menu' => __DIR__ . '/snippets/menu.php',
+    'base/image' => __DIR__ . '/snippets/image.php',
     'base/related-links' => __DIR__ . '/snippets/related-links.php',
     'base/page-title' => __DIR__ . '/snippets/page-title.php',
     'base/show-user' => __DIR__ . '/snippets/show-user.php',

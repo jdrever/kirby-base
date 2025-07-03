@@ -1469,7 +1469,8 @@ abstract class KirbyBaseHelper
             return $webPageLink;
         }
         if ($this->isPageFieldNotEmpty($page, 'panelImage')) {
-            $panelImage = $this->getImage($page, 'panelImage', 400, 300, ImageType::FIXED);
+            $panelImage = $this->getSimpleImage($page, 'panelImage', 400, 300);
+            $panelImage->setClass('img-fix-size img-fix-size--four-three');
             $webPageLink->setImage($panelImage);
         }
         $webPageLink->setSubPages($this->getSubPages($page));
@@ -1600,6 +1601,24 @@ abstract class KirbyBaseHelper
      * @param Page $page
      * @param string $fieldName
      * @param int $width
+     * @param int $height
+     * @return Image
+     * @throws KirbyRetrievalException
+     */
+    protected function getSimpleImage(Page $page, string $fieldName, int $width, int $height) : Image {
+        $pageImage = $this->getPageFieldAsFile($page, $fieldName);
+        if ($pageImage != null) {
+            $src = $pageImage->crop($width, $height)->url();
+            $alt = $pageImage->alt()->isNotEmpty() ? $pageImage->alt()->value() : '';
+            return new Image($src, '', '', $alt, $width, $height);
+        }
+        return (new Image())->setStatus(false);
+    }
+
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @param int $width
      * @param ?int $height
      * @param ImageType $imageType
      * @return Image
@@ -1626,6 +1645,8 @@ abstract class KirbyBaseHelper
             return (new Image())->recordError('Image not found');
         }
     }
+
+
     #endregion
 
     #region RELATED CONTENT
