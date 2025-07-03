@@ -2540,34 +2540,26 @@ abstract class KirbyBaseHelper
         $tagMapping = option('tagMapping');
         $sitePages = $this->site->index()->filterBy('template', $template); //['product'])
 
-        // Required for Nginx to disable proxy buffering
-        header('X-Accel-Buffering: no');
-        // Set a plain text content type for clear output
-        header('Content-Type: text/plain; charset=utf-8');
-
-        // These lines disable PHP's output buffering.
-        // The @ suppresses errors if the settings are already off.
-        @ini_set('output_buffering', 'off');
-        @ini_set('zlib.output_compression', false);
-
-
-        // Immediately flush output after each echo
-        ob_implicit_flush(true);
-
         $i = 0;
         foreach ($sitePages as $page) {
             if (array_key_exists($page->template()->name(), $tagMapping))
             {
-                $logMessage = $this->handleTwoWayTagging($page, null, false);
-                //if (!empty($logMessage)) {
-                file_put_contents($logFile, $page->title().'-'.$logMessage . "\n", FILE_APPEND);
-                //}
+                $lastSyncTimestamp = $page->lastTagSync()->toTimestamp();
+                $currentTime = time();
+                // Calculate the time difference in minutes
+                $timeDifferenceMinutes = round(abs($currentTime - $lastSyncTimestamp) / 60);
+                if ($lastSyncTimestamp > 0 && $timeDifferenceMinutes < 10) {
+                    $logMessage = "Skipped (synced " . $timeDifferenceMinutes . " mins ago)";
+                } else {
+                    $logMessage = $this->handleTwoWayTagging($page, null, false);
+
+                }
+                file_put_contents($logFile, $page->title() . '-' . $logMessage . "\n", FILE_APPEND);
 
                 if (($i % 50) === 0) { // Example: run GC every 50 pages
                     $collected = gc_collect_cycles();
                     file_put_contents($logFile, "GC collected $collected cycles. Current memory: " . round(memory_get_usage(true) / 1024 / 1024, 2) . " MB\n", FILE_APPEND);
                 }
-
                 $i++;
             }
         }
@@ -2581,8 +2573,12 @@ abstract class KirbyBaseHelper
      * to link to other pages, this function ensures those 'tagged pages' have their
      * `taggedField` updated to reflect the link to the 'taggingPage'.
      *
-     * @param \Kirby\Cms\Page $taggingPage The page that was created or updated (e.g., a vacancy page).
-     * @param \Kirby\Cms\Page|null $oldTaggingPage The old version of the tagging page (null for creation).
+     * @param Page $taggingPage The page that was created or updated (e.g., a vacancy page).
+     * @param Page|null $oldTaggingPage The old version of the tagging page (null for creation).
+     * @param bool $clearCache
+     * @return string
+     * @throws InvalidArgumentException
+     * @throws KirbyRetrievalException
      */
     public function handleTwoWayTagging(
         \Kirby\Cms\Page $taggingPage,
@@ -2720,6 +2716,13 @@ abstract class KirbyBaseHelper
                     $log.= "Warning: Linked page with ID '{$linkedPageId}' not found for tagging page '{$taggingPageId}' (removal attempt).";
                 }
             }
+        }
+        try {
+            $taggingPage->update([
+                'lastTagSync' => date('Y-m-d H:i:s') // Use a format suitable for datetime field
+            ]);
+        } catch (Throwable $e) {
+            throw new KirbyRetrievalException('Error updating lastTagSync on ' . $taggingPage->title() . ': ' . $e->getMessage());
         }
         return $log;
     }

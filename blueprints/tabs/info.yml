@@ -30,6 +30,10 @@ sections:
       reviewBy:
         label: Review By
         type: users
+      lastTagSync:
+        label: Last Tag Sync
+        type: date
+        time: true;
 
 
 
