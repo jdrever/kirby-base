@@ -2548,7 +2548,7 @@ abstract class KirbyBaseHelper
                 $currentTime = time();
                 // Calculate the time difference in minutes
                 $timeDifferenceMinutes = round(abs($currentTime - $lastSyncTimestamp) / 60);
-                if ($lastSyncTimestamp > 0 && $timeDifferenceMinutes < 10) {
+                if ($lastSyncTimestamp > 0 && $timeDifferenceMinutes < 30) {
                     $logMessage = "Skipped (synced " . $timeDifferenceMinutes . " mins ago)";
                 } else {
                     $logMessage = $this->handleTwoWayTagging($page, null, false);
