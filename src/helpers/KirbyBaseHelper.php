@@ -31,7 +31,7 @@ use DateTime;
 use Kirby\Cms\App;
 use Kirby\Cms\Block;
 use Kirby\Cms\Blocks;
-use Kirby\Cms\Collection;
+use Kirby\Toolkit\Collection;
 use Kirby\Cms\File;
 use Kirby\Cms\Files;
 use Kirby\Cms\Page;
