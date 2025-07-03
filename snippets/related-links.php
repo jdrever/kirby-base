@@ -16,7 +16,7 @@ if ($currentPage->hasRelatedLinks()) : ?>
         <h3 class="text-center">Relevant to this page</h3>
         <div class="panel">
 <?php
-    if ($currentPage->hasTags()) :
+    if ($currentPage->hasTagLinks()) :
         $tagLinks = $currentPage->getTagLinks();
         foreach ($tagLinks->getListItems() as $tagLinkSet) :
             $tagLinksInSet = $tagLinkSet->getLinks();
