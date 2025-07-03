@@ -187,7 +187,7 @@ abstract class KirbyBaseHelper
                 }
             }
 
-            $webPage->setTaggedByLinks($this->getTagLinks($page));
+            $webPage->setTagLinks($this->getTagLinks($page));
 
             $openGraphTitle = $this->isPageFieldNotEmpty($page, 'og_title')
                 ? $this->getPageFieldAsString($page, 'og_title')
@@ -2511,7 +2511,10 @@ abstract class KirbyBaseHelper
         $tagFields = $this->getFieldsInSection($kirbyPage, 'tags');
         $tags = new WebPageTagLinks();
         foreach ($tagFields as $tagField) {
-            $tags->addListItem($this->getWebPageTagLinkSet($kirbyPage, $tagField['label'], $tagField['name']));
+            $tagLinks = $this->getWebPageTagLinkSet($kirbyPage, $tagField['label'], $tagField['name']);
+            if ($tagLinks->hasLinks()) {
+                $tags->addListItem($tagLinks);
+            }
         }
         return $tags;
     }

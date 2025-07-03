@@ -361,8 +361,7 @@ class BaseWebPage extends BaseModel
      */
     public function hasRelatedLinks(): bool {
         return $this->hasRelatedContent()
-            || $this->hasTaggedByLinks()
-            || $this->hasTags();
+            || $this->hasTagLinks();
     }
 
     /**
@@ -397,48 +396,11 @@ class BaseWebPage extends BaseModel
         return $this->relatedContent;
     }
 
-    /**
-     * @return bool
-     */
-    public function hasTags():bool {
-        return false;
+
+
+    public function hasTagLinks(): bool {
+        return isset($this->tagLinks) && $this->tagLinks->count()>0;
     }
-
-
-    /**
-     * @return bool
-     */
-    public function hasTaggedByLinks(): bool {
-
-        if (!isset($this->taggedByLinks) || $this->taggedByLinks->count() === 0) {
-            return false;
-        }
-        foreach ($this->taggedByLinks->getListItems() as $taggedByLink) {
-            if ($taggedByLink->hasLinks()) { return true; }
-        }
-        return false;
-
-    }
-
-    /**
-     * @return WebPageTagLinks
-     */
-    public function getTaggedByLinks(): WebPageTagLinks
-    {
-        return $this->taggedByLinks;
-    }
-
-    /**
-     * @param WebPageTagLinks $taggedByLinks
-     * @return $this
-     */
-    public function setTaggedByLinks(WebPageTagLinks $taggedByLinks): BaseWebPage
-    {
-        $this->taggedByLinks = $taggedByLinks;
-        return $this;
-    }
-
-
 
     /**
      * @return WebPageTagLinks
