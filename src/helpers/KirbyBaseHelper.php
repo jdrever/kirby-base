@@ -1831,11 +1831,12 @@ abstract class KirbyBaseHelper
      */
     protected function sendErrorEmail(KirbyRetrievalException $e): void
     {
+
         $exceptionAsString =  "Message: " . $e->getMessage() . "\n" .
             "File:" . $e->getFile() . "'\n" .
             "Line:" . $e->getLine() . "\n" .
             "Trace:" . $e->getTraceAsString();
-        error_log($exceptionAsString);
+        $this->writeToLog('errors', $exceptionAsString);
         if (!str_starts_with($_SERVER['HTTP_HOST'], 'localhost')) {
             $this->kirby->email([
                 'template' => 'error-notification',
@@ -1848,6 +1849,7 @@ abstract class KirbyBaseHelper
                 ]
             ]);
         }
+
     }
 
     protected function getExceptionDetails(KirbyRetrievalException $exception): string
@@ -2521,21 +2523,10 @@ abstract class KirbyBaseHelper
 
 
     public function syncTags($template) : string {
+        $logFile = 'tag-sync';
 
-        // Define a log file path in your storage directory
-        // Get the path for the logs directory
-        $logDir = kirby()->root('logs');
+        $this->writeToLog( $logFile, 'Starting sync of tags for template: '.$template);
 
-        // Check if the directory doesn't exist and create it if necessary
-        if (!is_dir($logDir)) {
-            // The third parameter 'true' allows the creation of nested directories
-            mkdir($logDir, 0755, true);
-        }
-
-        // Define the log file path
-        $logFile = $logDir . '/tag-sync.log';
-        // Clear the log file at the start
-        file_put_contents($logFile, "Starting sync of tags...\n");
 
         $tagMapping = option('tagMapping');
         $sitePages = $this->site->index()->filterBy('template', $template); //['product'])
@@ -2554,16 +2545,16 @@ abstract class KirbyBaseHelper
                     $logMessage = $this->handleTwoWayTagging($page, null, false);
 
                 }
-                file_put_contents($logFile, $page->title() . '-' . $logMessage . "\n", FILE_APPEND);
+                $this->writeToLog($logFile, $page->title() . '-' . $logMessage . "\n");
 
                 if (($i % 50) === 0) { // Example: run GC every 50 pages
                     $collected = gc_collect_cycles();
-                    file_put_contents($logFile, "GC collected $collected cycles. Current memory: " . round(memory_get_usage(true) / 1024 / 1024, 2) . " MB\n", FILE_APPEND);
+                    $this->writeToLog($logFile, "GC collected $collected cycles. Current memory: " . round(memory_get_usage(true) / 1024 / 1024, 2) . " MB\n", FILE_APPEND);
                 }
                 $i++;
             }
         }
-        file_put_contents($logFile, "Completed sync of tags...", FILE_APPEND);
+        $this->writetoLog($logFile, "Completed sync of tags...");
         return 'COMPLETE';
     }
 
@@ -2830,6 +2821,26 @@ abstract class KirbyBaseHelper
     #endregion
 
     #region MISC
+
+    /**
+     * @param $logFile .log is added
+     * @param $message
+     * @return void
+     */
+    protected function writeToLog($logFile, $message):void {
+        $logDir = kirby()->root('logs');
+
+        // Check if the directory doesn't exist and create it if necessary
+        if (!is_dir($logDir)) {
+            // The third parameter 'true' allows the creation of nested directories
+            mkdir($logDir, 0755, true);
+        }
+
+        // Define the log file path
+        $logFile = $logDir . $logFile.'.log';
+        // Clear the log file at the start
+        file_put_contents($logFile, $message, FILE_APPEND);
+    }
 
     /**
      * @param KirbyRetrievalException $e
