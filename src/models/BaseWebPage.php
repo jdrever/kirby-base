@@ -96,12 +96,6 @@ class BaseWebPage extends BaseModel
     private WebPageTagLinks $tagLinks;
 
 
-
-    /**
-     * @var WebPageTagLinks
-     */
-    private WebPageTagLinks $taggedByLinks;
-
     /**
      * @var string[]
      */
