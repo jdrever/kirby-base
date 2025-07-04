@@ -13,7 +13,7 @@ use Kirby\Cms\Block;
 use Kirby\Cms\Site;
 
 ?>
-<div class="list-group m-2 p-4">
+<div class="list-group m-1 p-4">
 <?php if ($file = $block->file()->toFile()) : ?>  
     <a class="list-group-item" href="<?= $file->url()?>" target="_blank"><?=$block->label() != "" ? $block->label() : $file->filename()?> : VIEW</a>
 <?php else : ?>
