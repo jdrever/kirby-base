@@ -2595,12 +2595,12 @@ abstract class KirbyBaseHelper
     public function handleTwoWayTagging(
         \Kirby\Cms\Page $taggingPage,
         ?\Kirby\Cms\Page $oldTaggingPage = null,
-        bool $clearCache = true
+        bool $singlePage = true
     ):string {
 
         $log = '';
 
-        if ($clearCache) {
+        if ($singlePage) {
             kirby()->cache('pages')->flush();
         }
 
@@ -2729,13 +2729,17 @@ abstract class KirbyBaseHelper
                 }
             }
         }
-        try {
-            $taggingPage->update([
-                'lastTagSync' => date('Y-m-d H:i:s') // Use a format suitable for datetime field
-            ]);
-        } catch (Throwable $e) {
-            throw new KirbyRetrievalException('Error updating lastTagSync on ' . $taggingPage->title() . ': ' . $e->getMessage());
-        }
+        if (!$singlePage) {
+            try {
+                // Re-fetch the taggingPage to ensure it's the latest version
+                $taggingPage = kirby()->page($taggingPage->id());
+                $taggingPage->update([
+                    'lastTagSync' => date('Y-m-d H:i:s') // Use a format suitable for datetime field
+                ]);
+            } catch (Throwable $e) {
+                throw new KirbyRetrievalException('Error updating lastTagSync on ' . $taggingPage->title() . ': ' . $e->getMessage());
+            }
+        }{}
         return $log;
     }
 
