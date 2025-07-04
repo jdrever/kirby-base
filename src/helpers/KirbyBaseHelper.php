@@ -488,6 +488,28 @@ abstract class KirbyBaseHelper
      * @param Page $page
      * @param string $fieldName
      * @param bool $required
+     * @return string
+     * @throws KirbyRetrievalException
+     */
+    protected function getPageFieldAsYesNo(Page $page, string $fieldName, bool $required = false): string
+    {
+        try {
+            $pageField = $this->getPageField($page, $fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return ($pageField->toBool() === true) ? 'YES' : 'NO';
+        } catch (KirbyRetrievalException $e) {
+            if ($required) {
+                throw $e;
+            }
+            //TODO: should be better than returning false if not required.  Maybe return bool|null
+            return 'NO';
+        }
+    }
+
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @param bool $required
      * @return ?DateTime
      * @throws KirbyRetrievalException
      */
