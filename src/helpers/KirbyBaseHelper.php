@@ -2763,10 +2763,8 @@ abstract class KirbyBaseHelper
             $languagesFromKirby = $this->kirby->languages();
 
             foreach ($languagesFromKirby as $lang) {
-
                 $translatedPage = $this->page->translation($lang->code());
                 if ($translatedPage && $translatedPage->exists()) {
-
                     $language = new Language();
                     $language->setIsDefault($lang->code() === $defaultLanguage->code());
                     if (!$language->isDefault()) {
