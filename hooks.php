@@ -13,23 +13,27 @@ return [
         if ($newPage->publishedDate()->isEmpty()) {
             $newPage = $newPage->update([
                 'publishedDate' => date('Y-m-d H:i:s'),
-                'publishedBy' => $user ? $user->id() : null
+                'publishedBy' => $user?->id()
             ]);
         }
-
-        //if ($newPage->template()->name() === 'vacancy') {
-            $helper = new KirbyHelper(kirby(), kirby()->site(), kirby()->page());
-            $helper->handleTwoWayTagging($newPage, $oldPage);
-        //}
+        $helper = new KirbyHelper(kirby(), kirby()->site(), kirby()->page());
+        $helper->handleTwoWayTagging($newPage, $oldPage);
 
         return $newPage;
     },
+
+
     'page.create:after' => function ($page) {
-        $user = kirby()->user();
-        $page = $page->update([
-            'publishedDate' => date('Y-m-d H:i:s'),
-            'publishedBy' => $user?->id()
-        ]);
+        if ($page->publishedDate()->isEmpty() || $page->publishedBy()->isEmpty()) {
+            $user = kirby()->user();
+            $page = $page->update([
+                'publishedDate' => date('Y-m-d H:i:s'),
+                'publishedBy' => $user?->id()
+            ]);
+        }
+
+        $helper = new KirbyHelper(kirby(), kirby()->site(), kirby()->page());
+        $helper->handleTwoWayTagging($page);
         return $page;
     },
 ];
