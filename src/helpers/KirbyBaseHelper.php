@@ -2608,11 +2608,9 @@ abstract class KirbyBaseHelper
      * to link to other pages, this function ensures those 'tagged pages' have their
      * `taggedField` updated to reflect the link to the 'taggingPage'.
      *
-     * This version includes file locking to prevent race conditions.
-     *
      * @param Page $taggingPage The page that was created or updated (e.g., a vacancy page).
      * @param Page|null $oldTaggingPage The old version of the tagging page (null for creation).
-     * @param bool $singlePage
+     * @param bool $clearCache
      * @return string
      * @throws InvalidArgumentException
      * @throws KirbyRetrievalException
@@ -2621,7 +2619,16 @@ abstract class KirbyBaseHelper
         \Kirby\Cms\Page $taggingPage,
         ?\Kirby\Cms\Page $oldTaggingPage = null,
         bool $singlePage = true
-    ): string {
+    ):string {
+        // Static flag to prevent re-entry for the current request lifecycle
+        static $isSyncing = false;
+
+        // If the function is already running, exit to prevent infinite loops/re-entry
+        if ($isSyncing) {
+            return 'Already syncing, skipping re-entry.';
+        }
+
+        $isSyncing = true; // Set the flag
 
         $log = '';
 
@@ -2629,7 +2636,9 @@ abstract class KirbyBaseHelper
             kirby()->cache('pages')->flush();
         }
 
+        // Get the unique ID of the page that was created or updated
         $taggingPageId = $taggingPage->id();
+
         $taggingFields = $this->getFieldsInSection($taggingPage, 'tags-fields');
 
         if (count($taggingFields) === 0) {
@@ -2642,111 +2651,137 @@ abstract class KirbyBaseHelper
 
         try {
             $tagMapping = option('tagMapping');
+        }
+        catch (Throwable $e) {
+            $isSyncing = false;
+            throw new KirbyRetrievalException('Tag mapping config not set up');
+        }
+
+        try {
             $taggedByField = $tagMapping[$taggingPage->template()->name()];
         } catch (Throwable $e) {
-            throw new KirbyRetrievalException('Tag mapping config not set up for ' . $taggingPage->template()->name());
+            $isSyncing = false;
+            throw new KirbyRetrievalException('Tag mapping config not set up for '.$taggingPage->template()->name());
         }
 
         foreach ($taggingFields as $taggingField) {
             $taggingFieldName = $taggingField['name'];
 
-            // Get current and old lists of linked page IDs
+            // Get the current list of linked page IDs from the $taggingPage
             $newLinkedPageIds = $taggingPage->{$taggingFieldName}()->isNotEmpty()
                 ? $taggingPage->{$taggingFieldName}()->toPages()->pluck('id')
                 : [];
 
+            // Get the old list of linked page IDs from $oldTaggingPage for removals
+            // If $oldTaggingPage is not provided, assume no old links for removal tracking
             $oldLinkedPageIds = ($oldTaggingPage && $oldTaggingPage->{$taggingFieldName}()->isNotEmpty())
                 ? $oldTaggingPage->{$taggingFieldName}()->toPages()->pluck('id')
                 : [];
 
+            // Determine which links were removed based on $oldTaggingPage
             $removedLinkedPageIds = array_diff($oldLinkedPageIds, $newLinkedPageIds);
 
-            // --- Handle all current links (add if not present) ---
+            // --- Handle all current links on $taggingPage (add if not present) ---
             foreach ($newLinkedPageIds as $linkedPageId) {
                 $linkedPage = kirby()->page($linkedPageId);
 
-                if ($linkedPage && kirby()->locks()->set($linkedPage->lockId())) {
-                    try {
-                        $existingTaggingPageIds = $linkedPage->{$taggedByField}()->isNotEmpty()
-                            ? $linkedPage->{$taggedByField}()->toPages()->pluck('id')
-                            : [];
+                if ($linkedPage) {
+                    // Get existing IDs from the linked page's `taggedField`
+                    $existingTaggingPageIds = $linkedPage->{$taggedByField}()->isNotEmpty()
+                        ? $linkedPage->{$taggedByField}()->toPages()->pluck('id')
+                        : [];
 
-                        if (!in_array($taggingPageId, $existingTaggingPageIds)) {
-                            $existingTaggingPageIds[] = $taggingPageId;
+                    // If the $taggingPageId is not already in the linked page's field, add it
+                    if (!in_array($taggingPageId, $existingTaggingPageIds)) {
+                        $existingTaggingPageIds[] = $taggingPageId;
 
-                            $blueprintFields = $linkedPage->blueprint()->fields();
-                            if (isset($blueprintFields[$taggedByField])) {
+                        $blueprint = $linkedPage->blueprint(); // Get the blueprint object for the page
+                        $fields = $blueprint->fields();        // Get all fields defined in the blueprint
+
+                        // Check if the field exists within the blueprint's fields array
+                        if (isset($fields[$taggedByField])) {
+                            // Update the linked page with the modified list of IDs
+                            try {
                                 $linkedPage->update([
-                                    $taggedByField => implode(', ', array_unique($existingTaggingPageIds))
+                                    $taggedByField => implode(', ', array_unique($existingTaggingPageIds)) // Ensure uniqueness
                                 ]);
-                                $log .= "{$taggingPageId} added to {$taggedByField} on {$linkedPageId}. ";
-                            } else {
-                                throw new KirbyRetrievalException("Tag field '{$taggedByField}' not in blueprint for {$linkedPage->title()}.");
+                                $log .= "{$taggingPageId} added to {$taggedByField} on {$linkedPageId}";
+                            } catch (Throwable $e) {
+                                $isSyncing = false;
+                                throw new KirbyRetrievalException("Error adding {$taggingPageId} to {$taggedByField} on {$linkedPageId}: " . $e->getMessage());
                             }
+                        } else {
+                            $isSyncing = false;
+                            throw new KirbyRetrievalException('Tag field '.$taggedByField.' has not been set up in the '.$linkedPage->template()->name().' blueprint  linked page '.$linkedPage->title());
                         }
-                    } catch (Throwable $e) {
-                        throw new KirbyRetrievalException("Error adding tag to {$linkedPageId}: " . $e->getMessage());
-                    } finally {
-                        // Always release the lock
-                        kirby()->locks()->remove($linkedPage->lockId());
                     }
-                } elseif ($linkedPage) {
-                    $log .= "Could not acquire lock for {$linkedPageId}. Add attempt skipped. ";
                 } else {
-                    $log .= "Warning: Linked page ID '{$linkedPageId}' not found (add attempt). ";
+                    // Log or handle cases where a linked page from $newLinkedPageIds is not found
+                    $log.= "Warning: Linked page with ID '{$linkedPageId}' not found for tagging page '{$taggingPageId}' (add attempt).";
+                    // Optionally, you might want to remove this invalid ID from $taggingPage here
                 }
             }
 
-            // --- Handle removed links ---
+            // --- Handle links that were removed (based on $oldTaggingPage) ---
             foreach ($removedLinkedPageIds as $linkedPageId) {
+                // Attempt to find the corresponding page by its ID
                 $linkedPage = kirby()->page($linkedPageId);
 
-                if ($linkedPage && kirby()->locks()->set($linkedPage->lockId())) {
-                    try {
-                        $existingTaggingPageIds = $linkedPage->{$taggedByField}()->isNotEmpty()
-                            ? $linkedPage->{$taggedByField}()->toPages()->pluck('id')
-                            : [];
+                // If the linked page exists, update its `taggedField`
+                if ($linkedPage) {
+                    // Get existing IDs from the linked page's `taggedField`
+                    $existingTaggingPageIds = $linkedPage->{$taggedByField}()->isNotEmpty()
+                        ? $linkedPage->{$taggedByField}()->toPages()->pluck('id')
+                        : [];
 
-                        if (in_array($taggingPageId, $existingTaggingPageIds)) {
-                            $updatedTaggingPageIds = array_filter($existingTaggingPageIds, fn($id) => $id !== $taggingPageId);
+                    // Filter out the current $taggingPageId from the list
+                    // Only remove if it was truly linked by this tagging page
+                    if (in_array($taggingPageId, $existingTaggingPageIds)) {
+                        $updatedTaggingPageIds = array_filter($existingTaggingPageIds, fn($id) => $id !== $taggingPageId);
 
-                            $blueprintFields = $linkedPage->blueprint()->fields();
-                            if (isset($blueprintFields[$taggedByField])) {
+                        $blueprint = $linkedPage->blueprint(); // Get the blueprint object for the page
+                        $fields = $blueprint->fields();        // Get all fields defined in the blueprint
+
+                        // Check if the field exists within the blueprint's fields array
+                        if (isset($fields[$taggedByField])) {
+
+
+                            // Update the linked page with the modified list of IDs
+                            try {
                                 $linkedPage->update([
                                     $taggedByField => implode(', ', $updatedTaggingPageIds)
                                 ]);
-                                $log .= "{$taggingPageId} removed from {$taggedByField} on {$linkedPageId}. ";
-                            } else {
-                                throw new KirbyRetrievalException("Tag field '{$taggedByField}' not in blueprint for {$linkedPage->title()}.");
+                                $log .= "{$taggingPageId} removed from {$taggedByField} on {$linkedPageId}";
+                            } catch (Throwable $e) {
+                                $isSyncing = false;
+                                throw new KirbyRetrievalException("Error removing {$taggingPageId} from {$taggedByField} on {$linkedPageId}: " . $e->getMessage());
                             }
+                        } else {
+                            $isSyncing = false;
+                            throw new KirbyRetrievalException('Tag field '.$taggedByField.' has not been set up on linked page '.$linkedPage->title());
                         }
-                    } catch (Throwable $e) {
-                        throw new KirbyRetrievalException("Error removing tag from {$linkedPageId}: " . $e->getMessage());
-                    } finally {
-                        // Always release the lock
-                        kirby()->locks()->remove($linkedPage->lockId());
                     }
-                } elseif ($linkedPage) {
-                    $log .= "Could not acquire lock for {$linkedPageId}. Remove attempt skipped. ";
                 } else {
-                    $log .= "Warning: Linked page ID '{$linkedPageId}' not found (removal attempt). ";
+                    // Log or handle cases where a linked page from $removedLinkedPageIds is not found
+                    $log.= "Warning: Linked page with ID '{$linkedPageId}' not found for tagging page '{$taggingPageId}' (removal attempt).";
                 }
             }
         }
-
         if (!$singlePage) {
             try {
-                kirby()->page($taggingPage->id())->update([
-                    'lastTagSync' => date('Y-m-d H:i:s')
+                // Re-fetch the taggingPage to ensure it's the latest version
+                $taggingPage = kirby()->page($taggingPage->id());
+                $taggingPage->update([
+                    'lastTagSync' => date('Y-m-d H:i:s') // Use a format suitable for datetime field
                 ]);
             } catch (Throwable $e) {
+                $isSyncing = false;
                 throw new KirbyRetrievalException('Error updating lastTagSync on ' . $taggingPage->title() . ': ' . $e->getMessage());
             }
         }
-
+        $isSyncing = false;
         return $log;
     }
-
 
 
     #endregion
