@@ -1334,7 +1334,7 @@ abstract class KirbyBaseHelper
             if (!is_array($excludedTemplates)) {
                 $excludedTemplates = [];
             }
-            return $page->children()->notTemplate($excludedTemplates);
+            return $page->children()->listed()->notTemplate($excludedTemplates);
         }
         $menuPages = $this->kirby->collection('menuPages');
         if ($menuPages instanceof Collection) {
@@ -1368,7 +1368,7 @@ abstract class KirbyBaseHelper
      */
     protected function getSubPagesUsingTemplates(Page $page, array $templates, bool $childrenOnly = true): Pages
     {
-        return $childrenOnly ? $page->children()->template($templates) : $page->index()->template($templates);
+        return $childrenOnly ? $page->children()->listed()->template($templates) : $page->index()->listed()->template($templates);
     }
 
     /**
