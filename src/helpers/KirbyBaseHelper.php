@@ -972,12 +972,23 @@ abstract class KirbyBaseHelper
     }
 
 
-
+    /**
+     * @param StructureObject $structure
+     * @param string $fieldName
+     * @return Page
+     * @throws KirbyRetrievalException
+     */
     protected function getStructureFieldAsPage(StructureObject $structure, string $fieldName): Page
     {
         $structureField = $this->getStructureField($structure, $fieldName);
         /** @noinspection PhpUndefinedMethodInspection */
-        return  $structureField->toPage();
+        $page = $structureField->toPage();
+        if ($page) {
+            return $structureField->toPage();
+        }
+        else{
+            throw new KirbyRetrievalException('The page ' . $fieldName . ' does not exist');
+        }
     }
 
     /**
@@ -1714,7 +1725,13 @@ abstract class KirbyBaseHelper
         foreach ($relatedContent as $item) {
             $itemTitle = $this->getStructureFieldAsString($item, 'title', false);
             if ($this->hasStructureField($item, 'url')) {
-                $itemPage = $this->getStructureFieldAsPage($item, 'url');
+                try {
+                    $itemPage = $this->getStructureFieldAsPage($item, 'url');
+                }
+                catch (KirbyRetrievalException) {
+                    // error retreiving page
+                    continue;
+                }
                 if (empty($itemTitle)) $itemTitle = $this->getPageTitle($itemPage);
             }
 
