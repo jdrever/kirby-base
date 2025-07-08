@@ -1728,8 +1728,8 @@ abstract class KirbyBaseHelper
                 try {
                     $itemPage = $this->getStructureFieldAsPage($item, 'url');
                 }
-                catch (KirbyRetrievalException) {
-                    // error retreiving page
+                catch (KirbyRetrievalException $e) {
+                    $this->sendErrorEmail($e);
                     continue;
                 }
                 if (empty($itemTitle)) $itemTitle = $this->getPageTitle($itemPage);
