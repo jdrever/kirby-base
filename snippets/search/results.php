@@ -21,9 +21,9 @@ endif;
 $query = $currentPage->getQuery();
 ?>
 <form method="get" action="/search" role="search">
-    <p>Searching for:
+    <p>Search for:
         <input type="search" aria-label="Search" name="q" class="form-control-sm ms-2 me-2" value="<?=$query ?>">
-        <button class="btn btn-sm btn-success me-1" type="submit">Search Again</button></p>
+        <button class="btn btn-sm btn-success me-1" type="submit">Search</button></p>
 </form>
 <?php if ($currentPage->hasSearchResults()) :
     $searchResults = $currentPage->getSearchResults(); ?>
