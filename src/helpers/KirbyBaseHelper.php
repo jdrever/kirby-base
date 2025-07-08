@@ -2483,10 +2483,9 @@ abstract class KirbyBaseHelper
                     $userName = str_replace(' ', '-', $userName);
                     $loginDetails->setUserName($userName);
 
-
                     $loginResult = $this->kirby->auth()->login($userName, trim(get('password')), true);
 
-                    if ($loginResult) { // Check the actual return value!
+                    if ($loginResult) {
                         $loginDetails->setLoginStatus(true);
                         $loginDetails->setLoginMessage('You have successfully logged in');
 
@@ -2511,11 +2510,10 @@ abstract class KirbyBaseHelper
                 $loginDetails->setLoginMessage('An error has ocurred while trying to you log in.');
             }
         }
-        else {
-            $csrfToken = csrf();
-            $loginDetails->setCSRFToken($csrfToken);
 
-        }
+        $csrfToken = csrf();
+        $loginDetails->setCSRFToken($csrfToken);
+
         return $loginDetails;
     }
 
