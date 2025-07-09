@@ -18,7 +18,6 @@ fields:
     label: field.blocks.image.caption
     type: writer
     icon: text
-    inline: true
   ratio:
     label: field.blocks.image.ratio
     type: select
