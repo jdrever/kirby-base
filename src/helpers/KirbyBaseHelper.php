@@ -1589,7 +1589,7 @@ abstract class KirbyBaseHelper
                 $collection = str_replace("List", "", $this->extractClassName($modelListClass));
                 $collection = lcfirst($collection);
             }
-            $collectionPages = $this->kirby->collection($collection);
+            $collectionPages = $this->kirby->collection($collection)->sortBy($sortBy, $sortDirection);
             if (!isset($collectionPages)) {
                 throw new KirbyRetrievalException('Collection ' . $collection . ' pages not found');
             }
