@@ -686,6 +686,23 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $page
      * @param string $fieldName
+     * @return WebPageLink
+     */
+    protected function getPageFieldAsWebPageLink(Page $page, string $fieldName, bool $simpleLinks = true): WebPageLink
+    {
+        try {
+            $pageField = $this->getPageField($page, $fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            $page = $pageField->toPage();
+            return $this->getWebPageLink($page, $simpleLinks);
+        } catch (KirbyRetrievalException $e) {
+            return (new WebPageLink('','','','error'))->recordError('Page not found');
+        }
+    }
+
+    /**
+     * @param Page $page
+     * @param string $fieldName
      * @return WebPageLinks
      */
     protected function getPageFieldAsWebPageLinks(Page $page, string $fieldName, bool $simpleLinks = true): WebPageLinks
