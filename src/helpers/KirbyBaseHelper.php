@@ -546,11 +546,19 @@ abstract class KirbyBaseHelper
      * @return Structure
      * @throws KirbyRetrievalException
      */
-    protected function getPageFieldAsStructure(Page $page, string $fieldName): Structure
+    protected function getPageFieldAsStructure(Page $page, string $fieldName, bool $isRequired = false): Structure
     {
-        $pageField = $this->getPageField($page, $fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        return $pageField->toStructure();
+        try {
+            $pageField = $this->getPageField($page, $fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $pageField->toStructure();
+        }
+        catch (KirbyRetrievalException $e) {
+            if ($isRequired) {
+                throw $e;
+            }
+            return new Structure();
+        }
     }
 
     /**
@@ -969,6 +977,51 @@ abstract class KirbyBaseHelper
         $structureField = $this->getStructureField($structure, $fieldName);
         /** @noinspection PhpUndefinedMethodInspection */
         return $structureField->toBool();
+    }
+
+    /**
+     * NOTE: will return 0 if required and field not found/empty
+     * @param StructureObject $structure
+     * @param string $fieldName
+     * @param bool $required
+     * @return int
+     * @throws KirbyRetrievalException
+     */
+    protected function getStructureFieldAsInt(StructureObject $structure, string $fieldName, bool $required = false): int
+    {
+        try {
+            $structureField = $this->getStructureField($structure, $fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $structureField->toInt();
+        } catch (KirbyRetrievalException $e) {
+            if ($required) {
+                throw $e;
+            }
+            //TODO: should be better than returning zero if not required.  Maybe return int|null
+            return 0;
+        }
+    }
+    /**
+     *  NOTE: will return 0 if required and field not found/empty
+     * @param StructureObject $structure
+     * @param string $fieldName
+     * @return bool
+     * @throws KirbyRetrievalException
+     */
+    protected function getStructureFieldAsFloat(StructureObject $structure, string $fieldName, bool $required = false): float
+    {
+        try {
+            $structureField = $this->getStructureField($structure, $fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $structureField->toFloat();
+        } catch (KirbyRetrievalException $e) {
+            if ($required) {
+                throw $e;
+            }
+            //TODO: should be better than returning zero if not required.  Maybe return int|null
+            return 0;
+        }
+
     }
 
     /**
