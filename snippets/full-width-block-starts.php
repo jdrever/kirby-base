@@ -2,9 +2,15 @@
 
 declare(strict_types=1);
 
-if (!isset($fullWidth)||!$fullWidth) :
+if (!isset($fullWidth)) :
     return;
-endif; ?>
+endif;
+
+$fullWidthValue= $fullWidth->toBool();
+if (!$fullWidthValue) :
+    return;
+endif;
+?>
 
             </article> <!-- start closing tags here -->
         </div>
