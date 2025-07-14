@@ -1978,16 +1978,20 @@ abstract class KirbyBaseHelper
             "Trace:" . $e->getTraceAsString();
         $this->writeToLog('errors', $exceptionAsString);
         if (!str_starts_with($_SERVER['HTTP_HOST'], 'localhost')) {
-            $this->kirby->email([
-                'template' => 'error-notification',
-                'from' => option('defaultEmail'),
-                'replyTo' => option('defaultEmail'),
-                'to' => option('adminEmail'),
-                'subject' => 'Identiplant: Error',
-                'data' => [
-                    'errorMessage' => $this->getExceptionDetails($e),
-                ]
-            ]);
+            try {
+                $this->kirby->email([
+                    'template' => 'error-notification',
+                    'from' => option('defaultEmail'),
+                    'replyTo' => option('defaultEmail'),
+                    'to' => option('adminEmail'),
+                    'subject' => 'Identiplant: Error',
+                    'data' => [
+                        'errorMessage' => $this->getExceptionDetails($e),
+                    ]
+                ]);
+            } catch (Throwable $error) {
+                $this->writeToLog('errors', $error->getMessage());;
+            }
         }
 
     }
