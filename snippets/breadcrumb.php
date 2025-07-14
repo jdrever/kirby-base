@@ -22,13 +22,13 @@ $breadcrumb = $currentPage->getBreadcrumb();
 <div class="breadcrumb d-print-none bg-secondary-subtle">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb mx-0 mb-0">
-            <?php foreach ($breadcrumb->getListItems() as $crumb) : ?>
-                <li class="breadcrumb-item">
-                    <a href="<?= $crumb->getUrl() ?>">
-                        <?= $crumb->getTitle()?>
-                    </a>
-                </li>
-            <?php endforeach ?>
+<?php foreach ($breadcrumb->getListItems() as $crumb) : ?>
+            <li class="breadcrumb-item">
+                <a href="<?= $crumb->getUrl() ?>">
+                    <?= $crumb->getTitle()?>
+                </a>
+            </li>
+<?php endforeach ?>
         </ol>
     </nav>
 </div>

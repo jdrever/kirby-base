@@ -369,11 +369,18 @@ abstract class KirbyBaseHelper
 
     /**
      * Gets the field - if the field is empty, returns an empty string
-     * @throws KirbyRetrievalException if the page or field cannot be found
      */
     public function getPageTitle($page): string
     {
         return $page->title()->toString();
+    }
+
+    /**
+     * Gets the field - if the field is empty, returns an empty string
+     */
+    public function getPageUrl($page): string
+    {
+        return $page->url();
     }
 
     /**
@@ -728,17 +735,20 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $page
      * @param string $fieldName
-     * @return Pages
+     * @return Pages|null
      * @throws KirbyRetrievalException
      */
-    protected function getPageFieldAsPages(Page $page, string $fieldName): Pages
+    protected function getPageFieldAsPages(Page $page, string $fieldName, bool $isRequired = false): Pages|null
     {
         try {
             $pageField = $this->getPageField($page, $fieldName);
             /** @noinspection PhpUndefinedMethodInspection */
             return $pageField->toPages();
         } catch (KirbyRetrievalException $e) {
-            throw new KirbyRetrievalException('The field ' . $fieldName . ' does not exist');
+            if ($isRequired) {
+                throw new KirbyRetrievalException('The field ' . $fieldName . ' does not exist');
+            }
+            return null;
         }
     }
 
@@ -765,12 +775,12 @@ abstract class KirbyBaseHelper
      * @param string $fieldName
      * @return Document
      */
-    protected function getPageFieldAsDocument(Page $page, string $fieldName): Document
+    protected function getPageFieldAsDocument(Page $page, string $fieldName, string $title = 'Download'): Document
     {
         try {
             $pageFile = $this->getPageFieldAsFile($page, $fieldName);
             if ($pageFile != null) {
-                return $this->getDocumentFromFile($pageFile);
+                return $this->getDocumentFromFile($pageFile, $title);
             }
             return (new Document())->recordError('Document not found');
         } catch (KirbyRetrievalException) {
@@ -778,7 +788,7 @@ abstract class KirbyBaseHelper
         }
     }
 
-    protected function getPageFieldAsDocuments(Page $page, string $fieldName): Documents
+    protected function getPageFieldAsDocuments(Page $page, string $fieldName, string $title = 'Download'): Documents
     {
         $documents = new Documents();
         try {
@@ -795,11 +805,11 @@ abstract class KirbyBaseHelper
         }
     }
 
-    private function getDocumentFromFile($pageFile): Document {
+    private function getDocumentFromFile($pageFile, string $title='Download'): Document {
         $url = $pageFile->url();
         /** @noinspection PhpUndefinedMethodInspection */
         $size = $pageFile->niceSize();
-        $document = new Document('questionSheet', $url);
+        $document = new Document($title, $url);
         $document->setSize($size);
         return $document;
     }
@@ -2081,7 +2091,7 @@ abstract class KirbyBaseHelper
      */
     private function getBreadcrumbAsCollection(): Collection
     {
-        return $this->site->breadcrumb()->filterBy('template', '!=', 'home')->filterBy('isListed', true);
+        return $this->site->breadcrumb()->filterBy('template', '!=', 'home')->filterBy('isListed', true)->not($this->page);
     }
 
     protected function getUserNames(Page $page, string $fieldName): string
