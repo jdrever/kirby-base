@@ -2,6 +2,9 @@ ame: field.blocks.image.name
 icon: image
 preview: image
 fields:
+  fullWidth:
+    type: toggle
+    label: Full Width?
   location:
     label: field.blocks.image.location
     type: radio

@@ -17,7 +17,7 @@ use Kirby\Cms\Site;
 $overallCaption = $block->caption();
 $crop    = $block->crop()->isTrue();
 $ratio   = $block->ratio()->or('auto');
-?>
+snippet('base/full-width-block-starts', ['fullWidth' => $block->fullWidth()]) ?>
 <div class="container">
     <div class="row row-cols-2">
 <?php foreach ($block->images()->toFiles() as $image) : ?>
@@ -64,4 +64,6 @@ $ratio   = $block->ratio()->or('auto');
 <p class="<?=$figCaptionClass?>">
     <?= $overallCaption ?>
 </p>
-<?php endif ?>
+<?php endif;
+
+snippet('base/full-width-block-ends', ['fullWidth' => $block->fullWidth()]);

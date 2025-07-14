@@ -2,6 +2,9 @@ name: Table (3 Column)
 icon: table
 preview: table
 fields:
+  fullWidth:
+    type: toggle
+    label: Full Width?
   col1Title:
     label: Column 1 Title
     type: textarea

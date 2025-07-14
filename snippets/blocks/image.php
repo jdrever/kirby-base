@@ -38,6 +38,8 @@ endif;
 $location= $block->location()->value();
 $image = null;
 
+snippet('base/full-width-block-starts', ['fullWidth' => $block->fullWidth()]);
+
 
 ?>
 <figure>
@@ -95,3 +97,5 @@ $image = null;
         </figcaption>
     <?php endif ?>
 </figure>
+
+<?php snippet('base/full-width-block-ends', ['fullWidth' => $block->fullWidth()]);

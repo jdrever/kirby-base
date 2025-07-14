@@ -17,6 +17,8 @@ return [
     'base/status' => __DIR__ . '/snippets/status.php',
     'base/styles' => __DIR__ . '/snippets/styles.php',
     'base/robots' => __DIR__ . '/snippets/robots.php',
+    'base/full-width-block-starts' => __DIR__ . '/snippets/full-width-block-starts.php',
+    'base/full-width-block-ends' => __DIR__ . '/snippets/full-width-block-ends.php',
 
     //colour mode
     'colour-mode/selector' => __DIR__ . '/snippets/colour-mode/selector.php',

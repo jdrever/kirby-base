@@ -2,6 +2,9 @@ name: field.blocks.gallery.name
 icon: dashboard
 preview: gallery
 fields:
+  fullWidth:
+    type: toggle
+    label: Full Width?
   images:
     label: field.blocks.gallery.images.label
     type: files
