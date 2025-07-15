@@ -1869,6 +1869,36 @@ abstract class KirbyBaseHelper
     #region ERROR HANDLING
 
     /**
+     * @param $logFile .log is added
+     * @param $message
+     * @return void
+     */
+    protected function writeToLog($logFile, $message):void {
+        $logDir = kirby()->root('logs');
+
+        // Check if the directory doesn't exist and create it if necessary
+        if (!is_dir($logDir)) {
+            // The third parameter 'true' allows the creation of nested directories
+            mkdir($logDir, 0755, true);
+        }
+
+        // Define the log file path
+        $logFile = $logDir .'/'. $logFile.'.log';
+        // Clear the log file at the start
+        file_put_contents($logFile, $message, FILE_APPEND);
+    }
+
+    /**
+     * @param KirbyRetrievalException $e
+     * @param string $friendlyMessage
+     * @return ActionStatus
+     */
+    protected function actionStatusError(KirbyRetrievalException $e, string $friendlyMessage): ActionStatus
+    {
+        return (new ActionStatus(false, $e->getMessage(), $friendlyMessage, $e));
+    }
+
+    /**
      * @param KirbyRetrievalException $e
      * @param class-string<BaseWebPage> $pageClass
      * @return BaseWebPage
@@ -1957,11 +1987,8 @@ abstract class KirbyBaseHelper
                     'data' => $data
                 ]);
             }
-            } catch (Exception $error) {
-                throw new KirbyRetrievalException(
-                    'An error occurred when trying to send the email: '.$error->getMessage(),
-                    $error->getCode()
-                );
+            } catch (Throwable $error) {
+                $this->writeToLog('errors', $error->getMessage());
             }
     }
 
@@ -1977,22 +2004,14 @@ abstract class KirbyBaseHelper
             "Line:" . $e->getLine() . "\n" .
             "Trace:" . $e->getTraceAsString();
         $this->writeToLog('errors', $exceptionAsString);
-        if (!str_starts_with($_SERVER['HTTP_HOST'], 'localhost')) {
-            try {
-                $this->kirby->email([
-                    'template' => 'error-notification',
-                    'from' => option('defaultEmail'),
-                    'replyTo' => option('defaultEmail'),
-                    'to' => option('adminEmail'),
-                    'subject' => 'Identiplant: Error',
-                    'data' => [
-                        'errorMessage' => $this->getExceptionDetails($e),
-                    ]
-                ]);
-            } catch (Throwable $error) {
-                $this->writeToLog('errors', $error->getMessage());;
-            }
-        }
+        $this->sendEmail('error-notification',
+            option('defaultEmail'),
+            option('defaultEmail'),
+            'Website Error',
+            [
+                'errorMessage' => $this->getExceptionDetails($e),
+            ]
+        );
 
     }
 
@@ -2982,36 +3001,6 @@ abstract class KirbyBaseHelper
     #endregion
 
     #region MISC
-
-    /**
-     * @param $logFile .log is added
-     * @param $message
-     * @return void
-     */
-    protected function writeToLog($logFile, $message):void {
-        $logDir = kirby()->root('logs');
-
-        // Check if the directory doesn't exist and create it if necessary
-        if (!is_dir($logDir)) {
-            // The third parameter 'true' allows the creation of nested directories
-            mkdir($logDir, 0755, true);
-        }
-
-        // Define the log file path
-        $logFile = $logDir .'/'. $logFile.'.log';
-        // Clear the log file at the start
-        file_put_contents($logFile, $message, FILE_APPEND);
-    }
-
-    /**
-     * @param KirbyRetrievalException $e
-     * @param string $friendlyMessage
-     * @return ActionStatus
-     */
-    protected function actionStatusError(KirbyRetrievalException $e, string $friendlyMessage): ActionStatus
-    {
-        return (new ActionStatus(false, $e->getMessage(), $friendlyMessage, $e));
-    }
 
     /**
      * gets the colour mode (getting/setting a colourMode cookie as required)
