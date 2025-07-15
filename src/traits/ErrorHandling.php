@@ -78,6 +78,10 @@ trait ErrorHandling {
         return $this;
     }
 
+    public function getFirstFriendlyMessage(): string {
+        return $this->friendlyMessages[0] ?? '';
+    }
+
     /**
      * Add errorMessages
      * @param string[] $friendlyMessages

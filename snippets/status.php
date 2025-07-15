@@ -13,13 +13,15 @@ endif;
 
 if ($currentPage->hasFriendlyMessages()) :
     $messageStatus = $currentPage->getStatus() ? 'success' : 'danger';?>
-<div class="alert alert-<?=$messageStatus?> alert-dismissible fade show" role="alert" id="statusAlert">
-    <h2>
+<div class="alert alert-<?=$messageStatus?> alert-dismissible fade show m-0" role="alert" id="statusAlert">
+    <h3>
         <?php foreach ($currentPage->getFriendlyMessages() as $message) : ?>
             <?=$message?> <br>
         <?php endforeach ?>
-    </h2>
+    </h3>
+    <?php if (!$currentPage->getStatus()) : ?>
     <a href="/" class="btn btn-outline-primary">Return to home page</a>
+    <?php endif ?>
 </div>
 
     <?php if (!$currentPage->getStatus()) :

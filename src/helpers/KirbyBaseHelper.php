@@ -215,6 +215,11 @@ abstract class KirbyBaseHelper
                 $webPage->addScript('lite-youtube');
             }
 
+            if ($actionStatus = get('actionStatus')) {
+                $webPage->setStatus($actionStatus);
+                $webPage->addFriendlyMessage(get('friendlyMessage', 'Unknown status'));
+            }
+
             $query = $this->getSearchQuery();
 
             if (!empty($query)) {
@@ -1931,6 +1936,7 @@ abstract class KirbyBaseHelper
         $this->sendErrorEmail($actionStatus->getException());
         return $webPage;
     }
+
 
     protected function getErrorPage(string $pageClass = BaseWebPage::class) : BaseWebPage {
         /** @var BaseWebPage $webPage */
