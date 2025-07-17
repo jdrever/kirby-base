@@ -1631,6 +1631,10 @@ abstract class KirbyBaseHelper
      * @param BaseFilter|null $filter
      * @param string|null $collection
      * @param array|null $templates
+     * @param Page|null $parentPage
+     * @param bool $childrenOnly
+     * @param string $sortBy (default is no sorting applied)
+     * @param string $sortDirection
      * @return BaseList
      * @throws KirbyRetrievalException
      */
@@ -1640,8 +1644,8 @@ abstract class KirbyBaseHelper
                                           array|null      $templates = null,
                                           Page $parentPage = null,
                                           bool $childrenOnly = true,
-                                          string $sortBy = 'title',
-                                          string $sortDirection = 'desc'
+                                          string $sortBy = '',
+                                          string $sortDirection = ''
     ): BaseList
     {
 
@@ -1665,8 +1669,9 @@ abstract class KirbyBaseHelper
 
         if (isset($templates)) {
             $parentPage = $parentPage ?? $this->page;
-            $collectionPages = $this->getSubPagesUsingTemplates($parentPage, $templates, $childrenOnly)
-                ->sortBy($sortBy, $sortDirection);
+            $collectionPages = $this->getSubPagesUsingTemplates($parentPage, $templates, $childrenOnly);
+            if (!empty($sortBy))
+                $collectionPages = $collectionPages->sortBy($sortBy, $sortDirection);
         }
         else {
 
@@ -1674,7 +1679,9 @@ abstract class KirbyBaseHelper
                 $collection = str_replace("List", "", $this->extractClassName($modelListClass));
                 $collection = lcfirst($collection);
             }
-            $collectionPages = $this->kirby->collection($collection)->sortBy($sortBy, $sortDirection);
+            $collectionPages = $this->kirby->collection($collection);
+            if (!empty($sortBy))
+                $collectionPages = $collectionPages->sortBy($sortBy, $sortDirection);
             if (!isset($collectionPages)) {
                 throw new KirbyRetrievalException('Collection ' . $collection . ' pages not found');
             }
