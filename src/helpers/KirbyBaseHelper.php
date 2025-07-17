@@ -508,7 +508,7 @@ abstract class KirbyBaseHelper
         try {
             $pageField = $this->getPageField($page, $fieldName);
             /** @noinspection PhpUndefinedMethodInspection */
-            return ($pageField->toBool() === true) ? 'YES' : 'NO';
+            return ($pageField->toBool() === true) ? 'Yes' : 'No';
         } catch (KirbyRetrievalException $e) {
             if ($required) {
                 throw $e;
