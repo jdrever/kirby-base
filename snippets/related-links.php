@@ -24,11 +24,11 @@ if ($currentPage->hasRelatedLinks()) : ?>
         foreach ($tagLinks->getListItems() as $tagLinkSet) :
             $tagLinksInSet = $tagLinkSet->getLinks();
             if ($tagLinksInSet->count() > 0) : ?>
-                <div class="well bg-white p-3 g-col-md-4>
+                <div class="well bg-white p-3 g-col-md-4">
                     <h4><?=$tagLinkSet->getTagType()?></h4>
                     <ul>
                 <?php foreach ($tagLinksInSet->getListItems() as $tagLink) : ?>
-                        <li><a href="<?= $tagLink->getUrl() ?>"><?= $tagLink->getTitle()?></a>
+                        <li><a href="<?= $tagLink->getUrl() ?>"><?= $tagLink->getTitle()?></a></li>
                 <?php endforeach ?>
                     </ul>
                 </div>
