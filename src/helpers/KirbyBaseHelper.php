@@ -2020,6 +2020,7 @@ abstract class KirbyBaseHelper
         $this->sendEmail('error-notification',
             option('defaultEmail'),
             option('defaultEmail'),
+            option('defaultEmail'),
             'Website Error',
             [
                 'errorMessage' => $this->getExceptionDetails($e),
