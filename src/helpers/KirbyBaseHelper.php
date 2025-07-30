@@ -2534,7 +2534,6 @@ abstract class KirbyBaseHelper
 
         $user = $this->kirby->user();
 
-        //TODO: create helper functions to get user role as array
         if ($user && !$user->isKirby() && ($user->role()->name() === 'admin' || $user->role()->name() === 'editor')) {
             return true;
         }
