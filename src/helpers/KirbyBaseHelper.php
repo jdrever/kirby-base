@@ -2748,26 +2748,6 @@ abstract class KirbyBaseHelper
         return $tags;
     }
 
-    /**
-     * @param Page $page
-     * @return string
-     */
-    public function handleCaches(Page $page) : string {
-        if ($page->isDraft()) { return 'Success';}
-        $cacheName = option('cacheName');
-        $cacheMapping = option('cacheMapping');
-
-        if (array_key_exists($page->template()->name(), $cacheMapping)) {
-            try {
-                $cache = $this->kirby->cache($cacheName);
-            } catch (InvalidArgumentException $e) {
-                return 'Failed to get cache';
-            }
-            $cacheKey = $cacheMapping[$page->template()->name()];
-            $cache->remove($cacheKey);
-        }
-        return 'Success';
-    }
 
 
     public function syncTags($template) : string {
@@ -3024,6 +3004,29 @@ abstract class KirbyBaseHelper
             }
         }
         return $languages;
+    }
+    #endregion
+
+    #region CACHING
+    /**
+     * @param Page $page
+     * @return string
+     */
+    public function handleCaches(Page $page) : string {
+        if ($page->isDraft()) { return 'Success';}
+        $cacheName = option('cacheName');
+        $cacheMapping = option('cacheMapping');
+
+        if (array_key_exists($page->template()->name(), $cacheMapping)) {
+            try {
+                $cache = $this->kirby->cache($cacheName);
+            } catch (InvalidArgumentException $e) {
+                return 'Failed to get cache';
+            }
+            $cacheKey = $cacheMapping[$page->template()->name()];
+            $cache->remove($cacheKey);
+        }
+        return 'Success';
     }
     #endregion
 
