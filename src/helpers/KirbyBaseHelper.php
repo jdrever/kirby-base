@@ -1720,20 +1720,13 @@ abstract class KirbyBaseHelper
         if (isset($templates)) {
             $parentPage = $parentPage ?? $this->page;
             $collectionPages = $this->getSubPagesUsingTemplates($parentPage, $templates, $childrenOnly);
-            if (!empty($sortBy)) {
-                $collectionPages = $collectionPages->sortBy($sortBy, $sortDirection);
-            }
         }
         else {
-
             if ($collection === null) {
                 $collection = str_replace("List", "", $this->extractClassName($modelListClass));
                 $collection = lcfirst($collection);
             }
             $collectionPages = $this->kirby->collection($collection);
-            if (!empty($sortBy)) {
-                $collectionPages = $collectionPages->sortBy($sortBy, $sortDirection);
-            }
             if (!isset($collectionPages)) {
                 throw new KirbyRetrievalException('Collection ' . $collection . ' pages not found');
             }
@@ -1752,6 +1745,10 @@ abstract class KirbyBaseHelper
             if (method_exists($this, $filterFunction)) {
                 $collectionPages = $this->$filterFunction($collectionPages, $filter);
             }
+        }
+
+        if (!empty($sortBy)) {
+            $collectionPages = $collectionPages->sortBy($sortBy, $sortDirection);
         }
 
         /** @var Page $collectionPage */
