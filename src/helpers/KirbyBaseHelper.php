@@ -3010,7 +3010,6 @@ abstract class KirbyBaseHelper
      * @return string
      */
     public function handleCaches(Page $page) : string {
-        if ($page->isDraft()) { return 'Success';}
         $cacheName = option('cacheName');
         $cacheMapping = option('cacheMapping');
 
