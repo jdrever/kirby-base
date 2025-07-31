@@ -1720,8 +1720,9 @@ abstract class KirbyBaseHelper
         if (isset($templates)) {
             $parentPage = $parentPage ?? $this->page;
             $collectionPages = $this->getSubPagesUsingTemplates($parentPage, $templates, $childrenOnly);
-            if (!empty($sortBy))
+            if (!empty($sortBy)) {
                 $collectionPages = $collectionPages->sortBy($sortBy, $sortDirection);
+            }
         }
         else {
 
@@ -1730,8 +1731,9 @@ abstract class KirbyBaseHelper
                 $collection = lcfirst($collection);
             }
             $collectionPages = $this->kirby->collection($collection);
-            if (!empty($sortBy))
+            if (!empty($sortBy)) {
                 $collectionPages = $collectionPages->sortBy($sortBy, $sortDirection);
+            }
             if (!isset($collectionPages)) {
                 throw new KirbyRetrievalException('Collection ' . $collection . ' pages not found');
             }
