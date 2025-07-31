@@ -73,6 +73,14 @@ abstract class BaseList
         return count($this->list) > 0;
     }
 
+    public function getFirstXItems(int $x): array {
+        return array_slice($this->list, 0, $x);
+    }
+
+    public function getItemsFromIndex(int $index): array {
+        return array_slice($this->list, $index-1);
+    }
+
     /**
      * count categories
      * @return int the number of categories

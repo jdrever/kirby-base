@@ -1069,10 +1069,29 @@ abstract class KirbyBaseHelper
         /** @noinspection PhpUndefinedMethodInspection */
         $page = $structureField->toPage();
         if ($page) {
-            return $structureField->toPage();
+            return $page;
         }
-        else{
-            throw new KirbyRetrievalException('The page ' . $fieldName . ' does not exist');
+        else {
+            throw new KirbyRetrievalException('The page field ' . $fieldName . ' does not exist');
+        }
+    }
+
+    /**
+     * @param StructureObject $structure
+     * @param string $fieldName
+     * @return File
+     * @throws KirbyRetrievalException
+     */
+    protected function getStructureFieldAsFile(StructureObject $structure, string $fieldName): File
+    {
+        $structureField = $this->getStructureField($structure, $fieldName);
+        /** @noinspection PhpUndefinedMethodInspection */
+        $file = $structureField->toFile();
+        if ($file) {
+            return $file;
+        }
+        else {
+            throw new KirbyRetrievalException('The file field ' . $fieldName . ' does not exist');
         }
     }
 
@@ -1165,6 +1184,37 @@ abstract class KirbyBaseHelper
             $webPageLinks->addFriendlyMessage('No web page links found');
         }
         return $webPageLinks;
+    }
+
+    /**
+     * If structure has title field, will use that for the document title
+     * @param Page $page
+     * @param string $fieldName
+     * @return Documents
+     */
+    protected function getStructureAsDocuments(Page $page, string $fieldName) : Documents
+    {
+        $documents = new Documents();
+        try {
+            $documentsStructure = $this->getPageFieldAsStructure($page, $fieldName);
+
+            foreach ($documentsStructure as $item) {
+                $docTitle = $this->getStructureFieldAsString($item, 'title', false);
+                if ($this->hasStructureField($item, 'upload')) {
+                    $file = $this->getStructureFieldAsFile($item, 'upload');
+                    /** @noinspection PhpUndefinedMethodInspection */
+                    $docTitle = empty($docTitle) ? $file->filename() : $docTitle;
+                    $document = new Document($docTitle, $file->url());
+                    $documents->addListItem($document);
+                }
+            }
+        }
+        catch (KirbyRetrievalException $e) {
+            $documents->setStatus(false);
+            $documents->addErrorMessage($e->getMessage());
+            $documents->addFriendlyMessage('No documents found');
+        }
+        return $documents;
     }
 
 
@@ -2516,6 +2566,7 @@ abstract class KirbyBaseHelper
     protected function getCurrentUserRole(): string {
         return $this->kirby->user() ? $this->kirby->user()->role()->name() : '';
     }
+
 
     /**
      * Checks whether the current user has the necessary permissions to access the given page.
