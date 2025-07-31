@@ -18,6 +18,7 @@ return [
         }
         $helper = new KirbyHelper(kirby(), kirby()->site(), kirby()->page());
         $helper->handleTwoWayTagging($newPage, $oldPage);
+        $helper->handleCaches($newPage);
 
         return $newPage;
     },
@@ -34,6 +35,7 @@ return [
 
         $helper = new KirbyHelper(kirby(), kirby()->site(), kirby()->page());
         $helper->handleTwoWayTagging($page);
+        $helper->handleCaches($page);
         return $page;
     },
 ];
