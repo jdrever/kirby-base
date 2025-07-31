@@ -38,4 +38,13 @@ return [
         $helper->handleCaches($page);
         return $page;
     },
+
+    'page.changeStatus:after' => function ($newPage, $oldPage) {
+        $helper = new KirbyHelper(kirby(), kirby()->site(), kirby()->page());
+        $helper->handleCaches($newPage);
+    },
+    'page.delete:after' => function (bool $status, Kirby\Cms\Page $page) {
+        $helper = new KirbyHelper(kirby(), kirby()->site(), kirby()->page());
+        $helper->handleCaches($page);
+    }
 ];
