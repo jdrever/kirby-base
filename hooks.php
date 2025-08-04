@@ -43,7 +43,7 @@ return [
         $helper = new KirbyHelper(kirby(), kirby()->site(), kirby()->page());
         $helper->handleCaches($newPage);
     },
-    'page.delete:after' => function (bool $status, Kirby\Cms\Page $page) {
+    'page.delete:before' => function (Kirby\Cms\Page $page, bool $force) {
         $helper = new KirbyHelper(kirby(), kirby()->site(), kirby()->page());
         $helper->handleCaches($page);
     }
