@@ -2,14 +2,10 @@
 
 declare(strict_types=1);
 
-if (!isset($fullWidth)) :
+if (!isset($fullWidth) || !$fullWidth) :
     return;
 endif;
 
-$fullWidthValue= $fullWidth->toBool();
-if (!$fullWidthValue) :
-    return;
-endif;
 ?>
 
             </article> <!-- start closing tags here -->
