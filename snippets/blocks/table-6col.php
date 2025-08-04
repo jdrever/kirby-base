@@ -8,11 +8,12 @@ use Kirby\Cms\Block;
  * @var Block $block
  */
 
+$fullWidth = $block->fullWidth()->toBool();
 
 
 $rows = $block->rows()->toStructure();
 if ($rows->isNotEmpty()) :
-    snippet('base/full-width-block-starts', ['fullWidth' => $block->fullWidth()]); ?>
+    snippet('base/full-width-block-starts', ['fullWidth' => $fullWidth]); ?>
     <table class="table">
         <tr>
             <th><?= $block->col1Title()->kt() ?></th>
@@ -35,4 +36,4 @@ if ($rows->isNotEmpty()) :
     </table>
 <?php endif;
 
-snippet('base/full-width-block-ends', ['fullWidth' => $block->fullWidth()]);
+snippet('base/full-width-block-ends', ['fullWidth' => $fullWidth]);

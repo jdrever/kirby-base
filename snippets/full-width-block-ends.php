@@ -2,12 +2,7 @@
 
 declare(strict_types=1);
 
-if (!isset($fullWidth)) :
-    return;
-endif;
-
-$fullWidthValue= $fullWidth->toBool();
-if (!$fullWidthValue) :
+if (!isset($fullWidth) || !$fullWidth) :
     return;
 endif;
 ?>

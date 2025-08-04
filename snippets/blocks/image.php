@@ -37,8 +37,9 @@ endif;
 // Determine image source (page, web, or bank)
 $location= $block->location()->value();
 $image = null;
+$fullWidth =$block->fullWidth()->toBool();
 
-snippet('base/full-width-block-starts', ['fullWidth' => $block->fullWidth()]);
+snippet('base/full-width-block-starts', ['fullWidth' => $fullWidth]);
 
 
 ?>
@@ -98,4 +99,4 @@ snippet('base/full-width-block-starts', ['fullWidth' => $block->fullWidth()]);
     <?php endif ?>
 </figure>
 
-<?php snippet('base/full-width-block-ends', ['fullWidth' => $block->fullWidth()]);
+<?php snippet('base/full-width-block-ends', ['fullWidth' => $fullWidth]);;
