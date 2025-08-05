@@ -53,4 +53,9 @@ $checked = (str_contains($selectedValue, $value) || $selectedValue === '') ? 'ch
 >
     <?=$label ?>
 </label>
-<?php endif ?>
+<?php if (isset($description)) : ?>
+    <small id="helpBlock" class="form-text text-muted">
+        <?=$description?>
+    </small>
+    <?php endif;
+endif ?>
