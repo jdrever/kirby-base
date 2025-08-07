@@ -481,7 +481,7 @@ abstract class KirbyBaseHelper
      * @return bool
      * @throws KirbyRetrievalException
      */
-    protected function getPageFieldAsBool(Page $page, string $fieldName, bool $required = false): bool
+    protected function getPageFieldAsBool(Page $page, string $fieldName, bool $required = false, bool $default = false): bool
     {
         try {
             $pageField = $this->getPageField($page, $fieldName);
@@ -491,8 +491,7 @@ abstract class KirbyBaseHelper
             if ($required) {
                 throw $e;
             }
-            //TODO: should be better than returning false if not required.  Maybe return bool|null
-            return false;
+            return $default;
         }
     }
 
