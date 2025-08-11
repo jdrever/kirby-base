@@ -2244,26 +2244,28 @@ abstract class KirbyBaseHelper
     protected function getSearchResults(string $query, ?Collection $collection = null): WebPageLinks
     {
         $searchResults = new WebPageLinks();
-        try {
-            if ($collection === null) {
-                $collection = $this->getSearchCollection($query);
-            }
+        if (!empty($query)) {
+            try {
+                if ($collection === null) {
+                    $collection = $this->getSearchCollection($query);
+                }
 
-            $searchResults = $this->getWebPageLinks($collection);
-            foreach ($searchResults->getListItems() as $searchResult) {
-                $highlightedTitle = $this->highlightTerm($searchResult->getTitle(), $query);
-                $highlightedDescription = $this->highlightTerm($searchResult->getDescription(), $query);
-                $searchResult->setTitle($highlightedTitle);
-                $searchResult->setDescription($highlightedDescription);
-            }
+                $searchResults = $this->getWebPageLinks($collection);
+                foreach ($searchResults->getListItems() as $searchResult) {
+                    $highlightedTitle = $this->highlightTerm($searchResult->getTitle(), $query);
+                    $highlightedDescription = $this->highlightTerm($searchResult->getDescription(), $query);
+                    $searchResult->setTitle($highlightedTitle);
+                    $searchResult->setDescription($highlightedDescription);
+                }
 
-            $paginationFromKirby = $collection->pagination();
+                $paginationFromKirby = $collection->pagination();
 
-            if (isset($paginationFromKirby)) {
-                $searchResults->setPagination($this->getPagination($paginationFromKirby));
+                if (isset($paginationFromKirby)) {
+                    $searchResults->setPagination($this->getPagination($paginationFromKirby));
+                }
+            } catch (\Exception $e) {
+                $searchResults->recordError($e->getMessage(), 'An error occurred while retrieving the search results');
             }
-        } catch (\Exception $e) {
-            $searchResults->recordError($e->getMessage(), 'An error occurred while retrieving the search results');
         }
 
         return $searchResults;
