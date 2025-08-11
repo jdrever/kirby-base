@@ -9,7 +9,7 @@ use Kirby\Cms\Block;
  */
 
 if ($block->summary()->isNotEmpty()) : ?>
-<details class="accordion">
+<details class="as-accordion">
     <summary class="h5"><?= $block->summary() ?></summary>
     <?= $block->details()->kt() ?>
 </details>
