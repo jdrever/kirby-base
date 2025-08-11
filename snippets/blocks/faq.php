@@ -14,7 +14,7 @@ if ($questions->isNotEmpty()) :
     <h2><?=$block->title()?></h2>
     <?php endif;
     foreach ($questions as $question) : ?>
-    <details class="accordion">
+    <details>
         <summary class="h5"><?= $question->question() ?></summary>
         <?= $question->answer()->kt() ?>
     </details>
