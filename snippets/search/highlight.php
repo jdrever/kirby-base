@@ -13,5 +13,5 @@ endif;
  */
 if ($currentPage->getPageType()!=='search' && $currentPage->hasQuery()) :
     $query = $currentPage->getQuery(); ?>
-<div class="container border p-1 mb-2 bg-warning-subtle"><p><strong>Highlighting search term: <span class="highlight"><?=$query?></strong></p></div>
+<div class="p-3 bg-warning-subtle"><p><strong><img src="/assets/images/icons/search.svg" alt="" style="width:35px; height: 35px;">Highlighting search term: <span class="highlight"><?=$query?></strong></p></div>
 <?php endif ?>
