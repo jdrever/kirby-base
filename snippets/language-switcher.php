@@ -21,13 +21,13 @@ endif;
 
 //TODO: allow switcher to always display based on site config
 if ($languages->isPageTranslatedInCurrentLanguage()) : ?>
-<nav class="language-switcher my-3" aria-label="Language Selector">
-    <ul class="nav nav-pills justify-content-center bg-light p-2 rounded">
+<nav class="language-switcher bg-body border border-warning rounded my-3" aria-label="Language Selector">
+    <ul class="nav nav-pills justify-content-center p-2 rounded">
     <?php foreach ($languages->getLanguages() as $language) : ?>
         <li class="nav-item mx-1">
             <a href="<?= $language->getCurrentPageUrl() ?>"
             hreflang="<?= $language->getCode() ?>"
-            class="nav-link <?= $language->isActivePage() ? 'active' : '' ?>"
+            class="nav-link <?= $language->isActivePage() ? 'active text-white' : 'text-body' ?>"
             <?= $language->isActivePage() ? 'aria-current="page"' : '' ?>>
             <?= html($language->getName()) ?>
             </a>
