@@ -1,7 +1,7 @@
 type: files
 label: Main Image (will be automatically cropped)
 multiple: false
-query: page.images.template('image')
+query: page.images.template('image').add(page('image-bank').images.template('image'))
 uploads:
   template: image
   crop: true
