@@ -17,7 +17,7 @@ if ($currentPage->hasCurrentUser()) :
     $userRole = $currentUser->getRole();
     if ($currentUser->isLoggedIn()) : ?>
         <a href="<?= url('logout') ?>" <?php if (isset($class)) : ?> class="<?= $class ?>"<?php endif ?>>
-            <?= $currentUser->getUserName() ?> <?= t('Logout', 'Logout') ?>
+            <?= t('Logout', 'Logout') ?>
         </a>
 <?php endif;
 endif ?>
