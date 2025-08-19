@@ -1778,10 +1778,10 @@ abstract class KirbyBaseHelper
      * @return Image
      * @throws KirbyRetrievalException
      */
-    protected function getSimpleImage(Page $page, string $fieldName, int $width, int $height) : Image {
+    protected function getSimpleImage(Page $page, string $fieldName, int $width, int $height, int $quality = 100) : Image {
         $pageImage = $this->getPageFieldAsFile($page, $fieldName);
         if ($pageImage != null) {
-            $src = $pageImage->crop($width, $height)->url();
+            $src = $pageImage->crop($width, $height,['quality' => $quality ])->url();
             $alt = $pageImage->alt()->isNotEmpty() ? $pageImage->alt()->value() : '';
             return new Image($src, '', '', $alt, $width, $height);
         }
