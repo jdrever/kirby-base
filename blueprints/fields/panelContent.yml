@@ -1,4 +1,5 @@
-label: Panel Content (for parent page)
+label: Panel Content
 type: writer
 size: large
 buttons: false
+help: displayed on parent page

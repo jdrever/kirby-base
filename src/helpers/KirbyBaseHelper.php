@@ -1640,7 +1640,9 @@ abstract class KirbyBaseHelper
             $panelImage->setClass('img-fix-size img-fix-size--four-three');
             $webPageLink->setImage($panelImage);
         }
-        $webPageLink->setSubPages($this->getSubPages($page));
+
+        $webPageLink->setShowSubPageImages($this->getPageFieldAsBool($page, 'showSubPageImages', false, false));
+        $webPageLink->setSubPages($this->getSubPages($page, $simpleLink));
         return $webPageLink;
     }
 

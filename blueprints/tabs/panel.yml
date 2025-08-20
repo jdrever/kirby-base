@@ -6,3 +6,7 @@ columns:
     fields:
       panelContent: fields/panelContent
       panelImage: fields/panelImage
+      showSubPageImages:
+        type: toggle
+        label: Show sub-page images?
+        help: if checked, the sub-page images will be displayed on the parent page
