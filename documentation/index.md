@@ -52,6 +52,15 @@
 
 Set up a collection called menuPages - this will be used to setMenuPages for the BaseWebPage class.
 
+## File Links
+
+If you want file links to download the associated file, you need to add a controller for file_link which calls the redirectToFile function, e.g:
+
+```
+    $helper = new KirbyHelper($kirby, $site, $page);
+    $helper->redirectToFile($page);
+```
+
 # Updates
 
 ## Changing the KirbyBase version number

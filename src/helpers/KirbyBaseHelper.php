@@ -1821,6 +1821,20 @@ abstract class KirbyBaseHelper
         }
     }
 
+    #region FILES
+
+    /**
+     * @param Page $page
+     * @return void
+     * @throws KirbyRetrievalException
+     */
+    public function redirectToFile(Page $page):void {
+        $file = $this->getPageFieldAsDocument($page, 'file');
+        go($file->getUrl());
+    }
+
+    #endregion
+
 
     #endregion
 
