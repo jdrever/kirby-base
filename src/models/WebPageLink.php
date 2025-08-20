@@ -16,14 +16,16 @@ class WebPageLink extends BaseModel
 
     private Image $image;
 
-    private bool $excludeFromMenus = false;
-
     /**
      * @var string
      */
     private string $linkDescription;
 
     private string $requirements;
+
+    private bool $showSubPageImages = false;
+
+    private bool $excludeFromMenus = false;
 
     /**
      * @param string $title
@@ -83,16 +85,6 @@ class WebPageLink extends BaseModel
         return $this;
     }
 
-    public function isExcludeFromMenus(): bool
-    {
-        return $this->excludeFromMenus;
-    }
-
-    public function setExcludeFromMenus(bool $excludeFromMenus): WebPageLink
-    {
-        $this->excludeFromMenus = $excludeFromMenus;
-        return $this;
-    }
 
     public function getPageType(): string
     {
@@ -120,5 +112,36 @@ class WebPageLink extends BaseModel
         $this->requirements = $requirements;
         return $this;
     }
+
+    public function doExcludeFromMenus(): bool
+    {
+        return $this->excludeFromMenus;
+    }
+
+    public function setExcludeFromMenus(bool $excludeFromMenus): WebPageLink
+    {
+        $this->excludeFromMenus = $excludeFromMenus;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function doShowSubPageImages(): bool
+    {
+        return $this->showSubPageImages;
+    }
+
+    /**
+     * @param bool $showSubPageImages
+     * @return WebPageLink
+     */
+    public function setShowSubPageImages(bool $showSubPageImages): WebPageLink
+    {
+        $this->showSubPageImages = $showSubPageImages;
+        return $this;
+    }
+
+
     
 }

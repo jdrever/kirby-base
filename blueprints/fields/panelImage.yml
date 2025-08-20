@@ -1,7 +1,8 @@
 type: files
-label: Panel Image.  Displayed on parent page.
+label: Panel Image.
 multiple: false
 query: page.images.template('image').add(page('image-bank').images.template('image'))
 uploads:
   template: image
 crop: true
+help: displayed on parent page
