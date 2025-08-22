@@ -1820,6 +1820,7 @@ abstract class KirbyBaseHelper
             return (new Image())->recordError('Image not found');
         }
     }
+    #endregion
 
     #region FILES
 
@@ -2565,6 +2566,10 @@ abstract class KirbyBaseHelper
             ->setUserName($userName)
             ->setRole($role);
         return $user;
+    }
+
+    public function getCurrentUserFieldAsString(string $fieldName): string {
+        return $this->kirby->user()->{$fieldName}()->toString() ?? '';
     }
 
     /**
