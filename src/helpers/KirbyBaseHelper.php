@@ -2606,7 +2606,9 @@ abstract class KirbyBaseHelper
         }
 
         if ($this->site->requiredRoles()->isNotEmpty()) {
-            return ($user && !$user->isKirby() && in_array($user->role()->name(), $this->site->requiredRoles()));
+            $requiredRolesWithSpaces = explode(",", $this->site->requiredRoles()->values());
+            $requiredRoles = array_map('trim', $requiredRolesWithSpaces);
+            return ($user && !$user->isKirby() && in_array($user->role()->name(), $requiredRoles));
         }
 
         // If no user is logged in (or it's the kirby user), we will check for required roles later.
@@ -2671,18 +2673,15 @@ abstract class KirbyBaseHelper
                     if ($loginResult) {
                         $loginDetails->setLoginStatus(true);
                         $loginDetails->setLoginMessage('You have successfully logged in');
+                        if ($loginDetails->hasRedirectPage()) {
+                            go($loginDetails->getRedirectPage());
+                        }
+                        $this->redirectToHome();
 
                     } else {
                         $loginDetails->setLoginStatus(false);
                         $loginDetails->setLoginMessage('Login failed. Please check your username and password.');
                     }
-
-                    $loginDetails->setLoginStatus(true);
-                    $loginDetails->setLoginMessage('You have successfully logged in');
-                    if ($loginDetails->hasRedirectPage()) {
-                        go($loginDetails->getRedirectPage());
-                    }
-                    $this->redirectToHome();
 
                 } else {
                     $loginDetails->setLoginStatus(false);
