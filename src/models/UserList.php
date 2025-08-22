@@ -1,6 +1,8 @@
 <?php
 
-namespace BSBI\WebBase\models;
+namespace BSBI\WebBase\models\membership;
+
+use BSBI\WebBase\models\BaseList;
 
 /**
  * Represents a list of User objects, extending the BaseList functionality.

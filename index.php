@@ -1,6 +1,7 @@
 <?php
 
 use Kirby\Cms\App as Kirby;
+use Kirby\Toolkit\Tpl;
 
 Kirby::plugin(
     'open-foundations/kirby-base',
