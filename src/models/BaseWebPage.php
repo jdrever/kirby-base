@@ -117,6 +117,7 @@ class BaseWebPage extends BaseModel
      */
     protected string $urlWithQueryString = '';
 
+    private string $displayPageTitle;
 
 
     /**
@@ -652,5 +653,25 @@ class BaseWebPage extends BaseModel
     public function doSimpleGetSubPages(): bool {
         return true;
     }
+
+    /**
+     * @return string
+     */
+    public function getDisplayPageTitle(): string
+    {
+        return $this->displayPageTitle ?? $this->title;
+    }
+
+    /**
+     * @param string $displayPageTitle
+     * @return BaseWebPage
+     */
+    public function setDisplayPageTitle(string $displayPageTitle): BaseWebPage
+    {
+        $this->displayPageTitle = $displayPageTitle;
+        return $this;
+    }
+
+
 
 }

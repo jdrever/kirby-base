@@ -18,13 +18,23 @@ if (!isset($selectedValue)) :
     $selectedValue = '';
 endif;
 
+$labelClass = '';
+
 if (!isset($labelLayout)) :
-    $labelLayout = '';
+    $labelLayout = 'normal';
+    $labelClass = 'form-check-label';
+elseif ($labelLayout === 'small') :
+    $labelClass = 'form-check-label fs-6';
 elseif ($labelLayout === 'badge') :
-    $labelLayout = 'class="badge"';
+    $labelClass = 'badge';
 endif;
 
-$checked = (str_contains($selectedValue, $value) || $selectedValue === '') ? 'checked' : ''; ?>
+$checked = (str_contains($selectedValue, $value)) ? 'checked' : '';
+
+if ($labelLayout !== 'badge') : ?>
+<div class="form-check">
+<?php endif ?>
+
 
 <input
     type="checkbox"
@@ -43,19 +53,21 @@ $checked = (str_contains($selectedValue, $value) || $selectedValue === '') ? 'ch
     endif;
 ?>
 <label
-        for="<?=$id?>"
-        <?=$labelLayout?>
+    for="<?=$id?>"
     <?php if (isset($backgroundColour)) : ?>
-        style="background-color: <?=$backgroundColour?>;"
+    style="background-color: <?=$backgroundColour?>;"
     <?php endif ?>
-        title="<?=$labelTitle?>"
-        class="p-2 m-1"
+    title="<?=$labelTitle?>"
+    class="p-2 m-1 <?=$labelClass?>"
 >
     <?=$label ?>
 </label>
-<?php if (isset($description)&&false) : ?>
+<?php if (isset($description)) : ?>
     <small id="helpBlock" class="form-text text-muted">
         <?=$description?>
     </small>
     <?php endif;
-endif ?>
+endif;
+if ($labelLayout !== 'badge') : ?>
+</div>
+<?php endif ?>
