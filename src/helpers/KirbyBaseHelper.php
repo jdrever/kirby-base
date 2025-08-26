@@ -1163,6 +1163,10 @@ abstract class KirbyBaseHelper
                     $itemTitle = empty($itemTitle) ? $page->title()->value() : $itemTitle;
                     $description = $this->getStructureFieldAsString($item, 'description', false);
                     $webPageLink = $this->getWebPageLink($page, true, $itemTitle, $description);
+                    if ($this->hasStructureField($item, 'image')) {
+                        $image = $this->getSimpleImageFromStructureField($item, 'image', 400,300,100);
+                        $webPageLink->setImage($image);
+                    }
                     $webPageLinks->addListItem($webPageLink);
                 } else {
                     if (!empty($itemTitle)) {
@@ -1782,9 +1786,34 @@ abstract class KirbyBaseHelper
      */
     protected function getSimpleImage(Page $page, string $fieldName, int $width, int $height, int $quality = 100) : Image {
         $pageImage = $this->getPageFieldAsFile($page, $fieldName);
-        if ($pageImage != null) {
-            $src = $pageImage->crop($width, $height,['quality' => $quality ])->url();
-            $alt = $pageImage->alt()->isNotEmpty() ? $pageImage->alt()->value() : '';
+        return $this->getSimpleImageFromFile($pageImage, $width, $height, $quality);
+    }
+
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @param int $width
+     * @param int $height
+     * @return Image
+     * @throws KirbyRetrievalException
+     */
+    protected function getSimpleImageFromStructureField(StructureObject $structureObject, string $fieldName, int $width, int $height, int $quality = 100) : Image {
+        $structureImage = $this->getStructureFieldAsFile($structureObject, $fieldName);
+        return $this->getSimpleImageFromFile($structureImage, $width, $height, $quality);
+    }
+
+    /**
+     * @param File|null $file
+     * @param int $width
+     * @param int $height
+     * @param int $quality
+     * @return Image
+     */
+    private function getSimpleImageFromFile(File|null $file, int $width, int $height, int $quality = 100): Image
+    {
+        if ($file != null) {
+            $src = $file->crop($width, $height,['quality' => $quality ])->url();
+            $alt = $file->alt()->isNotEmpty() ? $file->alt()->value() : '';
             return new Image($src, '', '', $alt, $width, $height);
         }
         return (new Image())->setStatus(false);
