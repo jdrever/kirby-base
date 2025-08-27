@@ -27,7 +27,7 @@ $isRequired = ($required) ? 'required' : '';
 if (isset($label)) : ?>
     <label
             for="<?=$id?>"
-            class="p-2 m-1"
+            class="col-form-label"
     >
         <?=$label ?>
     <?php if ($required) : ?>
@@ -40,7 +40,7 @@ if (isset($label)) : ?>
     name="<?=$name?>"
     id="<?=$id?>"
     value="<?= esc($value, 'attr') ?>"
-    class="form-control p-2 m-1<?= !empty($alert) ? ' is-invalid' : '' ?>"
+    class="form-control <?= !empty($alert) ? ' is-invalid' : '' ?>"
     <?= $isRequired ?>
 
 >

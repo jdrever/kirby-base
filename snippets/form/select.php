@@ -25,7 +25,7 @@ elseif ($size==='small') :
 endif;
 
 if (isset($label)) : ?>
-<label for="<?=$id?>" class="col-form-label"><?=$label?>:</label>
+<label for="<?=$id?>" class="col-form-label"><?=$label?></label>
 <?php endif ?>
 
 <select name="<?=$name?>" id="<?=$id?>Month" class="form-select <?=$size?>">
