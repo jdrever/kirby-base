@@ -45,6 +45,8 @@ abstract class BaseList
      */
     private Pagination $pagination;
 
+    private int $paginatePerPage = 10;
+
 
     /**
      * Add the item.
@@ -157,6 +159,24 @@ abstract class BaseList
     public function setPagination(Pagination $pagination): static
     {
         $this->pagination = $pagination;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPaginatePerPage(): int
+    {
+        return $this->paginatePerPage;
+    }
+
+    /**
+     * @param int $paginatePerPage
+     * @return BaseList
+     */
+    public function setPaginatePerPage(int $paginatePerPage): BaseList
+    {
+        $this->paginatePerPage = $paginatePerPage;
         return $this;
     }
 

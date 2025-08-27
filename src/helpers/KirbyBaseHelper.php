@@ -1752,22 +1752,25 @@ abstract class KirbyBaseHelper
             }
         }
 
+
         if (!empty($sortBy)) {
             $collectionPages = $collectionPages->sortBy($sortBy, $sortDirection);
+        }
+
+        if ($modelList->usePagination()) {
+
+            $collectionPages = $collectionPages->paginate($modelList->getPaginatePerPage());
+            $paginationFromKirby = $collectionPages->pagination();
+
+            if (isset($paginationFromKirby)) {
+                $modelList->setPagination($this->getPagination($paginationFromKirby));
+            }
         }
 
         /** @var Page $collectionPage */
         foreach ($collectionPages as $collectionPage) {
             $model = $this->getSpecificModel($collectionPage, $modelClass);
             $modelList->addListItem($model);
-        }
-
-        if ($modelList->usePagination()) {
-            $paginationFromKirby = $collectionPages->pagination();
-
-            if (isset($paginationFromKirby)) {
-                $modelList->setPagination($this->getPagination($paginationFromKirby));
-            }
         }
 
         return $modelList;
