@@ -2738,7 +2738,7 @@ abstract class KirbyBaseHelper
 
     #endregion
 
-    #region TAGS
+    #region TAGS_AND_FILTERS
 
     /**
      * @param Collection $pages
@@ -3016,6 +3016,18 @@ abstract class KirbyBaseHelper
         }
         $isSyncing = false;
         return $log;
+    }
+
+    /**
+     * @param int $limit
+     * @param Collection $pages
+     * @return Collection
+     */
+    public function applyLimit(Collection $pages, int $limit,): Collection {
+        if ($limit>0) {
+            $pages = $pages->limit($limit);
+        }
+        return $pages;
     }
 
 
