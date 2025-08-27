@@ -6,6 +6,7 @@ if (!isset($image)) :
     return;
 endif;
 
+
 ?>
 
 
