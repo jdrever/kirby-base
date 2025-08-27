@@ -19,7 +19,7 @@ return [
     'base/robots' => __DIR__ . '/snippets/robots.php',
     'base/full-width-block-starts' => __DIR__ . '/snippets/full-width-block-starts.php',
     'base/full-width-block-ends' => __DIR__ . '/snippets/full-width-block-ends.php',
-    'base/pagination' => __DIR__ . '/snippets/search/pagination.php',
+    'base/pagination' => __DIR__ . '/snippets/pagination.php',
 
     //colour mode
     'colour-mode/selector' => __DIR__ . '/snippets/colour-mode/selector.php',
