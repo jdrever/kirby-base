@@ -41,7 +41,7 @@ $query = $currentPage->getQuery();
             </li>
         <?php endforeach ?>
     </ul>
-    <?php snippet('search/pagination', ['pagination' => $searchResults->getPagination()]);
+    <?php snippet('base/pagination', ['pagination' => $searchResults->getPagination()]);
 else :
     if (!empty($query)) :?>
     <p>No results found.</p>

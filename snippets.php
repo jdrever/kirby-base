@@ -19,6 +19,7 @@ return [
     'base/robots' => __DIR__ . '/snippets/robots.php',
     'base/full-width-block-starts' => __DIR__ . '/snippets/full-width-block-starts.php',
     'base/full-width-block-ends' => __DIR__ . '/snippets/full-width-block-ends.php',
+    'base/pagination' => __DIR__ . '/snippets/search/pagination.php',
 
     //colour mode
     'colour-mode/selector' => __DIR__ . '/snippets/colour-mode/selector.php',
@@ -36,7 +37,6 @@ return [
     //search blocks
     'search/bar' => __DIR__ . '/snippets/search/bar.php',
     'search/highlight' => __DIR__ . '/snippets/search/highlight.php',
-    'search/pagination' => __DIR__ . '/snippets/search/pagination.php',
     'search/results' => __DIR__ . '/snippets/search/results.php',
 
     // snippet blocks
