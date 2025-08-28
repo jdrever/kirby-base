@@ -2938,7 +2938,7 @@ abstract class KirbyBaseHelper
                             // Update the linked page with the modified list of IDs
                             try {
                                 $linkedPage->update([
-                                    $taggedByField => implode(', ', array_unique($existingTaggingPageIds)) // Ensure uniqueness
+                                    $taggedByField => array_unique($existingTaggingPageIds) // Ensure uniqueness
                                 ]);
                                 $log .= "{$taggingPageId} added to {$taggedByField} on {$linkedPageId}";
                             } catch (Throwable $e) {
@@ -2984,7 +2984,7 @@ abstract class KirbyBaseHelper
                             // Update the linked page with the modified list of IDs
                             try {
                                 $linkedPage->update([
-                                    $taggedByField => implode(', ', $updatedTaggingPageIds)
+                                    $taggedByField => array_unique($updatedTaggingPageIds)
                                 ]);
                                 $log .= "{$taggingPageId} removed from {$taggedByField} on {$linkedPageId}";
                             } catch (Throwable $e) {
