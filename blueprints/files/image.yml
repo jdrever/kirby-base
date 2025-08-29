@@ -61,7 +61,6 @@ columns:
           tags:
             label: Tags
             type: tags
-            options:
-              - Urban
-              - People
-              - Group
+            options: query
+            help: TEST!
+            query: parent.commonTags.pluck("tag")

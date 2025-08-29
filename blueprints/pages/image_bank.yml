@@ -25,10 +25,10 @@ tabs:
           tags:
             type: fields
             fields:
-              commonTags:
-                label: Common Tags
+              tagList:
+                label: Tag List
                 type: structure
-                max: 20
+                max: 30
                 fields:
                   tag:
                     label: Tag Name
