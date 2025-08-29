@@ -2290,7 +2290,7 @@ abstract class KirbyBaseHelper
      * @param Collection|null $collection
      * @return WebPageLinks
      */
-    protected function getSearchResults(string $query, ?Collection $collection = null): WebPageLinks
+    protected function getSearchResults(string $query, ?Collection $collection = null, string $specialSearchType=''): WebPageLinks
     {
         $searchResults = new WebPageLinks();
         if (!empty($query)) {
@@ -2298,8 +2298,17 @@ abstract class KirbyBaseHelper
                 if ($collection === null) {
                     $collection = $this->getSearchCollection($query);
                 }
-
-                $searchResults = $this->getWebPageLinks($collection);
+                $doingDefaultSearch = true;
+                if (!empty($specialSearchType)) {
+                    $getWebPageLinksFunction = 'getWebPageLinksFor' . $specialSearchType;
+                    if (method_exists($this, $getWebPageLinksFunction)) {
+                        $searchResults = $this->$getWebPageLinksFunction($collection);
+                        $doingDefaultSearch = false;
+                    }
+                }
+                if ($doingDefaultSearch)  {
+                    $searchResults = $this->getWebPageLinks($collection);
+                }
                 foreach ($searchResults->getListItems() as $searchResult) {
                     $highlightedTitle = $this->highlightTerm($searchResult->getTitle(), $query);
                     $highlightedDescription = $this->highlightTerm($searchResult->getDescription(), $query);
