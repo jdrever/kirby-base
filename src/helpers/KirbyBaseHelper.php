@@ -2286,8 +2286,11 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * if $specialSearchType is supplied, the function will look for a getWebPageLinksFor{$specialSearchType} function
+     * if not, or if not matching function is provided, it will use getWebPageLinks
      * @param string $query
      * @param Collection|null $collection
+     * @param string $specialSearchType
      * @return WebPageLinks
      */
     protected function getSearchResults(string $query, ?Collection $collection = null, string $specialSearchType=''): WebPageLinks
