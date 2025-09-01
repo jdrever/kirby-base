@@ -4,9 +4,13 @@ preview: fields
 wysiwyg: true
 fields:
   file:
-    label: File
     type: files
-    multiple: false
+    label: Upload or select a file
+    max: 1
+    required: true
+    uploads: false
+    help: Upload a new file or select from the file archive.
+    query: site.find('file-archive').files
   label:
     label: Label
     type: writer
