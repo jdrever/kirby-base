@@ -7,7 +7,9 @@ image:
 fields:
   file:
     type: files
-    label: Upload
+    label: Upload or select a file
     max: 1
     required: true
-    help: upload the file you want to link to
+    uploads: true
+    help: Upload a new file or select from the current page or the file archive.
+    query: site.find('file-archive').files
