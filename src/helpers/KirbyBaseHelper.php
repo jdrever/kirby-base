@@ -393,10 +393,11 @@ abstract class KirbyBaseHelper
      * @param Page $page
      * @param string $fieldName
      * @param bool $required
+     * @param string $defaultValue
      * @return string
      * @throws KirbyRetrievalException if the page or field cannot be found
      */
-    protected function getPageFieldAsString(Page $page, string $fieldName, bool $required = false): string
+    protected function getPageFieldAsString(Page $page, string $fieldName, bool $required = false, string $defaultValue = ''): string
     {
         try {
             $pageField = $this->getPageField($page, $fieldName);
@@ -405,7 +406,7 @@ abstract class KirbyBaseHelper
             if ($required) {
                 throw $e;
             }
-            return '';
+            return $defaultValue;
         }
     }
 

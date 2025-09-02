@@ -39,10 +39,10 @@ return [
         return $page;
     },
 
-    'page.changeStatus:after' => function ($newPage, $oldPage) {
-        $helper = new KirbyHelper(kirby(), kirby()->site(), kirby()->page());
-        $helper->handleCaches($newPage);
-    },
+    //'page.changeStatus:after' => function ($newPage, $oldPage) {
+    //    $helper = new KirbyHelper(kirby(), kirby()->site(), kirby()->page());
+    //    //$helper->handleCaches($newPage);
+    //},
     'page.delete:before' => function (Kirby\Cms\Page $page, bool $force) {
         $helper = new KirbyHelper(kirby(), kirby()->site(), kirby()->page());
         $helper->handleCaches($page);
