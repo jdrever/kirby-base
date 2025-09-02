@@ -48,6 +48,7 @@ return [
     'blocks/image' => __DIR__ . '/snippets/blocks/image.php',
     'blocks/links' => __DIR__ . '/snippets/blocks/links.php',
     'blocks/note' => __DIR__ . '/snippets/blocks/note.php',
+    'blocks/quote' => __DIR__ . '/snippets/blocks/quote.php',
     'blocks/ready-made' => __DIR__ . '/snippets/blocks/ready-made.php',
     'blocks/table-2col' => __DIR__ . '/snippets/blocks/table-2col.php',
     'blocks/table-3col' => __DIR__ . '/snippets/blocks/table-3col.php',

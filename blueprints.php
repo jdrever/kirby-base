@@ -16,6 +16,7 @@ return [
     'blocks/links' => __DIR__ . '/blueprints/blocks/links.yml',
     'blocks/image' => __DIR__ . '/blueprints/blocks/image.yml',
     'blocks/note' => __DIR__ . '/blueprints/blocks/note.yml',
+    'blocks/quote' => __DIR__ . '/blueprints/blocks/quote.yml',
     'blocks/ready-made' => __DIR__ . '/blueprints/blocks/ready-made.yml',
     'blocks/table-2col' => __DIR__ . '/blueprints/blocks/table-2col.yml',
     'blocks/table-3col' => __DIR__ . '/blueprints/blocks/table-3col.yml',
