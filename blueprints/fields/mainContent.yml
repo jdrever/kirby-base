@@ -9,11 +9,6 @@ fieldsets:
       - text
       - list
       - note
-      - table-2col
-      - table-3col
-      - table-4col
-      - table-5col
-      - table-6col
       - description-list
       - accordion
       - faq
@@ -26,6 +21,16 @@ fieldsets:
       - gallery
       - video
       - file
+  tables:
+    label: Tables
+    type: group
+    open: false
+    fieldsets:
+      - table-2col
+      - table-3col
+      - table-4col
+      - table-5col
+      - table-6col
   code:
     label: Code
     type: group
