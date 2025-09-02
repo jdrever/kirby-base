@@ -11,6 +11,7 @@ fieldsets:
       - note
       - description-list
       - accordion
+      - quote
       - faq
       - ready-made
   media:

@@ -22,6 +22,10 @@ if (!isset($required)) :
     $required = false;
 endif;
 
+if (!isset($readOnly)) :
+    $readOnly = false;
+endif;
+
 $isRequired = ($required) ? 'required' : '';
 
 if (isset($label)) : ?>
@@ -42,6 +46,6 @@ if (isset($label)) : ?>
     value="<?= esc($value, 'attr') ?>"
     class="form-control <?= !empty($alert) ? ' is-invalid' : '' ?>"
     <?= $isRequired ?>
-
+    <?= $readOnly ? 'readonly' : '' ?>
 >
 <?= !empty($alert) ? '<span class="invalid-feedback">' . esc($alert) . '</span>' : '' ?>

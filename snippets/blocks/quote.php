@@ -2,15 +2,13 @@
 
 declare(strict_types=1);
 
+use Kirby\Cms\Block;
+
 /**
- * @var \Kirby\Cms\App $kirby
- * @var \Kirby\Cms\Site $site
- * @var \BSBI\Course\CustomDefaultPage $page
- * @var \Kirby\Cms\Block $block
+ * @var Block $block
  */
-?>
-<?php
-$figureClass = "";
+
+$figureClass = "well p-3";
 if ($block->backgroundColour()->isNotEmpty() and $block->backgroundColour()->value() !== "#") :
     $figureClass .= ' has-background';
     $figureStyle = 'background-color:' . $block->backgroundColour() . ';';
@@ -23,10 +21,10 @@ endif ?>
     style="<?=$figureStyle?>"
 <?php endif ?>
 >
-    <blockquote class="blockquote">
-        <strong><?= $block->text() ?></strong>
+    <blockquote class="blockquote  mt-2">
+        <p><?= $block->text() ?></p>
     </blockquote>
 <?php if ($block->citation()->isNotEmpty()) : ?>
-    <figcaption class="blockquote">&mdash; <?= $block->citation() ?></figcaption>
+    <figcaption class="blockquote-footer"><?= $block->citation() ?></figcaption>
 <?php endif ?>
 </figure>
