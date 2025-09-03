@@ -36,6 +36,7 @@ return [
 
     //search blocks
     'search/bar' => __DIR__ . '/snippets/search/bar.php',
+    'search/form' => __DIR__ . '/snippets/search/form.php',
     'search/highlight' => __DIR__ . '/snippets/search/highlight.php',
     'search/results' => __DIR__ . '/snippets/search/results.php',
 

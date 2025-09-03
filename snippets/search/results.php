@@ -25,12 +25,10 @@ if (!method_exists($currentPage, 'getSearchResults')) :
 endif;
 
 $query = $currentPage->getQuery();
+
+snippet('search/form');
 ?>
-<form method="get" role="search">
-    <p>Search for:
-        <input type="search" aria-label="Search" name="q" class="form-control-sm ms-2 me-2" value="<?=$query ?>">
-        <button class="btn btn-sm btn-success me-1" type="submit">Search</button></p>
-</form>
+
 
 <?php if ($additionalSearchForm = $slots->additionalSearchForm()) : ?>
     <?=$additionalSearchForm?>
