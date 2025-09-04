@@ -1148,10 +1148,10 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $page
      * @param string $fieldName
+     * @param ImageType $imageType (optional, if image is found)
      * @return WebPageLinks
-     * @throws KirbyRetrievalException
      */
-    protected function getStructureAsWebPageLinks(Page $page, string $fieldName = 'related') : WebPageLinks
+    protected function getStructureAsWebPageLinks(Page $page, string $fieldName = 'related', ImageType $imageType = ImageType::SQUARE) : WebPageLinks
     {
         $webPageLinks = new WebPageLinks();
         try {
@@ -1165,7 +1165,7 @@ abstract class KirbyBaseHelper
                     $description = $this->getStructureFieldAsString($item, 'description', false);
                     $webPageLink = $this->getWebPageLink($page, true, $itemTitle, $description);
                     if ($this->hasStructureField($item, 'image')) {
-                        $image = $this->getSimpleImageFromStructureField($item, 'image', 400,300,100);
+                        $image = $this->getImageFromStructureField($item, 'image', 400,300,100, $imageType);
                         $webPageLink->setImage($image);
                     }
                     $webPageLinks->addListItem($webPageLink);
@@ -1641,7 +1641,7 @@ abstract class KirbyBaseHelper
             return $webPageLink;
         }
         if ($this->isPageFieldNotEmpty($page, 'panelImage')) {
-            $panelImage = $this->getSimpleImage($page, 'panelImage', 400, 300);
+            $panelImage = $this->getImage($page, 'panelImage', 400, 300, 90, ImageType::PANEL);
             $panelImage->setClass('img-fix-size img-fix-size--four-three');
             $webPageLink->setImage($panelImage);
         }
@@ -1788,9 +1788,9 @@ abstract class KirbyBaseHelper
      * @return Image
      * @throws KirbyRetrievalException
      */
-    protected function getSimpleImage(Page $page, string $fieldName, int $width, int $height, int $quality = 100) : Image {
+    protected function getImage(Page $page, string $fieldName, int $width, int $height, int $quality = 100, ImageType $imageType = ImageType::SQUARE) : Image {
         $pageImage = $this->getPageFieldAsFile($page, $fieldName);
-        return $this->getSimpleImageFromFile($pageImage, $width, $height, $quality);
+        return $this->getImageFromFile($pageImage, $width, $height, $quality, $imageType);
     }
 
     /**
@@ -1801,27 +1801,11 @@ abstract class KirbyBaseHelper
      * @return Image
      * @throws KirbyRetrievalException
      */
-    protected function getSimpleImageFromStructureField(StructureObject $structureObject, string $fieldName, int $width, int $height, int $quality = 100) : Image {
+    protected function getImageFromStructureField(StructureObject $structureObject, string $fieldName, int $width, int $height, int $quality = 100, ImageType $imageType = ImageType::SQUARE) : Image {
         $structureImage = $this->getStructureFieldAsFile($structureObject, $fieldName);
-        return $this->getSimpleImageFromFile($structureImage, $width, $height, $quality);
+        return $this->getImageFromFile($structureImage, $width, $height, $quality, $imageType = ImageType::SQUARE);
     }
 
-    /**
-     * @param File|null $file
-     * @param int $width
-     * @param int $height
-     * @param int $quality
-     * @return Image
-     */
-    private function getSimpleImageFromFile(File|null $file, int $width, int $height, int $quality = 100): Image
-    {
-        if ($file != null) {
-            $src = $file->crop($width, $height,['quality' => $quality ])->url();
-            $alt = $file->alt()->isNotEmpty() ? $file->alt()->value() : '';
-            return new Image($src, '', '', $alt, $width, $height);
-        }
-        return (new Image())->setStatus(false);
-    }
 
     /**
      * @param Page $page
@@ -1831,27 +1815,19 @@ abstract class KirbyBaseHelper
      * @param ImageType $imageType
      * @return Image
      */
-    protected function getImage(Page $page, string $fieldName, int $width, ?int $height, ImageType $imageType = ImageType::SQUARE): Image
+    protected function getImageFromFile(File $image, int $width, ?int $height, int $quality = 90, ImageType $imageType = ImageType::SQUARE): Image
     {
-        try {
-            $pageImage = $this->getPageFieldAsFile($page, $fieldName);
-            if ($pageImage != null) {
-
-                $src = $pageImage->crop($width, $height)->url();
-                $srcSetType = ($imageType === ImageType::SQUARE) ? 'square' : 'main';
-                $srcSet = $pageImage->srcset($srcSetType);
-                $webpSrcSet = $pageImage->srcset($srcSetType . '-webp');
-                /** @noinspection PhpUndefinedMethodInspection */
-                $alt = $pageImage->alt()->isNotEmpty() ? $pageImage->alt()->value() : '';
-                if ($src !== null && $srcSet !== null && $webpSrcSet !== null) {
-                    return new Image ($src, $srcSet, $webpSrcSet, $alt, $width, $height);
-                }
-
-            }
-            return (new Image())->recordError('Image not found');
-        } catch (KirbyRetrievalException) {
-            return (new Image())->recordError('Image not found');
+        $src = $image->crop($width, $height, ['quality' => $quality])->url();
+        $srcSetType = strtolower($imageType->value);
+        $srcSet = $image->srcset($srcSetType);
+        $webpSrcSet = $image->srcset($srcSetType . '-webp');
+        /** @noinspection PhpUndefinedMethodInspection */
+        $alt = $image->alt()->isNotEmpty() ? $image->alt()->value() : '';
+        if ($src !== null && $srcSet !== null && $webpSrcSet !== null) {
+            return new Image ($src, $srcSet, $webpSrcSet, $alt, $width, $height);
         }
+        return (new Image())->recordError('Image not found');
+
     }
     #endregion
 
