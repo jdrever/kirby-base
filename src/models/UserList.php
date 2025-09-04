@@ -1,6 +1,6 @@
 <?php
 
-namespace BSBI\WebBase\models\membership;
+namespace BSBI\WebBase\models;
 
 use BSBI\WebBase\models\BaseList;
 
