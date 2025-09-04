@@ -1788,7 +1788,7 @@ abstract class KirbyBaseHelper
      * @return Image
      * @throws KirbyRetrievalException
      */
-    protected function getImage(Page $page, string $fieldName, int $width, int $height, int $quality = 100, ImageType $imageType = ImageType::SQUARE, $imageFormat = '') : Image {
+    protected function getImage(Page $page, string $fieldName, int $width, int $height, int $quality = 90, ImageType $imageType = ImageType::SQUARE, $imageFormat = '') : Image {
         $pageImage = $this->getPageFieldAsFile($page, $fieldName);
         return $this->getImageFromFile($pageImage, $width, $height, $quality, $imageType, $imageFormat);
     }
@@ -1801,7 +1801,7 @@ abstract class KirbyBaseHelper
      * @return Image
      * @throws KirbyRetrievalException
      */
-    protected function getImageFromStructureField(StructureObject $structureObject, string $fieldName, int $width, int $height, int $quality = 100, ImageType $imageType = ImageType::SQUARE, $imageFormat = '') : Image {
+    protected function getImageFromStructureField(StructureObject $structureObject, string $fieldName, int $width, int $height, int $quality = 90, ImageType $imageType = ImageType::SQUARE, $imageFormat = '') : Image {
         $structureImage = $this->getStructureFieldAsFile($structureObject, $fieldName);
         return $this->getImageFromFile($structureImage, $width, $height, $quality, $imageType = ImageType::SQUARE, $imageFormat);
     }
