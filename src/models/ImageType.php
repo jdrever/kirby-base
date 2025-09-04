@@ -9,6 +9,7 @@ enum ImageType: string
     case FIXED = 'Fixed';
     case THUMBNAIL = 'Thumbnail';
     case PANEL = 'Panel';
+    case SIXTEEN_NINE = '16_9';
 
     // Add more types as needed
 }
