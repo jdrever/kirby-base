@@ -1788,9 +1788,9 @@ abstract class KirbyBaseHelper
      * @return Image
      * @throws KirbyRetrievalException
      */
-    protected function getImage(Page $page, string $fieldName, int $width, int $height, int $quality = 100, ImageType $imageType = ImageType::SQUARE) : Image {
+    protected function getImage(Page $page, string $fieldName, int $width, int $height, int $quality = 100, ImageType $imageType = ImageType::SQUARE, $imageFormat = '') : Image {
         $pageImage = $this->getPageFieldAsFile($page, $fieldName);
-        return $this->getImageFromFile($pageImage, $width, $height, $quality, $imageType);
+        return $this->getImageFromFile($pageImage, $width, $height, $quality, $imageType, $imageFormat);
     }
 
     /**
@@ -1801,9 +1801,9 @@ abstract class KirbyBaseHelper
      * @return Image
      * @throws KirbyRetrievalException
      */
-    protected function getImageFromStructureField(StructureObject $structureObject, string $fieldName, int $width, int $height, int $quality = 100, ImageType $imageType = ImageType::SQUARE) : Image {
+    protected function getImageFromStructureField(StructureObject $structureObject, string $fieldName, int $width, int $height, int $quality = 100, ImageType $imageType = ImageType::SQUARE, $imageFormat = '') : Image {
         $structureImage = $this->getStructureFieldAsFile($structureObject, $fieldName);
-        return $this->getImageFromFile($structureImage, $width, $height, $quality, $imageType = ImageType::SQUARE);
+        return $this->getImageFromFile($structureImage, $width, $height, $quality, $imageType = ImageType::SQUARE, $imageFormat);
     }
 
 
@@ -1815,9 +1815,22 @@ abstract class KirbyBaseHelper
      * @param ImageType $imageType
      * @return Image
      */
-    protected function getImageFromFile(File $image, int $width, ?int $height, int $quality = 90, ImageType $imageType = ImageType::SQUARE): Image
+    protected function getImageFromFile(File $image, int $width, ?int $height, int $quality = 90, ImageType $imageType = ImageType::SQUARE, $imageFormat =''): Image
     {
-        $src = $image->crop($width, $height, ['quality' => $quality])->url();
+        $thumbOptions = [
+            'width' => $width,
+            'height' => $height,
+            'quality' => $quality,
+            'crop' => true // Enable cropping
+        ];
+
+        // If a specific image format is provided, add it to the options.
+        // This will instruct Kirby to generate a thumbnail in that format.
+        if (!empty($imageFormat)) {
+            $thumbOptions['format'] = $imageFormat;
+        }
+
+        $src = $image->thumb($thumbOptions)->url();
         $srcSetType = strtolower($imageType->value);
         $srcSet = $image->srcset($srcSetType);
         $webpSrcSet = $image->srcset($srcSetType . '-webp');
