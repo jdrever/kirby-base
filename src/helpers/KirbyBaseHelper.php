@@ -1641,7 +1641,7 @@ abstract class KirbyBaseHelper
             return $webPageLink;
         }
         if ($this->isPageFieldNotEmpty($page, 'panelImage')) {
-            $panelImage = $this->getImage($page, 'panelImage', 400, 300, 90, ImageType::PANEL);
+            $panelImage = $this->getImage($page, 'panelImage', 400, 300, 80, ImageType::PANEL);
             $panelImage->setClass('img-fix-size img-fix-size--four-three');
             $webPageLink->setImage($panelImage);
         }
