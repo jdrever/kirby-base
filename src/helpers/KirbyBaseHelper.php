@@ -1855,22 +1855,6 @@ abstract class KirbyBaseHelper
     }
     #endregion
 
-    #region FILES
-
-    /**
-     * @param Page $page
-     * @return void
-     * @throws KirbyRetrievalException
-     */
-    public function redirectToFile(Page $page):void {
-        $file = $this->getPageFieldAsDocument($page, 'file');
-        go($file->getUrl());
-    }
-
-    #endregion
-
-
-    #endregion
 
     #region RELATED CONTENT
 
@@ -3104,6 +3088,48 @@ abstract class KirbyBaseHelper
     }
     #endregion
 
+    #region REDIRECTS
+
+    /**
+     * @param Page $page
+     * @return void
+     * @throws KirbyRetrievalException
+     */
+    public function redirectToFile(Page $page):void {
+        $file = $this->getPageFieldAsDocument($page, 'file');
+        go($file->getUrl());
+    }
+
+    /**
+     * @param Page $page
+     * @return void
+     * @throws KirbyRetrievalException
+     */
+    public function redirectToPage(Page $page):void {
+        $redirect_link = $this->getPageFieldAsUrl($page,'redirect_link', true);
+        go($redirect_link );
+    }
+
+
+    protected function redirectToLogin(string $redirectPage=''): void
+    {
+        $loginPage = $this->findKirbyPage('login');
+        $url = $loginPage->url();
+
+        if (!empty($redirectPage)) {
+            $url .= '?' . http_build_query(['redirectPage' => $redirectPage]);
+        }
+        go($url);
+    }
+
+    protected function redirectToHome(): void
+    {
+        $homePage = $this->findKirbyPage('home');
+        $homePage->go();
+    }
+
+    #endregion
+
     #region TURNSTILE
 
     /**
@@ -3257,22 +3283,6 @@ abstract class KirbyBaseHelper
 
     }
 
-    protected function redirectToLogin(string $redirectPage=''): void
-    {
-        $loginPage = $this->findKirbyPage('login');
-        $url = $loginPage->url();
-
-        if (!empty($redirectPage)) {
-            $url .= '?' . http_build_query(['redirectPage' => $redirectPage]);
-        }
-        go($url);
-    }
-
-    protected function redirectToHome(): void
-    {
-        $homePage = $this->findKirbyPage('home');
-        $homePage->go();
-    }
 
     protected function asString(mixed $value, string $fallback = ''): string
     {

@@ -12,7 +12,12 @@ Kirby::plugin(
         'routes' => require __DIR__ . '/routes.php',
         'templates' => [
             'file_link' => __DIR__ . '/templates/file_link.php',
+            'page_link' => __DIR__ . '/templates/page_link.php',
         ],
+        'controllers' => [
+            'file_link' =>  require __DIR__ . '/controllers/file_link.php',
+            'page_link' =>  require __DIR__ . '/controllers/page_link.php',
+        ]
     ]
 );
 

@@ -1,0 +1,11 @@
+title: Page Link
+icon: repeat
+
+fields:
+  redirect_link:
+    label: Link Page/URL
+    type: link
+    required: true
+    options:
+      - page
+      - url
