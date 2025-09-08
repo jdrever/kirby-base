@@ -1837,7 +1837,7 @@ abstract class KirbyBaseHelper
         /** @noinspection PhpUndefinedMethodInspection */
         $alt = $image->alt()->isNotEmpty() ? $image->alt()->value() : '';
         if ($src !== null && $srcSet !== null && $webpSrcSet !== null) {
-            return new Image ($src, $srcSet, $webpSrcSet, $alt, $width, $height);
+            return (new Image ($src, $srcSet, $webpSrcSet, $alt, $width, $height))->setSizes($sizes);
         }
         return (new Image())->recordError('Image not found');
 
