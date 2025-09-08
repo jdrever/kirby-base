@@ -32,6 +32,8 @@ class Image extends BaseModel
     /** @var int The height */
     private int $height;
 
+    private string $sizes = '';
+
     /**
      * @param string $src
      * @param string $srcset
@@ -182,5 +184,29 @@ class Image extends BaseModel
     {
         return !empty($this->src);
     }
+
+    public function hasSizes(): bool {
+        return !empty($this->sizes);
+    }
+
+    /**
+     * @return string
+     */
+    public function getSizes(): string
+    {
+        return $this->sizes;
+    }
+
+    /**
+     * @param string $sizes
+     * @return Image
+     */
+    public function setSizes(string $sizes): Image
+    {
+        $this->sizes = $sizes;
+        return $this;
+    }
+
+
 
 }

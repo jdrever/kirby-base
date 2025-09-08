@@ -1788,9 +1788,9 @@ abstract class KirbyBaseHelper
      * @return Image
      * @throws KirbyRetrievalException
      */
-    protected function getImage(Page $page, string $fieldName, int $width, int $height, int $quality = 90, ImageType $imageType = ImageType::SQUARE, $imageFormat = '') : Image {
+    protected function getImage(Page $page, string $fieldName, int $width, int $height, int $quality = 90, ImageType $imageType = ImageType::SQUARE, string $imageFormat = '', string $sizes = '') : Image {
         $pageImage = $this->getPageFieldAsFile($page, $fieldName);
-        return $this->getImageFromFile($pageImage, $width, $height, $quality, $imageType, $imageFormat);
+        return $this->getImageFromFile($pageImage, $width, $height, $quality, $imageType, $imageFormat, $sizes);
     }
 
     /**
@@ -1801,7 +1801,7 @@ abstract class KirbyBaseHelper
      * @return Image
      * @throws KirbyRetrievalException
      */
-    protected function getImageFromStructureField(StructureObject $structureObject, string $fieldName, int $width, int $height, int $quality = 90, ImageType $imageType = ImageType::SQUARE, $imageFormat = '') : Image {
+    protected function getImageFromStructureField(StructureObject $structureObject, string $fieldName, int $width, int $height, int $quality = 90, ImageType $imageType = ImageType::SQUARE, string $imageFormat = '', string $sizes = '') : Image {
         $structureImage = $this->getStructureFieldAsFile($structureObject, $fieldName);
         return $this->getImageFromFile($structureImage, $width, $height, $quality, $imageType = ImageType::SQUARE, $imageFormat);
     }
@@ -1815,7 +1815,7 @@ abstract class KirbyBaseHelper
      * @param ImageType $imageType
      * @return Image
      */
-    protected function getImageFromFile(File $image, int $width, ?int $height, int $quality = 90, ImageType $imageType = ImageType::SQUARE, $imageFormat =''): Image
+    protected function getImageFromFile(File $image, int $width, ?int $height, int $quality = 90, ImageType $imageType = ImageType::SQUARE, string $imageFormat = '', string $sizes = ''): Image
     {
         $thumbOptions = [
             'width' => $width,
