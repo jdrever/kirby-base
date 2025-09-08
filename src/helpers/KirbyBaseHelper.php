@@ -12,6 +12,7 @@ use BSBI\WebBase\models\Document;
 use BSBI\WebBase\models\Documents;
 use BSBI\WebBase\models\FeedbackForm;
 use BSBI\WebBase\models\Image;
+use BSBI\WebBase\models\ImageSizes;
 use BSBI\WebBase\models\ImageType;
 use BSBI\WebBase\models\Language;
 use BSBI\WebBase\models\Languages;
@@ -1165,7 +1166,7 @@ abstract class KirbyBaseHelper
                     $description = $this->getStructureFieldAsString($item, 'description', false);
                     $webPageLink = $this->getWebPageLink($page, true, $itemTitle, $description);
                     if ($this->hasStructureField($item, 'image')) {
-                        $image = $this->getImageFromStructureField($item, 'image', 400,300,100, $imageType);
+                        $image = $this->getImageFromStructureField($item, 'image', 400,300,80, $imageType, '', ImageSizes::HALF_LARGE_SCREEN);
                         $webPageLink->setImage($image);
                     }
                     $webPageLinks->addListItem($webPageLink);
@@ -1788,9 +1789,9 @@ abstract class KirbyBaseHelper
      * @return Image
      * @throws KirbyRetrievalException
      */
-    protected function getImage(Page $page, string $fieldName, int $width, int $height, int $quality = 90, ImageType $imageType = ImageType::SQUARE, string $imageFormat = '', string $sizes = '') : Image {
+    protected function getImage(Page $page, string $fieldName, int $width, int $height, int $quality = 90, ImageType $imageType = ImageType::SQUARE, string $imageFormat = '', ImageSizes $imageSizes = ImageSizes::NOT_SPECIFIED) : Image {
         $pageImage = $this->getPageFieldAsFile($page, $fieldName);
-        return $this->getImageFromFile($pageImage, $width, $height, $quality, $imageType, $imageFormat, $sizes);
+        return $this->getImageFromFile($pageImage, $width, $height, $quality, $imageType, $imageFormat, $imageSizes);
     }
 
     /**
@@ -1801,9 +1802,9 @@ abstract class KirbyBaseHelper
      * @return Image
      * @throws KirbyRetrievalException
      */
-    protected function getImageFromStructureField(StructureObject $structureObject, string $fieldName, int $width, int $height, int $quality = 90, ImageType $imageType = ImageType::SQUARE, string $imageFormat = '', string $sizes = '') : Image {
+    protected function getImageFromStructureField(StructureObject $structureObject, string $fieldName, int $width, int $height, int $quality = 90, ImageType $imageType = ImageType::SQUARE, string $imageFormat = '', ImageSizes $imageSizes = ImageSizes::NOT_SPECIFIED) : Image {
         $structureImage = $this->getStructureFieldAsFile($structureObject, $fieldName);
-        return $this->getImageFromFile($structureImage, $width, $height, $quality, $imageType = ImageType::SQUARE, $imageFormat);
+        return $this->getImageFromFile($structureImage, $width, $height, $quality, $imageType = ImageType::SQUARE, $imageFormat, $imageSizes);
     }
 
 
@@ -1815,7 +1816,7 @@ abstract class KirbyBaseHelper
      * @param ImageType $imageType
      * @return Image
      */
-    protected function getImageFromFile(File $image, int $width, ?int $height, int $quality = 90, ImageType $imageType = ImageType::SQUARE, string $imageFormat = '', string $sizes = ''): Image
+    protected function getImageFromFile(File $image, int $width, ?int $height, int $quality = 90, ImageType $imageType = ImageType::SQUARE, string $imageFormat = '', ImageSizes $imageSizes = ImageSizes::NOT_SPECIFIED): Image
     {
         $thumbOptions = [
             'width' => $width,
@@ -1837,7 +1838,7 @@ abstract class KirbyBaseHelper
         /** @noinspection PhpUndefinedMethodInspection */
         $alt = $image->alt()->isNotEmpty() ? $image->alt()->value() : '';
         if ($src !== null && $srcSet !== null && $webpSrcSet !== null) {
-            return (new Image ($src, $srcSet, $webpSrcSet, $alt, $width, $height))->setSizes($sizes);
+            return (new Image ($src, $srcSet, $webpSrcSet, $alt, $width, $height))->setSizes($imageSizes->value);
         }
         return (new Image())->recordError('Image not found');
 
