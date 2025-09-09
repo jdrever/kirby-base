@@ -50,19 +50,18 @@ if ($currentPage->hasRelatedLinks()) : ?>
 
                         foreach ($visibleItems as $tagLink) : ?>
                             <li><a href="<?= $tagLink->getUrl() ?>"><?= $tagLink->getTitle()?></a></li>
-                        <?php endforeach;
-
-                        if (count($hiddenItems) > 0) : ?>
-                            <details>
-                                <summary>See More</summary>
-                                <ul>
-                                    <?php foreach ($hiddenItems as $tagLink) : ?>
-                                        <li><a href="<?= $tagLink->getUrl() ?>"><?= $tagLink->getTitle()?></a></li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            </details>
-                        <?php endif; ?>
+                        <?php endforeach ?>
                     </ul>
+                        <?php if (count($hiddenItems) > 0) : ?>
+                    <details>
+                        <summary>See More</summary>
+                        <ul>
+                            <?php foreach ($hiddenItems as $tagLink) : ?>
+                                <li><a href="<?= $tagLink->getUrl() ?>"><?= $tagLink->getTitle()?></a></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </details>
+                        <?php endif; ?>
                 </div>
                 <?php endif; ?>
                 <?php endforeach;
