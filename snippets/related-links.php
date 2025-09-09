@@ -44,14 +44,29 @@ if ($currentPage->hasRelatedLinks()) : ?>
                 <div class="well bg-white p-3 g-col-md-4">
                     <h4><?=$tagLinkSet->getTagType()?></h4>
                     <ul>
-                <?php foreach ($tagLinksInSet->getListItems() as $tagLink) : ?>
-                        <li><a href="<?= $tagLink->getUrl() ?>"><?= $tagLink->getTitle()?></a></li>
-                <?php endforeach ?>
+                        <?php
+                        $visibleItems = $tagLinksInSet->getFirstXItems(5);
+                        $hiddenItems = $tagLinksInSet->getItemsFromIndex(6);
+
+                        foreach ($visibleItems as $tagLink) : ?>
+                            <li><a href="<?= $tagLink->getUrl() ?>"><?= $tagLink->getTitle()?></a></li>
+                        <?php endforeach;
+
+                        if (count($hiddenItems) > 0) : ?>
+                            <details>
+                                <summary>See More</summary>
+                                <ul>
+                                    <?php foreach ($hiddenItems as $tagLink) : ?>
+                                        <li><a href="<?= $tagLink->getUrl() ?>"><?= $tagLink->getTitle()?></a></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </details>
+                        <?php endif; ?>
                     </ul>
                 </div>
-            <?php endif ?>
-        <?php endforeach;
-    endif ?>
+                <?php endif; ?>
+                <?php endforeach;
+                endif; ?>
             </div><!-- grid -->
         </div><!-- container -->
     </div>
