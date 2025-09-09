@@ -86,9 +86,9 @@ class BaseWebPage extends BaseModel
     protected string $query = '';
 
     /**
-     * @var RelatedContentList
+     * @var WebPageLinks
      */
-    protected RelatedContentList $relatedContent;
+    protected WebPageLinks $relatedContent;
 
     /**
      * @var WebPageTagLinks
@@ -387,7 +387,7 @@ class BaseWebPage extends BaseModel
     /**
      * @return $this
      */
-    public function setRelatedContentList(RelatedContentList $relatedContentList): self {
+    public function setRelatedContentList(WebPageLinks $relatedContentList): self {
         $this->relatedContent = $relatedContentList;
         return $this;
     }
@@ -395,7 +395,7 @@ class BaseWebPage extends BaseModel
     /**
      * @return RelatedContentList
      */
-    public function getRelatedContentList(): RelatedContentList {
+    public function getRelatedContentList(): WebPageLinks {
         return $this->relatedContent;
     }
 

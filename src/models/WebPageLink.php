@@ -27,6 +27,8 @@ class WebPageLink extends BaseModel
 
     private bool $excludeFromMenus = false;
 
+    private bool $openInNewTab;
+
     /**
      * @param string $title
      * @param string $url
@@ -142,6 +144,23 @@ class WebPageLink extends BaseModel
         return $this;
     }
 
+    /**
+     * @return bool
+     */
+    public function doOpenInNewTab(): bool
+    {
+        return $this->openInNewTab;
+    }
+
+    /**
+     * @param bool $openInNewTab
+     * @return WebPageLink
+     */
+    public function setOpenInNewTab(bool $openInNewTab): WebPageLink
+    {
+        $this->openInNewTab = $openInNewTab;
+        return $this;
+    }
 
     
 }

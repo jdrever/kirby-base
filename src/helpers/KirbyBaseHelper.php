@@ -181,7 +181,7 @@ abstract class KirbyBaseHelper
 
             if ($this->isPageFieldNotEmpty($page, 'related')) {
                 if ($this->getPageFieldType($page, 'related') === 'structure') {
-                    $webPage->setRelatedContentList($this->getRelatedContentListFromStructureField($page, 'related'));
+                    $webPage->setRelatedContentList($this->getRelatedContentListFromStructureField($page, 'related', ImageType::PANEL));
                 }
                 if ($this->getPageFieldType($page, 'related') === 'pages') {
                     $webPage->setRelatedContentList($this->getRelatedContentListFromPagesField($page, 'related'));
@@ -985,14 +985,23 @@ abstract class KirbyBaseHelper
     /**
      * @param StructureObject $structure
      * @param string $fieldName
+     * @param bool $required
+     * @param bool $default
      * @return bool
      * @throws KirbyRetrievalException
      */
-    protected function getStructureFieldAsBool(StructureObject $structure, string $fieldName): bool
+    protected function getStructureFieldAsBool(StructureObject $structure, string $fieldName, bool $required = false, bool $default = false): bool
     {
-        $structureField = $this->getStructureField($structure, $fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        return $structureField->toBool();
+        try {
+            $structureField = $this->getStructureField($structure, $fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $structureField->toBool();
+        } catch (KirbyRetrievalException $e) {
+            if ($required) {
+                throw $e;
+            }
+            return $default;
+        }
     }
 
     /**
@@ -1000,10 +1009,11 @@ abstract class KirbyBaseHelper
      * @param StructureObject $structure
      * @param string $fieldName
      * @param bool $required
+     * @param int $default
      * @return int
      * @throws KirbyRetrievalException
      */
-    protected function getStructureFieldAsInt(StructureObject $structure, string $fieldName, bool $required = false): int
+    protected function getStructureFieldAsInt(StructureObject $structure, string $fieldName, bool $required = false, int $default = 0): int
     {
         try {
             $structureField = $this->getStructureField($structure, $fieldName);
@@ -1014,7 +1024,7 @@ abstract class KirbyBaseHelper
                 throw $e;
             }
             //TODO: should be better than returning zero if not required.  Maybe return int|null
-            return 0;
+            return $default;
         }
     }
     /**
@@ -1804,7 +1814,7 @@ abstract class KirbyBaseHelper
      */
     protected function getImageFromStructureField(StructureObject $structureObject, string $fieldName, int $width, int $height, int $quality = 90, ImageType $imageType = ImageType::SQUARE, string $imageFormat = '', ImageSizes $imageSizes = ImageSizes::NOT_SPECIFIED) : Image {
         $structureImage = $this->getStructureFieldAsFile($structureObject, $fieldName);
-        return $this->getImageFromFile($structureImage, $width, $height, $quality, $imageType = ImageType::SQUARE, $imageFormat, $imageSizes);
+        return $this->getImageFromFile($structureImage, $width, $height, $quality, $imageType, $imageFormat, $imageSizes);
     }
 
 
@@ -1855,20 +1865,21 @@ abstract class KirbyBaseHelper
      *
      * @param Page $page The page object containing the structure field.
      * @param string $fieldName The name of the structure field to retrieve data from.
-     * @return RelatedContentList The assembled list of related content items.
+     * @return WebPageLinks The assembled list of related content items.
      * @throws KirbyRetrievalException
      */
-    protected function getRelatedContentListFromPagesField(Page $page, string $fieldName = 'related') : RelatedContentList
+    protected function getRelatedContentListFromPagesField(Page $page, string $fieldName = 'related') : WebPageLinks
     {
         $relatedContent = $this->getPageFieldAsPages($page, $fieldName);;
-        $relatedContentList = new RelatedContentList();
+        $relatedContentList = new WebPageLinks();
         foreach ($relatedContent as $item) {
             $itemTitle = $this->getPageTitle($item);
             if (!empty($itemTitle)) {
-                $content = new RelatedContent(
+                $content = new WebPageLink(
                     $itemTitle,
                     $item->url(),
-                    false
+                    $item->id(),
+                    $item->template()->name()
                 );
                 $relatedContentList->addListItem($content);
             }
@@ -1879,11 +1890,48 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $page
      * @param string $fieldName
-     * @return RelatedContentList
+     * @return WebPageLinks
      * @throws KirbyRetrievalException
      */
-    protected function getRelatedContentListFromStructureField(Page $page, string $fieldName = 'related') : RelatedContentList
+    protected function getRelatedContentListFromStructureField(Page $page, string $fieldName = 'related', ImageType $imageType = ImageType::FIXED) : WebPageLinks
     {
+        $webPageLinks = new WebPageLinks();
+        try {
+            $relatedLinksStructure = $this->getPageFieldAsStructure($page, $fieldName);
+
+            foreach ($relatedLinksStructure as $item) {
+                $itemTitle = $this->getStructureFieldAsString($item, 'title', false);
+                if ($this->hasStructureField($item, 'url')) {
+                    $page = $this->getStructureFieldAsPage($item, 'url');
+                    $itemTitle = empty($itemTitle) ? $page->title()->value() : $itemTitle;
+                    $description = $this->getStructureFieldAsString($item, 'description', false);
+                    $webPageLink = $this->getWebPageLink($page, true, $itemTitle, $description);
+                    $openInNewTab = $this->getStructureFieldAsBool($item, 'openInNewTab', false);
+                    $webPageLink->setOpenInNewTab($openInNewTab);
+                    if ($this->isPageFieldNotEmpty($page, 'panelImage')) {
+                        $image = $this->getImage($page, 'panelImage', 400,300,80, $imageType, '', ImageSizes::HALF_LARGE_SCREEN);
+                        $webPageLink->setImage($image);
+                    }
+                    $webPageLinks->addListItem($webPageLink);
+                } else {
+                    if (!empty($itemTitle)) {
+                        $webPageLink = new WebPageLink(
+                            strval($item->title()),
+                            $this->getStructureFieldAsLinkUrl($item, 'url'),
+                            '',
+                            ''
+                        );
+                        $webPageLinks->addListItem($webPageLink);
+                    }
+                }
+            }
+        }
+        catch (KirbyRetrievalException $e) {
+            $webPageLinks->setStatus(false);
+            $webPageLinks->addErrorMessage($e->getMessage());
+            $webPageLinks->addFriendlyMessage('No web page links found');
+        }
+        return $webPageLinks;
         $relatedContent = $this->getPageFieldAsStructure($page, $fieldName);
         $relatedContentList = new RelatedContentList();
         foreach ($relatedContent as $item) {
