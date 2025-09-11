@@ -1,5 +1,23 @@
 <?php
+
+use Kirby\Filesystem\F;
+
+$user = kirby()->user();
+$basePath = kirby()->root('blueprints');
+$siteBluePrintPath =  $basePath . '/site_admin.yml';
+
+//if ($user && $user->role()->name() !== 'admin') {
+//    $checkSiteBlueprintPath = $basePath . '/site_' . $user->role()->name() . '.yml';
+//    // Check if the specific blueprint file exists
+//    if (F::exists($checkSiteBlueprintPath)) {
+//        $siteBluePrintPath = $checkSiteBlueprintPath;
+//    }
+//}
+
+
+
 return [
+    'site' => $siteBluePrintPath,
 
     //pages blueprints
     'pages/file_archive' => __DIR__ . '/blueprints/pages/file_archive.yml',
@@ -28,6 +46,7 @@ return [
     //field blueprints
     'fields/includeInMenu' => __DIR__ . '/blueprints/fields/includeInMenu.yml',
     'fields/mainContent' => __DIR__ . '/blueprints/fields/mainContent.yml',
+    'fields/simpleContent' => __DIR__ . '/blueprints/fields/simpleContent.yml',
     'fields/mainImage' => __DIR__ . '/blueprints/fields/mainImage.yml',
     'fields/pageLinks' => __DIR__ . '/blueprints/fields/pageLinks.yml',
     'fields/panelContent' => __DIR__ . '/blueprints/fields/panelContent.yml',

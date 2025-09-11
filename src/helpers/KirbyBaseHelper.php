@@ -1053,6 +1053,28 @@ abstract class KirbyBaseHelper
     /**
      * @param StructureObject $structure
      * @param string $fieldName
+     * @param bool $required
+     * @return string
+     * @throws KirbyRetrievalException
+     */
+    protected function getStructureFieldAsKirbyText(StructureObject $structure, string $fieldName, bool $required = false): string
+    {
+        try {
+            $structureField = $this->getStructureField($structure, $fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $structureField->kti()->toString();
+        } catch (KirbyRetrievalException $e) {
+            if ($required) {
+                throw $e;
+            }
+            return '';
+        }
+
+    }
+
+    /**
+     * @param StructureObject $structure
+     * @param string $fieldName
      * @return string
      * @throws KirbyRetrievalException
      */
@@ -1199,6 +1221,33 @@ abstract class KirbyBaseHelper
             $webPageLinks->addFriendlyMessage('No web page links found');
         }
         return $webPageLinks;
+    }
+
+    /**
+     * @param StructureObject $structureObject
+     * @param string $fieldName
+     * @param bool $required
+     * @param int $excerpt
+     * @return string
+     * @throws KirbyRetrievalException
+     */
+    protected function getStructureFieldAsBlocksHtml(StructureObject $structureObject, string $fieldName, bool $required = false, int $excerpt = 0): string
+    {
+        try {
+            $structureField = $this->getStructureField($structureObject, $fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            $blockContent = $structureField->toBlocks()->toHtml();
+
+            return ($excerpt === 0)
+                ? $blockContent
+                : Str::excerpt($blockContent, 200);
+
+        } catch (KirbyRetrievalException $e) {
+            if ($required) {
+                throw $e;
+            }
+            return '';
+        }
     }
 
     /**
@@ -1819,12 +1868,15 @@ abstract class KirbyBaseHelper
 
 
     /**
-     * @param Page $page
-     * @param string $fieldName
+     * @param File $image
      * @param int $width
      * @param ?int $height
+     * @param int $quality
      * @param ImageType $imageType
+     * @param string $imageFormat (e.g. webp)
+     * @param ImageSizes $imageSizes
      * @return Image
+     * @throws InvalidArgumentException
      */
     protected function getImageFromFile(File $image, int $width, ?int $height, int $quality = 90, ImageType $imageType = ImageType::SQUARE, string $imageFormat = '', ImageSizes $imageSizes = ImageSizes::NOT_SPECIFIED): Image
     {

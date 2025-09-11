@@ -1,0 +1,23 @@
+label: Simple Content
+type: blocks
+default:
+    - type: text
+      content:
+        text:
+fieldsets:
+  text:
+    label: Text
+    type: group
+    fieldsets:
+      - heading
+      - text
+      - list
+  media:
+    label: Media
+    type: group
+    fieldsets:
+      - image
+      - gallery
+help: Click the + icon above to add headings, text, lists, images and image galleries
+
+
