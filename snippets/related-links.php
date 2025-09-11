@@ -24,7 +24,7 @@ if ($currentPage->hasRelatedLinks()) : ?>
                             <?php if($link->hasImage()):
                                 snippet('image',['image' => $link->getImage(), 'class' => 'card-img-top img-fix-size img-fix-size--four-three']) ?>
                             <?php endif ?>
-                            <div class=card-body p-4">
+                            <div class="card-body p-4">
                                 <h3 class="card-title"><?=$link->getTitle()?></h3>
                                 <p class="card-text"><?=$link->getLinkDescription()?></p>
                             </div>
