@@ -1,0 +1,22 @@
+label: Scheduled Pages
+icon: calendar
+fields:
+  scheduled:
+    type: structure
+    label: Scheduled Pages
+    help: A list of pages that are scheduled to be published.
+    fields:
+      page:
+        label: Page
+        type: pages
+      scheduledPublishDate:
+        label: Publish Date
+        type: date
+      scheduledPublishTime:
+        label: Publish Time
+        type: time
+    columns:
+      page:
+        width: 3/4
+      scheduled_publish:
+        width: 1/4
