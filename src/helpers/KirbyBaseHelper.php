@@ -32,6 +32,7 @@ use DateTime;
 use Kirby\Cms\App;
 use Kirby\Cms\Block;
 use Kirby\Cms\Blocks;
+use Kirby\Data\Yaml;
 use Kirby\Toolkit\Collection;
 use Kirby\Cms\File;
 use Kirby\Cms\Files;
@@ -3405,6 +3406,62 @@ abstract class KirbyBaseHelper
         $milliseconds = sprintf("%03d", ($microtime - floor($microtime)) * 1000);
         $timestamp = (new DateTime())->setTimestamp((int)$microtime)->format("Y-m-d H:i:s");
         echo "[{$timestamp}.{$milliseconds}]<br>";
+    }
+
+    /**
+     * @return string
+     * @throws InvalidArgumentException
+     * @throws \DateMalformedStringException
+     */
+    public function publishScheduledPages(): string {
+
+        $scheduledEntries = $this->site->scheduled()->toStructure();
+        $updatedList = [];
+        $publishedCount = 0;
+
+        foreach ($scheduledEntries as $entry) {
+            $pageId = $entry->page()->toPage(); // Get the Page object from the field
+            $scheduledDate = $entry->scheduledPublishDate()->value();
+            $scheduledTime = $entry->scheduledPublishTime()->value();
+
+            // If a page and a date/time exist for the entry
+            if ($pageId && $scheduledDate && $scheduledTime) {
+                // Combine the date and time into a single string
+                $timezone = new \DateTimeZone('Europe/London');
+                $scheduledDateTime = new DateTime(
+                    $scheduledDate . ' ' . $scheduledTime,
+                    $timezone
+                );
+
+                // Convert the string to a Unix timestamp
+                $currentDateTime = new DateTime('now', $timezone);
+
+                // The comparison should now work reliably
+                if ($currentDateTime >= $scheduledDateTime) {
+                    try {
+                        $page = kirby()->page($pageId);
+                        if ($page) {
+                            $page->changeStatus('listed');
+                            $this->writeToLog('scheduledPublish', 'Published '.$page->title(). ' at '.$scheduledDateTime->format('Y-m-d H:i:s'));
+                            $publishedCount++;
+                        }
+                    } catch (\Exception $e) {
+                        $this->writeToLog('scheduledPublish', 'Error: '.$e->getMessage(). ' - ' . $e->getTraceAsString() . "\n");
+                        return 'Error:' . $e->getMessage(). ' - ' . $e->getTraceAsString() . "\n";
+                    }
+                } else {
+                    // Keep the entry in the list if it's not ready to be published
+                    $updatedList[] = $entry->content()->toArray();
+                }
+            }
+        }
+
+        // Encode and save the new, updated list back to the site file
+        $this->site->update([
+            'scheduled' => Yaml::encode($updatedList),
+        ]);
+
+        return 'Scheduled pages processed. Published ' . $publishedCount . ' pages.';
     }
 
 
