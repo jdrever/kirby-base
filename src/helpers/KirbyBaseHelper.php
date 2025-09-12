@@ -3420,38 +3420,48 @@ abstract class KirbyBaseHelper
         $publishedCount = 0;
 
         foreach ($scheduledEntries as $entry) {
-            $pageId = $entry->page()->toPage(); // Get the Page object from the field
-            $scheduledDate = $entry->scheduledPublishDate()->value();
-            $scheduledTime = $entry->scheduledPublishTime()->value();
+            // Get the collection of Page objects from the field
+            $pages = $entry->page()->toPages();
 
-            // If a page and a date/time exist for the entry
-            if ($pageId && $scheduledDate && $scheduledTime) {
-                // Combine the date and time into a single string
-                $timezone = new \DateTimeZone('Europe/London');
-                $scheduledDateTime = new DateTime(
-                    $scheduledDate . ' ' . $scheduledTime,
-                    $timezone
-                );
+            // If there's at least one page selected
+            if ($pages->isNotEmpty()) {
+                $scheduledDate = $entry->scheduledPublishDate()->value();
+                $scheduledTime = $entry->scheduledPublishTime()->value();
 
-                // Convert the string to a Unix timestamp
-                $currentDateTime = new DateTime('now', $timezone);
+                // If a date and time exist for the entry
+                if ($scheduledDate && $scheduledTime) {
+                    $timezone = new \DateTimeZone('Europe/London');
+                    $scheduledDateTime = new DateTime(
+                        $scheduledDate . ' ' . $scheduledTime,
+                        $timezone
+                    );
+                    $currentDateTime = new DateTime('now', $timezone);
 
-                // The comparison should now work reliably
-                if ($currentDateTime >= $scheduledDateTime) {
-                    try {
-                        $page = kirby()->page($pageId);
-                        if ($page) {
-                            $page->changeStatus('listed');
-                            $this->writeToLog('scheduledPublish', 'Published '.$page->title(). ' at '.$scheduledDateTime->format('Y-m-d H:i:s'));
-                            $publishedCount++;
+                    // The comparison should now work reliably
+                    if ($currentDateTime >= $scheduledDateTime) {
+                        // Loop through each selected page
+                        foreach ($pages as $page) {
+                            try {
+                                if ($page) {
+                                    if ($page->isListed()) {
+                                        $this->writeToLog('scheduledPublish', 'Page already published: '.$page->title(). ' at '.$currentDateTime->format('Y-m-d H:i:s'). PHP_EOL);
+                                        // Continue to the next page in the loop
+                                        continue;
+                                    }
+                                    // If not already listed, change the status
+                                    $page->changeStatus('listed');
+                                    $this->writeToLog('scheduledPublish', 'Published '.$page->title(). ' at '.$currentDateTime->format('Y-m-d H:i:s'). PHP_EOL);
+                                    $publishedCount++;
+                                }
+                            } catch (\Exception $e) {
+                                $this->writeToLog('scheduledPublish', 'Error: '.$e->getMessage(). ' - ' . $e->getTraceAsString() . PHP_EOL);
+                                return 'Error:' . $e->getMessage(). ' - ' . $e->getTraceAsString() . PHP_EOL;
+                            }
                         }
-                    } catch (\Exception $e) {
-                        $this->writeToLog('scheduledPublish', 'Error: '.$e->getMessage(). ' - ' . $e->getTraceAsString() . PHP_EOL);
-                        return 'Error:' . $e->getMessage(). ' - ' . $e->getTraceAsString() . PHP_EOL;
+                    } else {
+                        // Keep the entry in the list if it's not ready to be published
+                        $updatedList[] = $entry->content()->toArray();
                     }
-                } else {
-                    // Keep the entry in the list if it's not ready to be published
-                    $updatedList[] = $entry->content()->toArray();
                 }
             }
         }

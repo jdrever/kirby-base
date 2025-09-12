@@ -7,8 +7,9 @@ fields:
     help: This will happen automatically.  Note that the schedule is checked every five minutes.
     fields:
       page:
-        label: Page
+        label: Page(s)
         type: pages
+        status: all
       scheduledPublishDate:
         label: Publish Date
         type: date
