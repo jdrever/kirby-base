@@ -1,10 +1,10 @@
-label: Scheduled Pages
+label: Scheduled Publication
 icon: calendar
 fields:
   scheduled:
     type: structure
-    label: Scheduled Pages
-    help: A list of pages that are scheduled to be published.
+    label: Pages for scheduled publication.
+    help: This will happen automatically.  Note that the schedule is checked every five minutes.
     fields:
       page:
         label: Page
