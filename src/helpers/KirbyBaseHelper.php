@@ -3412,12 +3412,15 @@ abstract class KirbyBaseHelper
      * @return string
      * @throws InvalidArgumentException
      * @throws \DateMalformedStringException
+     * @throws Throwable
      */
     public function publishScheduledPages(): string {
 
         $scheduledEntries = $this->site->scheduled()->toStructure();
         $updatedList = [];
         $publishedCount = 0;
+
+        $this->kirby->impersonate('kirby');
 
         foreach ($scheduledEntries as $entry) {
             // Get the collection of Page objects from the field
