@@ -3446,8 +3446,8 @@ abstract class KirbyBaseHelper
                             $publishedCount++;
                         }
                     } catch (\Exception $e) {
-                        $this->writeToLog('scheduledPublish', 'Error: '.$e->getMessage(). ' - ' . $e->getTraceAsString() . "\n");
-                        return 'Error:' . $e->getMessage(). ' - ' . $e->getTraceAsString() . "\n";
+                        $this->writeToLog('scheduledPublish', 'Error: '.$e->getMessage(). ' - ' . $e->getTraceAsString() . PHP_EOL);
+                        return 'Error:' . $e->getMessage(). ' - ' . $e->getTraceAsString() . PHP_EOL;
                     }
                 } else {
                     // Keep the entry in the list if it's not ready to be published
