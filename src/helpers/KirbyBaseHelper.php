@@ -324,7 +324,18 @@ abstract class KirbyBaseHelper
     protected function getPageTitlesFromCollection(string $collectionName): array
     {
         $pages = $this->getPagesFromCollection($collectionName);
-        return $pages->pluck('title');
+        $fields = $pages->pluck('title');
+
+        // Check if the result is an array and if its first element is a Field object
+        if (is_array($fields) && count($fields) > 0 && $fields[0] instanceof \Kirby\Content\Field) {
+            // If it is, map the array to convert each Field object to a string
+            return array_map(function ($field) {
+                return (string) $field;
+            }, $fields);
+        }
+
+        // Otherwise, return the result directly (it should already be a string array)
+        return $fields;
     }
 
     /**
@@ -1312,6 +1323,24 @@ abstract class KirbyBaseHelper
     }
 
     #endregion
+
+    #region ENTRIES_FIELDS
+
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @return string []
+     * @throws KirbyRetrievalException
+     */
+    protected function getEntriesFieldAsStringArray(Page $page, string $fieldName): array {
+        $field= $this->getPageField($page, $fieldName);
+        /** @noinspection PhpUndefinedMethodInspection */
+        $fieldAsArray = [];
+        foreach($field->toEntries() as $entry) {
+            $fieldAsArray[] = $entry->toString();
+        }
+        return $fieldAsArray;
+    }
 
     #region BLOCK_FIELDS
 

@@ -20,6 +20,10 @@ endif;
 
 $labelClass = '';
 
+if (!isset($checkboxOrRadio)) :
+    $checkboxOrRadio = 'checkbox';
+endif;
+
 if (!isset($labelLayout)) :
     $labelLayout = 'normal';
     $labelClass = 'form-check-label';
@@ -29,7 +33,12 @@ elseif ($labelLayout === 'badge') :
     $labelClass = 'badge';
 endif;
 
-$checked = (str_contains($selectedValue, $value)) ? 'checked' : '';
+if (!isset($checked)) :
+    $checked = (str_contains($selectedValue, $value)) ? 'checked' : '';
+else:
+    $checked = $checked ? 'checked' : '';
+endif;
+
 
 if ($labelLayout !== 'badge') : ?>
 <div class="form-check">
@@ -37,7 +46,7 @@ if ($labelLayout !== 'badge') : ?>
 
 
 <input
-    type="checkbox"
+    type="<?=$checkboxOrRadio?>"
     name="<?=$name?>"
     id="<?=$id?>"
     value="<?=$value ?>"
