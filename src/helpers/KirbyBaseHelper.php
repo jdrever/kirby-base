@@ -28,11 +28,14 @@ use BSBI\WebBase\models\WebPageLinks;
 use BSBI\WebBase\models\User;
 use BSBI\WebBase\models\WebPageTagLinks;
 use BSBI\WebBase\models\WebPageTagLinkSet;
+use DateMalformedStringException;
 use DateTime;
+use DateTimeZone;
 use Kirby\Cms\App;
 use Kirby\Cms\Block;
 use Kirby\Cms\Blocks;
 use Kirby\Data\Yaml;
+use Kirby\Exception\NotFoundException;
 use Kirby\Toolkit\Collection;
 use Kirby\Cms\File;
 use Kirby\Cms\Files;
@@ -97,7 +100,7 @@ abstract class KirbyBaseHelper
     /**
      * Retrieves a specific page by its ID and casts it to the specified page class type.
      * Optionally checks user roles during the process. Handles errors and allows for
-     * additional processing via customizable methods.
+     * additional processing via customisable methods.
      *
      * @param string $pageId The unique identifier of the page to be retrieved.
      * @param string $pageClass The class to which the page should be cast. Defaults to BaseWebPage.
@@ -185,7 +188,7 @@ abstract class KirbyBaseHelper
                     $webPage->setRelatedContentList($this->getRelatedContentListFromStructureField($page, 'related', ImageType::PANEL));
                 }
                 if ($this->getPageFieldType($page, 'related') === 'pages') {
-                    $webPage->setRelatedContentList($this->getRelatedContentListFromPagesField($page, 'related'));
+                    $webPage->setRelatedContentList($this->getRelatedContentListFromPagesField($page));
                 }
             }
 
@@ -252,6 +255,7 @@ abstract class KirbyBaseHelper
     /**
      * @param string $title
      * @return BaseWebPage
+     * @noinspection PhpUnused
      */
     protected function findPage(string $title): BaseWebPage
     {
@@ -327,7 +331,7 @@ abstract class KirbyBaseHelper
         $fields = $pages->pluck('title');
 
         // Check if the result is an array and if its first element is a Field object
-        if (is_array($fields) && count($fields) > 0 && $fields[0] instanceof \Kirby\Content\Field) {
+        if (count($fields) > 0 && $fields[0] instanceof \Kirby\Content\Field) {
             // If it is, map the array to convert each Field object to a string
             return array_map(function ($field) {
                 return (string) $field;
@@ -376,6 +380,7 @@ abstract class KirbyBaseHelper
      * Gets the field - if the field is empty, returns an empty string
      * @return string
      * @throws KirbyRetrievalException if the page or field cannot be found
+     * @noinspection PhpUnused
      */
     public function getCurrentPageTitle(): string
     {
@@ -430,6 +435,7 @@ abstract class KirbyBaseHelper
      * @param string $fieldName The name of the field to retrieve.
      * @param string $fallback The fallback value to return if the field is empty or an error occurs.
      * @return string The field value as a string, or the fallback value if the field is empty or an exception is caught.
+     * @noinspection PhpUnused
      */
     protected function getPageFieldAsStringWithFallback(Page $page, string $fieldName, string $fallback): string
     {
@@ -492,6 +498,7 @@ abstract class KirbyBaseHelper
      * @param Page $page
      * @param string $fieldName
      * @param bool $required
+     * @param bool $default
      * @return bool
      * @throws KirbyRetrievalException
      */
@@ -568,6 +575,7 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $page
      * @param string $fieldName
+     * @param bool $isRequired
      * @return Structure
      * @throws KirbyRetrievalException
      */
@@ -719,6 +727,7 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $page
      * @param string $fieldName
+     * @param bool $simpleLinks
      * @return WebPageLink
      */
     protected function getPageFieldAsWebPageLink(Page $page, string $fieldName, bool $simpleLinks = true): WebPageLink
@@ -736,6 +745,7 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $page
      * @param string $fieldName
+     * @param bool $simpleLinks
      * @return WebPageLinks
      */
     protected function getPageFieldAsWebPageLinks(Page $page, string $fieldName, bool $simpleLinks = true): WebPageLinks
@@ -753,6 +763,7 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $page
      * @param string $fieldName
+     * @param bool $isRequired
      * @return Pages|null
      * @throws KirbyRetrievalException
      */
@@ -791,6 +802,7 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $page
      * @param string $fieldName
+     * @param string $title
      * @return Document
      */
     protected function getPageFieldAsDocument(Page $page, string $fieldName, string $title = 'Download'): Document
@@ -929,6 +941,7 @@ abstract class KirbyBaseHelper
      * @param bool $default
      * @return bool
      * @throws KirbyRetrievalException
+     * @noinspection PhpUnused
      */
     protected function getSiteFieldAsBool(string $fieldName, bool $required = false, bool $default = false): bool
     {
@@ -1060,14 +1073,17 @@ abstract class KirbyBaseHelper
             return $default;
         }
     }
+
     /**
      *  NOTE: will return 0 if required and field not found/empty
      * @param StructureObject $structure
      * @param string $fieldName
-     * @return bool
+     * @param bool $required
+     * @param float $default
+     * @return float
      * @throws KirbyRetrievalException
      */
-    protected function getStructureFieldAsFloat(StructureObject $structure, string $fieldName, bool $required = false): float
+    protected function getStructureFieldAsFloat(StructureObject $structure, string $fieldName, bool $required = false, float $default = 0): float
     {
         try {
             $structureField = $this->getStructureField($structure, $fieldName);
@@ -1077,8 +1093,7 @@ abstract class KirbyBaseHelper
             if ($required) {
                 throw $e;
             }
-            //TODO: should be better than returning zero if not required.  Maybe return int|null
-            return 0;
+            return $default;
         }
 
     }
@@ -1114,7 +1129,7 @@ abstract class KirbyBaseHelper
     protected function getStructureFieldAsLinkUrl(StructureObject $structure, string $fieldName): string
     {
         $structureField = $this->getStructureField($structure, $fieldName);
-        if ($structureField) {
+        if ($structureField->isNotEmpty()) {
             /** @noinspection PhpUndefinedMethodInspection */
             return $structureField->toUrl();
         } else {
@@ -1166,15 +1181,12 @@ abstract class KirbyBaseHelper
      * @param string $fieldName
      * @return string
      * @throws KirbyRetrievalException
+     * @noinspection PhpUnused
      */
     protected function getStructureFieldAsPageTitle(StructureObject $structure, string $fieldName): string
     {
         $page = $this->getStructureFieldAsPage($structure, $fieldName);
-        if ($page) {
-            return $page->title()->value();
-        } else {
-            return '';
-        }
+        return $page->title()->value();
     }
 
     /**
@@ -1182,6 +1194,7 @@ abstract class KirbyBaseHelper
      * @param string $fieldName
      * @return string
      * @throws KirbyRetrievalException
+     * @noinspection PhpUnused
      */
     protected function getStructureFieldAsPageUrl(StructureObject $structure, string $fieldName): string
     {
@@ -1197,6 +1210,7 @@ abstract class KirbyBaseHelper
      * @param string $fieldName The name of the field to retrieve.
      * @return WebPageLink
      * @throws KirbyRetrievalException
+     * @noinspection PhpUnused
      */
     protected function getStructureFieldAsWebPageLink(StructureObject $structure, string $fieldName): WebPageLink
     {
@@ -1224,11 +1238,11 @@ abstract class KirbyBaseHelper
             $webPageLinksStructure = $this->getPageFieldAsStructure($page, $fieldName);
 
             foreach ($webPageLinksStructure as $item) {
-                $itemTitle = $this->getStructureFieldAsString($item, 'title', false);
+                $itemTitle = $this->getStructureFieldAsString($item, 'title');
                 if ($this->hasStructureField($item, 'page')) {
                     $page = $this->getStructureFieldAsPage($item, 'page');
                     $itemTitle = empty($itemTitle) ? $page->title()->value() : $itemTitle;
-                    $description = $this->getStructureFieldAsString($item, 'description', false);
+                    $description = $this->getStructureFieldAsString($item, 'description');
                     $webPageLink = $this->getWebPageLink($page, true, $itemTitle, $description);
                     if ($this->hasStructureField($item, 'image')) {
                         $image = $this->getImageFromStructureField($item, 'image', 400,300,80, $imageType, '', ImageSizes::HALF_LARGE_SCREEN);
@@ -1263,6 +1277,7 @@ abstract class KirbyBaseHelper
      * @param int $excerpt
      * @return string
      * @throws KirbyRetrievalException
+     * @noinspection PhpUnused
      */
     protected function getStructureFieldAsBlocksHtml(StructureObject $structureObject, string $fieldName, bool $required = false, int $excerpt = 0): string
     {
@@ -1296,7 +1311,7 @@ abstract class KirbyBaseHelper
             $documentsStructure = $this->getPageFieldAsStructure($page, $fieldName);
 
             foreach ($documentsStructure as $item) {
-                $docTitle = $this->getStructureFieldAsString($item, 'title', false);
+                $docTitle = $this->getStructureFieldAsString($item, 'title');
                 if ($this->hasStructureField($item, 'upload')) {
                     $file = $this->getStructureFieldAsFile($item, 'upload');
                     /** @noinspection PhpUndefinedMethodInspection */
@@ -1355,8 +1370,8 @@ abstract class KirbyBaseHelper
      */
     protected function getEntriesFieldAsStringArray(Page $page, string $fieldName): array {
         $field= $this->getPageField($page, $fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
         $fieldAsArray = [];
+        /** @noinspection PhpUndefinedMethodInspection */
         foreach($field->toEntries() as $entry) {
             $fieldAsArray[] = $entry->toString();
         }
@@ -1393,6 +1408,7 @@ abstract class KirbyBaseHelper
      * @param bool $required
      * @return int
      * @throws KirbyRetrievalException
+     * @noinspection PhpUnused
      */
     protected function getBlockFieldAsInt(Block $block, string $fieldName, bool $required = false): int
     {
@@ -1418,6 +1434,7 @@ abstract class KirbyBaseHelper
      * @param bool $fixedWidth
      * @return Image
      * @throws InvalidArgumentException
+     * @noinspection PhpUnused
      */
     protected function getBlockFieldAsImage(Block $block, string $fieldName, int $width, ?int $height, ImageType $imageType = ImageType::SQUARE, bool $fixedWidth = false): Image
     {
@@ -1465,6 +1482,7 @@ abstract class KirbyBaseHelper
      * @param bool $required
      * @return string
      * @throws KirbyRetrievalException
+     * @noinspection PhpUnused
      */
     protected function getBlockFieldAsBlocks(Block $block, string $fieldName, bool $required = false): string
     {
@@ -1486,6 +1504,7 @@ abstract class KirbyBaseHelper
      * @param bool $required
      * @return string
      * @throws KirbyRetrievalException
+     * @noinspection PhpUnused
      */
     protected function getBlockFieldAsBlocksHtml(Block $block, string $fieldName, bool $required = false): string
     {
@@ -1586,9 +1605,10 @@ abstract class KirbyBaseHelper
     /**
      * get the pages below the current page (excluding certain template types)
      * if home page, return menu pages without the home page itself
-     * @return Pages|\Kirby\Toolkit\Collection|null
+     * @param Page $page
+     * @return Pages|Collection|null
      */
-    protected function getSubPagesAsCollection(Page $page): mixed
+    protected function getSubPagesAsCollection(Page $page): Pages|Collection|null
     {
         if ($page->template()->name() !== 'home') {
             $excludedTemplates = option('subPagesExclude');
@@ -1627,6 +1647,7 @@ abstract class KirbyBaseHelper
      * get the pages below the current page
      * @param Page $page
      * @param string[] $templates
+     * @param bool $childrenOnly
      * @return Pages
      */
     protected function getSubPagesUsingTemplates(Page $page, array $templates, bool $childrenOnly = true): Pages
@@ -1638,13 +1659,22 @@ abstract class KirbyBaseHelper
      * @param Page $page
      * @param array $templates
      * @return Page|null
+     * @noinspection PhpUnused
      */
     protected function getFirstSubPageUsingTemplates(Page $page, array $templates): Page|null {
         return $this->getSubPagesUsingTemplates($page, $templates)->first();
     }
 
+    /**
+     * @param Page $page
+     * @param array $templates
+     * @noinspection PhpUnused
+     * @return Pages
+     */
     protected function getSiblingsUsingTemplates(Page $page, array $templates): Pages {
-        return $page->siblings(false)->listed()->template($templates);
+        /** @var Pages $siblings */
+        $siblings = $page->siblings(false);
+        return $siblings->filterBy('template', 'in', $templates)->listed();
     }
 
     /**
@@ -1653,6 +1683,7 @@ abstract class KirbyBaseHelper
      * @param Page $kirbyPage The current page for which the navigation is being generated.
      * @param string $collectionName The name of the collection from which the navigation should be computed.
      * @return PrevNextPageNavigation Object containing previous and next page navigation data.
+     * @noinspection PhpUnused
      */
     protected function getPrevNextNavigation(Page $kirbyPage, string $collectionName) : PrevNextPageNavigation {
         $navigation = new PrevNextPageNavigation();
@@ -1699,13 +1730,7 @@ abstract class KirbyBaseHelper
      */
     protected function getCoreLink(Page $page, string $linkType): CoreLink
     {
-        if ($page instanceof Page) {
-            $coreLink = new CoreLink($page->title()->toString(), $page->url(), $linkType);
-        } else {
-            $coreLink = new CoreLink('', '', 'NOT_FOUND');
-            $coreLink->setStatus(false);
-        }
-        return $coreLink;
+        return new CoreLink($page->title()->toString(), $page->url(), $linkType);
     }
 
 
@@ -1730,6 +1755,8 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $page
      * @param bool $simpleLink
+     * @param string|null $linkTitle
+     * @param string|null $linkDescription
      * @return WebPageLink
      * @throws KirbyRetrievalException
      */
@@ -1759,7 +1786,7 @@ abstract class KirbyBaseHelper
             $webPageLink->setImage($panelImage);
         }
 
-        $webPageLink->setShowSubPageImages($this->getPageFieldAsBool($page, 'showSubPageImages', false, false));
+        $webPageLink->setShowSubPageImages($this->getPageFieldAsBool($page, 'showSubPageImages'));
         $webPageLink->setSubPages($this->getSubPages($page, $simpleLink));
         return $webPageLink;
     }
@@ -1771,11 +1798,12 @@ abstract class KirbyBaseHelper
 
     #region MODELS
     /**
+     * @template T of BaseModel
      * @param string $pageId
-     * @param string $modelClass
-     * @return BaseModel
+     * @param class-string<T> $modelClass
+     * @return T
      */
-    public function getSpecificModel(string $pageId, string $modelClass) : BaseModel {
+    public function getSpecificModel(string $pageId, string $modelClass) : mixed {
         try {
             $kirbyPage = $this->getKirbyPage($pageId);
             if (!(is_a($modelClass, BaseModel::class, true))) {
@@ -1898,6 +1926,10 @@ abstract class KirbyBaseHelper
      * @param string $fieldName
      * @param int $width
      * @param int $height
+     * @param int $quality
+     * @param ImageType $imageType
+     * @param string $imageFormat
+     * @param ImageSizes $imageSizes
      * @return Image
      * @throws KirbyRetrievalException
      */
@@ -1907,10 +1939,14 @@ abstract class KirbyBaseHelper
     }
 
     /**
-     * @param Page $page
+     * @param StructureObject $structureObject
      * @param string $fieldName
      * @param int $width
      * @param int $height
+     * @param int $quality
+     * @param ImageType $imageType
+     * @param string $imageFormat
+     * @param ImageSizes $imageSizes
      * @return Image
      * @throws KirbyRetrievalException
      */
@@ -1929,7 +1965,7 @@ abstract class KirbyBaseHelper
      * @param string $imageFormat (e.g. webp)
      * @param ImageSizes $imageSizes
      * @return Image
-     * @throws InvalidArgumentException
+     * @throws KirbyRetrievalException
      */
     protected function getImageFromFile(File $image, int $width, ?int $height, int $quality = 90, ImageType $imageType = ImageType::SQUARE, string $imageFormat = '', ImageSizes $imageSizes = ImageSizes::NOT_SPECIFIED): Image
     {
@@ -1946,7 +1982,12 @@ abstract class KirbyBaseHelper
             $thumbOptions['format'] = $imageFormat;
         }
 
-        $src = $image->thumb($thumbOptions)->url();
+        try {
+            $src = $image->thumb($thumbOptions)->url();
+        }
+        catch (InvalidArgumentException $e) {
+            throw new KirbyRetrievalException('The image could not be retrieved: ' . $e->getMessage());
+        }
         $srcSetType = strtolower($imageType->value);
         $srcSet = $image->srcset($srcSetType);
         $webpSrcSet = $image->srcset($srcSetType . '-webp');
@@ -1995,8 +2036,8 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $page
      * @param string $fieldName
+     * @param ImageType $imageType
      * @return WebPageLinks
-     * @throws KirbyRetrievalException
      */
     protected function getRelatedContentListFromStructureField(Page $page, string $fieldName = 'related', ImageType $imageType = ImageType::FIXED) : WebPageLinks
     {
@@ -2005,13 +2046,13 @@ abstract class KirbyBaseHelper
             $relatedLinksStructure = $this->getPageFieldAsStructure($page, $fieldName);
 
             foreach ($relatedLinksStructure as $item) {
-                $itemTitle = $this->getStructureFieldAsString($item, 'title', false);
+                $itemTitle = $this->getStructureFieldAsString($item, 'title');
                 if ($this->hasStructureField($item, 'url')) {
                     $page = $this->getStructureFieldAsPage($item, 'url');
                     $itemTitle = empty($itemTitle) ? $page->title()->value() : $itemTitle;
-                    $description = $this->getStructureFieldAsString($item, 'description', false);
+                    $description = $this->getStructureFieldAsString($item, 'description');
                     $webPageLink = $this->getWebPageLink($page, true, $itemTitle, $description);
-                    $openInNewTab = $this->getStructureFieldAsBool($item, 'openInNewTab', false);
+                    $openInNewTab = $this->getStructureFieldAsBool($item, 'openInNewTab');
                     $webPageLink->setOpenInNewTab($openInNewTab);
                     if ($this->isPageFieldNotEmpty($page, 'panelImage')) {
                         $image = $this->getImage($page, 'panelImage', 400,300,80, $imageType, '', ImageSizes::HALF_LARGE_SCREEN);
@@ -2037,31 +2078,6 @@ abstract class KirbyBaseHelper
             $webPageLinks->addFriendlyMessage('No web page links found');
         }
         return $webPageLinks;
-        $relatedContent = $this->getPageFieldAsStructure($page, $fieldName);
-        $relatedContentList = new RelatedContentList();
-        foreach ($relatedContent as $item) {
-            $itemTitle = $this->getStructureFieldAsString($item, 'title', false);
-            if ($this->hasStructureField($item, 'url')) {
-                try {
-                    $itemPage = $this->getStructureFieldAsPage($item, 'url');
-                }
-                catch (KirbyRetrievalException $e) {
-                    $this->sendErrorEmail($e);
-                    continue;
-                }
-                if (empty($itemTitle)) $itemTitle = $this->getPageTitle($itemPage);
-            }
-
-            if (!empty($itemTitle)) {
-                $content = new RelatedContent(
-                    $itemTitle,
-                    $this->getStructureFieldAsLinkUrl($item, 'url'),
-                    $this->getStructureFieldAsBool($item, 'openInNewTab')
-                );
-                $relatedContentList->addListItem($content);
-            }
-        }
-        return $relatedContentList;
     }
 
 
@@ -2080,6 +2096,7 @@ abstract class KirbyBaseHelper
      *
      * @param string $key The key to check in the request.
      * @return bool Returns true if the request with the given key exists, false otherwise.
+     * @noinspection PhpUnused
      */
     protected function hasRequest(string $key): bool {
         return get($key) !== null;
@@ -2095,6 +2112,7 @@ abstract class KirbyBaseHelper
      * @param string $key The key to look for in request parameters or cookies.
      * @param string $fallBack The fallback value to return if the key does not exist in both request and cookie data.
      * @return string The value retrieved from the request parameter, cookie, or the provided fallback.
+     * @noinspection PhpUnused
      */
     protected function getRequestOrCookie(string $key, string $fallBack): string {
         return get($key) ?: cookie::get($key) ?: $fallBack;
@@ -2110,7 +2128,7 @@ abstract class KirbyBaseHelper
      * @param $message
      * @return void
      */
-    protected function writeToLog($logFile, $message):void {
+    protected function writeToLog($logFile, $message): void {
         $logDir = kirby()->root('logs');
 
         // Check if the directory doesn't exist and create it if necessary
@@ -2206,7 +2224,6 @@ abstract class KirbyBaseHelper
      * @param string $subject
      * @param array $data
      * @return void
-     * @throws KirbyRetrievalException
      */
     protected function sendEmail(string $template,
                                string $from,
@@ -2225,9 +2242,9 @@ abstract class KirbyBaseHelper
                     'data' => $data
                 ]);
             }
-            } catch (Throwable $error) {
-                $this->writeToLog('errors', $error->getMessage());
-            }
+        } catch (Throwable $error) {
+            $this->writeToLog('errors', $error->getMessage());
+        }
     }
 
     /**
@@ -2279,7 +2296,7 @@ abstract class KirbyBaseHelper
         return $details;
     }
 
-    private function getExceptionDetail(KirbyRetrievalException $exception): string
+    private function getExceptionDetail(Throwable $exception): string
     {
         $detail = "<b>Message:</b> " . $exception->getMessage() . "<br>";
         $detail .= "<b>Code:</b> " . $exception->getCode() . "<br>";
@@ -2368,7 +2385,7 @@ abstract class KirbyBaseHelper
                 /** @noinspection PhpUndefinedMethodInspection */
                 $users = $postedByField->toUsers();
 
-                // Initialize an array to hold usernames
+                // Initialise an array to hold usernames
                 $userNamesArray = [];
 
                 // Loop through the users to get their names
@@ -2461,10 +2478,10 @@ abstract class KirbyBaseHelper
     }
 
     /**
-     * @param \Kirby\Cms\Pagination $paginationFromKirby
+     * @param \Kirby\Cms\Pagination|\Kirby\Toolkit\Pagination $paginationFromKirby
      * @return Pagination
      */
-    private function getPagination(\Kirby\Cms\Pagination $paginationFromKirby): Pagination
+    private function getPagination(\Kirby\Toolkit\Pagination|\Kirby\Cms\Pagination $paginationFromKirby): Pagination
     {
         $pagination = new Pagination();
         $pagination->setHasPreviousPage($paginationFromKirby->hasPrevPage());
@@ -2706,6 +2723,12 @@ abstract class KirbyBaseHelper
 
     #region USERS
 
+    /**
+     * @param string $userId
+     * @param string $fallback
+     * @noinspection PhpUnused
+     * @return string
+     */
     protected function getUserName(string $userId, string $fallback = 'User not found') : string {
         // Extract the actual user ID from the string
         if (preg_match('/user:\/\/([a-zA-Z0-9]+)/', $userId, $matches)) {
@@ -2747,6 +2770,7 @@ abstract class KirbyBaseHelper
     /**
      * gets the current Kirby username - returns blank string if no user
      * @return string
+     * @noinspection PhpUnused
      */
     protected function getCurrentUserName(): string {
         return $this->kirby->user() ? $this->kirby->user()->name() : '';
@@ -2755,6 +2779,7 @@ abstract class KirbyBaseHelper
     /**
      * gets the current Kirby username - returns blank string if no user
      * @return string
+     * @noinspection PhpUnused
      */
     protected function getCurrentUserRole(): string {
         return $this->kirby->user() ? $this->kirby->user()->role()->name() : '';
@@ -2771,6 +2796,7 @@ abstract class KirbyBaseHelper
      *
      * @param Page $currentPage The page for which permission is being checked
      * @return bool Returns true if the user has permission to access the page, false otherwise
+     * @throws KirbyRetrievalException
      */
     protected function checkPagePermissions(Page $currentPage) : bool {
 
@@ -2781,11 +2807,15 @@ abstract class KirbyBaseHelper
         if ($user && !$user->isKirby() && ($user->role()->name() === 'admin' || $user->role()->name() === 'editor')) {
             return true;
         }
+        $siteRoles = $this->getSiteFieldAsString('requiredRoles');
 
-        if ($this->site->requiredRoles()->isNotEmpty()) {
-            $requiredRolesWithSpaces = explode(",", $this->site->requiredRoles()->values());
+        if (!empty($siteRoles)) {
+            $requiredRolesWithSpaces = explode(",",$siteRoles);
             $requiredRoles = array_map('trim', $requiredRolesWithSpaces);
-            return ($user && !$user->isKirby() && in_array($user->role()->name(), $requiredRoles));
+            //if the site has roles, and the user isn't logged in, or isn't using one of the roles
+            if ((!$user || $user->isNobody()) || (!(in_array($user->role()->name(), $requiredRoles)))) {
+                return false;
+            }
         }
 
         // If no user is logged in (or it's the kirby user), we will check for required roles later.
@@ -2795,11 +2825,7 @@ abstract class KirbyBaseHelper
         // Traverse up the page hierarchy to find the first non-empty requiredRoles field
         $page = $currentPage;
         while ($page) {
-            $requiredRolesField = $page->requiredRoles(); // Access the field
-
-            // Convert the multiselect field value to a plain array
-            $currentRoles = $requiredRolesField->toData('array');
-
+            $currentRoles = $this->getPageFieldAsArray($page,'requiredRoles'); // Access the field
             // If this page has required roles set, these are the applicable roles due to inheritance
             if (!empty($currentRoles)) {
                 $applicableRoles = $currentRoles;
@@ -2827,6 +2853,10 @@ abstract class KirbyBaseHelper
         return false;
     }
 
+    /**
+     * @return bool
+     * @noinspection PhpUnused
+     */
     protected function isUserLoggedIn(): bool {
         return $this->kirby->user() != null;
     }
@@ -2846,27 +2876,19 @@ abstract class KirbyBaseHelper
                     $loginDetails->setUserName($userName);
 
                     $loginResult = $this->kirby->auth()->login($userName, trim(get('password')), true);
-
-                    if ($loginResult) {
-                        $loginDetails->setLoginStatus(true);
-                        $loginDetails->setLoginMessage('You have successfully logged in');
-                        if ($loginDetails->hasRedirectPage()) {
-                            go($loginDetails->getRedirectPage());
-                        }
-                        $this->redirectToHome();
-
-                    } else {
-                        $loginDetails->setLoginStatus(false);
-                        $loginDetails->setLoginMessage('Login failed. Please check your username and password.');
+                    $loginDetails->setLoginStatus(true);
+                    $loginDetails->setLoginMessage('You have successfully logged in');
+                    if ($loginDetails->hasRedirectPage()) {
+                        go($loginDetails->getRedirectPage());
                     }
-
+                    $this->redirectToHome();
                 } else {
                     $loginDetails->setLoginStatus(false);
                     $loginDetails->setLoginMessage('Your security token has expired - please login again.');
                 }
-            } catch (Exception $e) {
+            } catch (Exception) {
                 $loginDetails->setLoginStatus(false);
-                $loginDetails->setLoginMessage('An error has ocurred while trying to you log in.');
+                $loginDetails->setLoginMessage('Login failed. Please check your username and password.');
             }
         }
 
@@ -2899,6 +2921,7 @@ abstract class KirbyBaseHelper
      * @param string $tagName
      * @param string $tagValue
      * @return Structure
+     * @noinspection PhpUnused
      */
     protected function filterStructureByPagesTag(Structure $structure, string $tagName, string $tagValue): Structure {
         if (empty($tagValue)) { return $structure;}
@@ -2967,7 +2990,10 @@ abstract class KirbyBaseHelper
 
                 if (($i % 50) === 0) { // Example: run GC every 50 pages
                     $collected = gc_collect_cycles();
-                    $this->writeToLog($logFile, "GC collected $collected cycles. Current memory: " . round(memory_get_usage(true) / 1024 / 1024, 2) . " MB\n", FILE_APPEND);
+                    $this->writeToLog(
+                        $logFile,
+                        "GC collected $collected cycles. Current memory: " . round(memory_get_usage(true) / 1024 / 1024, 2) . " MB\n",
+                    );
                 }
                 $i++;
             }
@@ -2985,15 +3011,15 @@ abstract class KirbyBaseHelper
      *
      * @param Page $taggingPage The page that was created or updated (e.g., a vacancy page).
      * @param Page|null $oldTaggingPage The old version of the tagging page (null for creation).
-     * @param bool $clearCache
+     * @param bool $singlePage
      * @return string
      * @throws InvalidArgumentException
      * @throws KirbyRetrievalException
      */
     public function handleTwoWayTagging(
-        \Kirby\Cms\Page $taggingPage,
-        ?\Kirby\Cms\Page $oldTaggingPage = null,
-        bool $singlePage = true
+        Page  $taggingPage,
+        ?Page $oldTaggingPage = null,
+        bool  $singlePage = true
     ):string {
         // Static flag to prevent re-entry for the current request lifecycle
         static $isSyncing = false;
@@ -3177,6 +3203,7 @@ abstract class KirbyBaseHelper
 
     /**
      * @return Languages
+     * @throws KirbyRetrievalException
      */
     protected function getLanguages() : Languages {
 
@@ -3189,8 +3216,13 @@ abstract class KirbyBaseHelper
             $languagesFromKirby = $this->kirby->languages();
 
             foreach ($languagesFromKirby as $lang) {
-                $translatedPage = $this->page->translation($lang->code());
-                if ($translatedPage && $translatedPage->exists()) {
+                try {
+                    $translatedPage = $this->page->translation($lang->code());
+                } catch (NotFoundException $e) {
+                    throw new KirbyRetrievalException('The language could not be found: '.$e->getMessage());
+                }
+
+                if ($translatedPage->exists()) {
                     $language = new Language();
                     $language->setIsDefault($lang->code() === $defaultLanguage->code());
                     if (!$language->isDefault()) {
@@ -3199,7 +3231,9 @@ abstract class KirbyBaseHelper
                     $language->setIsActivePage($lang->code() === kirby()->language()->code());
                     $language->setCode($lang->code());
                     $language->setName($lang->name());
-                    $language->setCurrentPageUrl($translatedPage->model()->url($lang->code()));
+                    /** @var \Kirby\Cms\Page $pageModel */
+                    $pageModel = $translatedPage->model();
+                    $language->setCurrentPageUrl($pageModel->url($lang->code()));
                     $languages->addLanguage($language);
                 }
 
@@ -3236,7 +3270,6 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $page
      * @return void
-     * @throws KirbyRetrievalException
      */
     public function redirectToFile(Page $page):void {
         $file = $this->getPageFieldAsDocument($page, 'file');
@@ -3446,12 +3479,17 @@ abstract class KirbyBaseHelper
      * where a date is required, but the overall
      * operation has failed.
      * @return DateTime
+     * @noinspection PhpUnused
      */
     protected function getFallBackDateTime(): DateTime
     {
         return new DateTime('1970-01-01 00:00:00');
     }
 
+    /**
+     * @return void
+     * @noinspection PhpUnused
+     */
     protected function logCurrentTime(): void
     {
         $microtime = microtime(true);
@@ -3463,7 +3501,7 @@ abstract class KirbyBaseHelper
     /**
      * @return string
      * @throws InvalidArgumentException
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      * @throws Throwable
      */
     public function publishScheduledPages(): string {
@@ -3485,7 +3523,7 @@ abstract class KirbyBaseHelper
 
                 // If a date and time exist for the entry
                 if ($scheduledDate && $scheduledTime) {
-                    $timezone = new \DateTimeZone('Europe/London');
+                    $timezone = new DateTimeZone('Europe/London');
                     $scheduledDateTime = new DateTime(
                         $scheduledDate . ' ' . $scheduledTime,
                         $timezone
