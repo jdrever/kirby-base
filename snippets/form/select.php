@@ -31,6 +31,6 @@ if (isset($label)) : ?>
 <select name="<?=$name?>" id="<?=$id?>Month" class="form-select <?=$size?>">
 <?php foreach ($options as $option)  :
     $selected = (trim($option['value']) === $selectedValue) ? ' selected' : ''; ?>
-    <option value="<?=$option['value']?>" <?=$selected?>><?=$option['display']?></option>
+    <option value="<?=$option['value']?>" <?=$selected?>><?=$option['display'] ?? $option['value']?></option>
 <?php endforeach; ?>
 </select>
