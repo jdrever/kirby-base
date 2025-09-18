@@ -33,6 +33,10 @@ abstract class BaseModel
         $this->status = true;
     }
 
+    public function hasUrl(): bool {
+        return (!empty($this->url));
+    }
+
     /**
      * Get the value of url
      */
