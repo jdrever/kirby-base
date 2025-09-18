@@ -925,6 +925,27 @@ abstract class KirbyBaseHelper
 
     /**
      * @param string $fieldName
+     * @param bool $required
+     * @param bool $default
+     * @return bool
+     * @throws KirbyRetrievalException
+     */
+    protected function getSiteFieldAsBool(string $fieldName, bool $required = false, bool $default = false): bool
+    {
+        try {
+            $siteField = $this->getSiteField($fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $siteField->toBool();
+        } catch (KirbyRetrievalException $e) {
+            if ($required) {
+                throw $e;
+            }
+            return $default;
+        }
+    }
+
+    /**
+     * @param string $fieldName
      * @return Structure
      * @throws KirbyRetrievalException
      */
@@ -1341,6 +1362,8 @@ abstract class KirbyBaseHelper
         }
         return $fieldAsArray;
     }
+
+    #endregion
 
     #region BLOCK_FIELDS
 
