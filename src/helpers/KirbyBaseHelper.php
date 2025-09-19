@@ -1034,7 +1034,7 @@ abstract class KirbyBaseHelper
      */
     protected function isSiteFieldNotEmpty(string $fieldName): bool {
         try {
-            return $this->site->content()->get($fieldName)->isEmpty();
+            return $this->site->content()->get($fieldName)->isNotEmpty();
         } catch (InvalidArgumentException) {
             return false;
         }
