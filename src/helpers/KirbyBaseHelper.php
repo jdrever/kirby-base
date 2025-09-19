@@ -3544,70 +3544,72 @@ abstract class KirbyBaseHelper
      * @throws DateMalformedStringException
      * @throws Throwable
      */
-    public function publishScheduledPages(): string {
+    public function publishScheduledPages(): string
+    {
 
+        if ($this->isSiteFieldNotEmpty('scheduled')) {
+            $scheduledEntries = $this->getSiteFieldAsStructure('scheduled');
+            $updatedList = [];
+            $publishedCount = 0;
 
-        $scheduledEntries = $this->getSiteFieldAsStructure('scheduled');
-        $updatedList = [];
-        $publishedCount = 0;
+            $this->kirby->impersonate('kirby');
 
-        $this->kirby->impersonate('kirby');
+            foreach ($scheduledEntries as $entry) {
+                // Get the collection of Page objects from the field
+                $pages = $entry->page()->toPages();
 
-        foreach ($scheduledEntries as $entry) {
-            // Get the collection of Page objects from the field
-            $pages = $entry->page()->toPages();
+                // If there's at least one page selected
+                if ($pages->isNotEmpty()) {
+                    $scheduledDate = $entry->scheduledPublishDate()->value();
+                    $scheduledTime = $entry->scheduledPublishTime()->value();
 
-            // If there's at least one page selected
-            if ($pages->isNotEmpty()) {
-                $scheduledDate = $entry->scheduledPublishDate()->value();
-                $scheduledTime = $entry->scheduledPublishTime()->value();
+                    // If a date and time exist for the entry
+                    if ($scheduledDate && $scheduledTime) {
+                        $timezone = new DateTimeZone('Europe/London');
+                        $scheduledDateTime = new DateTime(
+                            $scheduledDate . ' ' . $scheduledTime,
+                            $timezone
+                        );
+                        $currentDateTime = new DateTime('now', $timezone);
 
-                // If a date and time exist for the entry
-                if ($scheduledDate && $scheduledTime) {
-                    $timezone = new DateTimeZone('Europe/London');
-                    $scheduledDateTime = new DateTime(
-                        $scheduledDate . ' ' . $scheduledTime,
-                        $timezone
-                    );
-                    $currentDateTime = new DateTime('now', $timezone);
-
-                    // The comparison should now work reliably
-                    if ($currentDateTime >= $scheduledDateTime) {
-                        // Loop through each selected page
-                        foreach ($pages as $page) {
-                            try {
-                                if ($page) {
-                                    if ($page->isListed()) {
-                                        $this->writeToLog('scheduledPublish', 'Page already published: '.$page->title(). ' at '.$currentDateTime->format('Y-m-d H:i:s'). PHP_EOL);
-                                        // Continue to the next page in the loop
-                                        continue;
+                        // The comparison should now work reliably
+                        if ($currentDateTime >= $scheduledDateTime) {
+                            // Loop through each selected page
+                            foreach ($pages as $page) {
+                                try {
+                                    if ($page) {
+                                        if ($page->isListed()) {
+                                            $this->writeToLog('scheduledPublish', 'Page already published: ' . $page->title() . ' at ' . $currentDateTime->format('Y-m-d H:i:s') . PHP_EOL);
+                                            // Continue to the next page in the loop
+                                            continue;
+                                        }
+                                        // If not already listed, change the status
+                                        $page->changeStatus('listed');
+                                        $this->writeToLog('scheduledPublish', 'Published ' . $page->title() . ' at ' . $currentDateTime->format('Y-m-d H:i:s') . PHP_EOL);
+                                        $publishedCount++;
                                     }
-                                    // If not already listed, change the status
-                                    $page->changeStatus('listed');
-                                    $this->writeToLog('scheduledPublish', 'Published '.$page->title(). ' at '.$currentDateTime->format('Y-m-d H:i:s'). PHP_EOL);
-                                    $publishedCount++;
+                                } catch (\Exception $e) {
+                                    $this->writeToLog('scheduledPublish', 'Error: ' . $e->getMessage() . ' - ' . $e->getTraceAsString() . PHP_EOL);
+                                    return 'Error:' . $e->getMessage() . ' - ' . $e->getTraceAsString() . PHP_EOL;
                                 }
-                            } catch (\Exception $e) {
-                                $this->writeToLog('scheduledPublish', 'Error: '.$e->getMessage(). ' - ' . $e->getTraceAsString() . PHP_EOL);
-                                return 'Error:' . $e->getMessage(). ' - ' . $e->getTraceAsString() . PHP_EOL;
                             }
+                        } else {
+                            // Keep the entry in the list if it's not ready to be published
+                            $updatedList[] = $entry->content()->toArray();
                         }
-                    } else {
-                        // Keep the entry in the list if it's not ready to be published
-                        $updatedList[] = $entry->content()->toArray();
                     }
                 }
             }
+
+            // Encode and save the new, updated list back to the site file
+            $this->site->update([
+                'scheduled' => Yaml::encode($updatedList),
+            ]);
+
+            return 'Scheduled pages processed. Published ' . $publishedCount . ' pages.';
         }
-
-        // Encode and save the new, updated list back to the site file
-        $this->site->update([
-            'scheduled' => Yaml::encode($updatedList),
-        ]);
-
-        return 'Scheduled pages processed. Published ' . $publishedCount . ' pages.';
+        return '';
     }
-
 
     #endregion
 
