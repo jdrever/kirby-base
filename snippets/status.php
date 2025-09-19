@@ -25,15 +25,15 @@ if ($currentPage->hasFriendlyMessages()) :
 </div>
 
     <?php if (!$currentPage->getStatus()) :
-    if ($currentPage->getCurrentUserRole()==='admin') : ?>
+        if ($currentPage->getCurrentUserRole()==='admin') : ?>
     <div class="p-2">
         <h3>Error details</h3>
-        <?php foreach ($currentPage->getErrorMessages() as $message) : ?>
+            <?php foreach ($currentPage->getErrorMessages() as $message) : ?>
         <p><?=$message?></p>
-        <?php endforeach ?>
+            <?php endforeach ?>
     </div>
-    <?php endif;?>
-</body></html>
-    <?php die();
+        <?php endif;
+    echo('</body></html>');
+    die();
     endif;?>
 <?php endif ?>

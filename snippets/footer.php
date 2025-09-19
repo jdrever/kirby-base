@@ -1,3 +1,2 @@
 <?php snippet('scripts') ?>
-</body>
-</html>
+<?php echo('</body></html>');

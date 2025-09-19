@@ -13,5 +13,4 @@
     <?php endif ?>
     <a href="/" class="btn btn-outline-primary">Return to the website.</a>
 </div>
-</body>
-</html>
+<?php echo('</body></html>');
