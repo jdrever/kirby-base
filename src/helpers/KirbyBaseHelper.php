@@ -3183,7 +3183,7 @@ abstract class KirbyBaseHelper
      */
     protected function getWebPageTagLinkSet(Page $kirbyPage, string $tagType, string $fieldName): WebPageTagLinkSet
     {
-        $tagLinkSet = new WebPageTagLinkSet();
+        $tagLinkSet = new WebPageTagLinkSet('tagLinkSet');
         $tagLinkSet->setTagType($tagType);
         $tagLinkSet->setLinks($this->getPageFieldAsWebPageLinks($kirbyPage,$fieldName));
         return $tagLinkSet;

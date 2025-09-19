@@ -370,10 +370,10 @@ class BaseWebPage extends BaseModel
     }
 
     /**
-     * @param WebPageLinks $relatedContent
+     * @param WebPageLink $relatedContent
      * @return $this
      */
-    public function addRelatedContent(WebPageLinks $relatedContent): self
+    public function addRelatedContent(WebPageLink $relatedContent): self
     {
         $this->relatedContent->addListItem($relatedContent);
         return $this;
