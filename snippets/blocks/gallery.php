@@ -20,6 +20,8 @@ $overallCaption = $block->caption();
 $crop    = $block->crop()->isTrue();
 $ratio   = $block->ratio()->or('auto');
 $fullWidth = $block->fullWidth()->toBool();
+$figCaptionClass = '';
+
 snippet('base/full-width-block-starts', ['fullWidth' => $fullWidth]) ?>
 <div class="container">
     <div class="row row-cols-2">
