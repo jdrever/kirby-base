@@ -22,7 +22,10 @@ if ($currentPage->hasRelatedLinks()) : ?>
                     <div class="col-12 col-lg-4 mb-3">
                         <a href="<?=$link->getUrl()?>" class="card border-0 h-100">
                             <?php if($link->hasImage()):
-                                snippet('image',['image' => $link->getImage(), 'class' => 'card-img-top img-fix-size img-fix-size--four-three']) ?>
+                                snippet('image',[
+                                    'image' => $link->getImage(),
+                                    'class' => 'card-img-top img-fix-size img-fix-size--four-three'
+                                ]) ?>
                             <?php endif ?>
                             <div class="card-body p-4">
                                 <h3 class="card-title"><?=$link->getTitle()?></h3>

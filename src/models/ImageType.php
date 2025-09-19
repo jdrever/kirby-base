@@ -2,6 +2,9 @@
 
 namespace BSBI\WebBase\models;
 
+/**
+ *
+ */
 enum ImageType: string
 {
     case SQUARE = 'Square';

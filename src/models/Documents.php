@@ -26,11 +26,17 @@ class Documents extends BaseList
         return $this->list;
     }
 
+    /**
+     * @return string
+     */
     function getItemType(): string
     {
         return Document::class;
     }
 
+    /**
+     * @return string
+     */
     function getFilterType(): string
     {
         return BaseFilter::class;

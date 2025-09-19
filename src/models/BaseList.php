@@ -81,14 +81,25 @@ abstract class BaseList
     }
 
 
+    /**
+     * @return bool
+     */
     public function hasListItems(): bool {
         return count($this->list) > 0;
     }
 
+    /**
+     * @param int $x
+     * @return array
+     */
     public function getFirstXItems(int $x): array {
         return array_slice($this->list, 0, $x);
     }
 
+    /**
+     * @param int $index
+     * @return array
+     */
     public function getItemsFromIndex(int $index): array {
         return array_slice($this->list, $index-1);
     }

@@ -894,6 +894,9 @@ trait GenericKirbyHelper
         return $webPage;
     }
 
+    /**
+     * @return void
+     */
     private function redirectToLogin(): void
     {
         $loginPage = $this->findKirbyPage('login');
@@ -955,6 +958,11 @@ trait GenericKirbyHelper
         return null;
     }
 
+    /**
+     * @param Page $page
+     * @param string $template
+     * @return WebPageLink
+     */
     private function getSubPageLink(Page $page, string $template): WebPageLink
     {
         $reportPagesFromKirby = $this->getSubPagesUsingTemplates($page, [$template]);
@@ -1241,6 +1249,12 @@ trait GenericKirbyHelper
         return $page;
     }
 
+    /**
+     * @param string $pageId
+     * @param string $pageClass
+     * @param $checkUserRoles
+     * @return BaseWebPage
+     */
     public function getSpecificPage(string $pageId,
                                     string $pageClass = BaseWebPage::class,
                                            $checkUserRoles = true) : BaseWebPage {
@@ -1388,10 +1402,11 @@ trait GenericKirbyHelper
 
 
     /**
-     * @deprecated
      * @param string $pageId
      * @param class-string<BaseModel> $modelClass
+     * @param callable|null $setPageFunction
      * @return BaseModel
+     * @deprecated
      */
     private function getModelPage(
         string   $pageId,
@@ -1417,6 +1432,11 @@ trait GenericKirbyHelper
         return $model;
     }
 
+    /**
+     * @param Page $kirbyPage
+     * @param string $pageClass
+     * @return BaseWebPage
+     */
     private function getEmptyWebPage(Page $kirbyPage, string $pageClass = BaseWebPage::class): BaseWebPage
     {
         $webPage = new $pageClass($kirbyPage->title()->toString(), $kirbyPage->url(), $kirbyPage->template()->name());
@@ -1461,6 +1481,10 @@ trait GenericKirbyHelper
         return $webPage;
     }
 
+    /**
+     * @param string $pageClass
+     * @return BaseWebPage
+     */
     private function getErrorPage(string $pageClass = BaseWebPage::class) : BaseWebPage {
         /** @var BaseWebPage $webPage */
         $pageName = $this->extractClassName($pageClass);
@@ -1549,6 +1573,10 @@ trait GenericKirbyHelper
         }
     }
 
+    /**
+     * @param KirbyRetrievalException $exception
+     * @return string
+     */
     private function getExceptionDetails(KirbyRetrievalException $exception): string
     {
         $details = "An exception was thrown in your application:<br><br>";
@@ -1574,6 +1602,10 @@ trait GenericKirbyHelper
         return $details;
     }
 
+    /**
+     * @param KirbyRetrievalException $exception
+     * @return string
+     */
     private function getExceptionDetail(KirbyRetrievalException $exception): string
     {
         $detail = "<b>Message:</b> " . $exception->getMessage() . "<br>";
@@ -1635,6 +1667,9 @@ trait GenericKirbyHelper
 
     #region BREADCRUMB
 
+    /**
+     * @return bool
+     */
     private function hasBreadcrumb(): bool
     {
         return (isset($this->page)
@@ -1665,6 +1700,11 @@ trait GenericKirbyHelper
         return $this->site->breadcrumb()->filterBy('template', '!=', 'home')->filterBy('isListed', true);
     }
 
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @return string
+     */
     private function getUserNames(Page $page, string $fieldName): string
     {
         try {
@@ -1677,12 +1717,12 @@ trait GenericKirbyHelper
                 /** @noinspection PhpUndefinedMethodInspection */
                 $users = $postedByField->toUsers();
 
-                // Initialize an array to hold usernames
+                // Initialise an array to hold usernames
                 $userNamesArray = [];
 
                 // Loop through the users to get their names
                 foreach ($users as $user) :
-                    $userNamesArray[] = $user->name(); // Adjust the method to get the desired user attribute, e.g., name or username
+                    $userNamesArray[] = $user->name(); // Adjust the method to get the desired user attribute, e.g. name or username
                 endforeach;
 
                 // Convert the array of usernames to a string separated by commas
@@ -1946,6 +1986,10 @@ trait GenericKirbyHelper
         }
     }
 
+    /**
+     * @param File $file
+     * @return DateTime
+     */
     private function getFileModifiedAsDateTime(File $file): DateTime {
         $modified = $file->modified();
         return (new DateTime())->setTimestamp($modified);
@@ -1956,6 +2000,11 @@ trait GenericKirbyHelper
 
     #region USERS
 
+    /**
+     * @param string $userId
+     * @param string $fallback
+     * @return string
+     */
     private function getUserName(string $userId, string $fallback = 'User not found') : string {
         // Extract the actual user ID from the string
         if (preg_match('/user:\/\/([a-zA-Z0-9]+)/', $userId, $matches)) {
@@ -2144,6 +2193,10 @@ trait GenericKirbyHelper
         return $this->asString($optionValue);
     }
 
+    /**
+     * @param mixed $value
+     * @return string
+     */
     private function asString(mixed $value): string
     {
         if (is_string($value)) {
@@ -2173,6 +2226,9 @@ trait GenericKirbyHelper
         return new DateTime('1970-01-01 00:00:00');
     }
 
+    /**
+     * @return void
+     */
     function logCurrentTime(): void
     {
         $microtime = microtime(true);

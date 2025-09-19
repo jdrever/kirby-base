@@ -97,11 +97,18 @@ class WebPageBlock extends BaseModel
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getAnchor(): string
     {
         return $this->anchor;
     }
 
+    /**
+     * @param string $anchor
+     * @return $this
+     */
     public function setAnchor(string $anchor): WebPageBlock
     {
         $this->anchor = $anchor;

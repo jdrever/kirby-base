@@ -8,6 +8,9 @@
 namespace BSBI\WebBase\models;
 
 
+/**
+ *
+ */
 class WebPageLinks extends BaseList
 {
 
@@ -53,11 +56,17 @@ class WebPageLinks extends BaseList
         return reset($matchingLink);
     }
 
+    /**
+     * @return string
+     */
     function getItemType(): string
     {
         return WebPageLink::class;
     }
 
+    /**
+     * @return string
+     */
     function getFilterType(): string
     {
         return BaseFilter::class;

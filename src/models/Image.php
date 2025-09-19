@@ -94,11 +94,18 @@ class Image extends BaseModel
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getWebpSrcset(): string
     {
         return $this->webpSrcset;
     }
 
+    /**
+     * @param string $webpSrcset
+     * @return $this
+     */
     public function setWebpSrcset(string $webpSrcset): Image
     {
         $this->webpSrcset = $webpSrcset;
@@ -185,11 +192,17 @@ class Image extends BaseModel
         return $this;
     }
 
+    /**
+     * @return bool
+     */
     public function isAvailable(): bool
     {
         return !empty($this->src);
     }
 
+    /**
+     * @return bool
+     */
     public function hasSizes(): bool {
         return !empty($this->sizes);
     }

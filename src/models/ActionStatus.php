@@ -35,6 +35,12 @@ class ActionStatus
         $this->exception = $exception;
     }
 
+    /**
+     * @return KirbyRetrievalException
+     */
+    /**
+     * @return KirbyRetrievalException
+     */
     public function getException(): KirbyRetrievalException
     {
         return $this->exception;

@@ -5,6 +5,7 @@
 declare(strict_types=1);
 
 use Kirby\Cms\Block;
+use Kirby\Toolkit\Html;
 
 /**
  * @var Block $block

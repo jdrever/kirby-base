@@ -29,6 +29,9 @@ class RelatedContent extends BaseModel
         parent::__construct($title, $url);
     }
 
+    /**
+     * @return bool
+     */
     public function openInNewTab(): bool
     {
         return $this->openInNewTab;

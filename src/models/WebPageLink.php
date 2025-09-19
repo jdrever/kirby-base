@@ -88,38 +88,62 @@ class WebPageLink extends BaseModel
     }
 
 
+    /**
+     * @return string
+     */
     public function getPageType(): string
     {
         return $this->pageType;
     }
 
+    /**
+     * @param string $pageType
+     * @return $this
+     */
     public function setPageType(string $pageType): WebPageLink
     {
         $this->pageType = $pageType;
         return $this;
     }
 
+    /**
+     * @return bool
+     */
     public function hasRequirements(): bool
     {
         return !empty($this->requirements);
     }
 
+    /**
+     * @return string
+     */
     public function getRequirements(): string
     {
         return $this->requirements;
     }
 
+    /**
+     * @param string $requirements
+     * @return $this
+     */
     public function setRequirements(string $requirements): WebPageLink
     {
         $this->requirements = $requirements;
         return $this;
     }
 
+    /**
+     * @return bool
+     */
     public function doExcludeFromMenus(): bool
     {
         return $this->excludeFromMenus;
     }
 
+    /**
+     * @param bool $excludeFromMenus
+     * @return $this
+     */
     public function setExcludeFromMenus(bool $excludeFromMenus): WebPageLink
     {
         $this->excludeFromMenus = $excludeFromMenus;

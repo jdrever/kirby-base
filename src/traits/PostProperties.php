@@ -4,6 +4,9 @@ namespace BSBI\WebBase\traits;
 
 use DateTime;
 
+/**
+ *
+ */
 trait PostProperties
 {
     /** @var DateTime */
@@ -35,6 +38,9 @@ trait PostProperties
         return $this;
     }
 
+    /**
+     * @return bool
+     */
     public function hasPostedBy(): bool
     {
         return !empty($this->postedBy);

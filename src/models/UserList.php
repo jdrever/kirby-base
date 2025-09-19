@@ -25,11 +25,17 @@ class UserList extends BaseList
         $this->add($user);
     }
 
+    /**
+     * @return string
+     */
     function getItemType(): string
     {
         return User::class;
     }
 
+    /**
+     * @return string
+     */
     function getFilterType(): string
     {
         return BaseFilter::class;

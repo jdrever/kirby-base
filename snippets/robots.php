@@ -9,6 +9,8 @@ endif;
 
 $languages = $currentPage->getLanguages();
 
-if ($languages->isEnabled() && !$languages->isUsingDefaultLanguage() && !$languages->isPageTranslatedInCurrentLanguage()) : ?>
+if ($languages->isEnabled()
+    && !$languages->isUsingDefaultLanguage()
+    && !$languages->isPageTranslatedInCurrentLanguage()) : ?>
 <meta name="robots" content="noindex, follow">
 <?php endif ?>

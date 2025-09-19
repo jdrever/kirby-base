@@ -210,6 +210,9 @@ class BaseWebPage extends BaseModel
         return $this;
     }
 
+    /**
+     * @return bool
+     */
     public function hasMainContent(): bool {
         return isset($this->mainContentBlocks) && $this->mainContentBlocks->count()>0;
     }
@@ -367,10 +370,10 @@ class BaseWebPage extends BaseModel
     }
 
     /**
-     * @param RelatedContent $relatedContent
+     * @param WebPageLinks $relatedContent
      * @return $this
      */
-    public function addRelatedContent(RelatedContent $relatedContent): self
+    public function addRelatedContent(WebPageLinks $relatedContent): self
     {
         $this->relatedContent->addListItem($relatedContent);
         return $this;
@@ -399,7 +402,9 @@ class BaseWebPage extends BaseModel
     }
 
 
-
+    /**
+     * @return bool
+     */
     public function hasTagLinks(): bool {
         return isset($this->tagLinks) && $this->tagLinks->count()>0;
     }
@@ -563,7 +568,7 @@ class BaseWebPage extends BaseModel
      */
     public function checkUserAgainstRequiredRoles(): bool
     {
-        return ($this->checkRoleAgainstRequiredRoles($this->currentUser->getRole()));
+        return ($this->checkRoleAgainstRequiredRoles());
     }
 
     /**

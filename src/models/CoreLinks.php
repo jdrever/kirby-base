@@ -51,11 +51,17 @@ class CoreLinks extends BaseList
         return $this->list;
     }
 
+    /**
+     * @return string
+     */
     function getItemType(): string
     {
         return CoreLink::class;
     }
 
+    /**
+     * @return string
+     */
     function getFilterType(): string
     {
         return BaseFilter::class;

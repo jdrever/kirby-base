@@ -43,6 +43,7 @@ abstract class BaseModel
 
     /**
      * Get the value of url
+     * @return string
      */
     public function getUrl(): string
     {
@@ -63,7 +64,8 @@ abstract class BaseModel
     }
 
     /**
-     * Get the value of title
+     * Get the value of the title
+     * @return string
      */
     public function getTitle(): string
     {
@@ -71,12 +73,13 @@ abstract class BaseModel
     }
 
     /**
-     * Set the value of title
+     * Set the value of the title
+     * @param string $title
+     * @return BaseModel
      */
     public function setTitle(string $title): self
     {
         $this->title = $title;
-
         return $this;
     }
 

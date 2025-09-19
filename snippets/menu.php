@@ -37,7 +37,9 @@ if ($startOfMenu = $slots->startOfMenu()) : ?>
 
 foreach ($menuPages->getListItems() as $item) :
 ?>
-      <li class="nav-item"><a href="<?=$item->getUrl()?>" class="nav-link text-white ms-2 px-2"><?=$item->getTitle()?></a></li>
+      <li class="nav-item"><a href="<?=$item->getUrl()?>" class="nav-link text-white ms-2 px-2">
+        <?=$item->getTitle()?>
+      </a></li>
 <?php
 endforeach; ?>
     </ul>

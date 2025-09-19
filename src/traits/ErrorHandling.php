@@ -2,6 +2,9 @@
 
 namespace BSBI\WebBase\traits;
 
+/**
+ *
+ */
 trait ErrorHandling {
 
     /** @var string[] The error message(s) related to the model */
@@ -22,6 +25,9 @@ trait ErrorHandling {
         return $this->errorMessages;
     }
 
+    /**
+     * @return string
+     */
     public function getFirstErrorMessage(): string {
         return $this->errorMessages[0] ?? '';
     }
@@ -29,7 +35,6 @@ trait ErrorHandling {
 
 
     /**
-     * Returns true if has status of false
      * @return bool
      */
     public function hasErrors(): bool {
@@ -38,6 +43,8 @@ trait ErrorHandling {
 
     /**
      * Set the value of errorMessage
+     * @param string $errorMessage
+     * @return ErrorHandling
      */
     public function addErrorMessage(string $errorMessage): static
     {
@@ -57,6 +64,9 @@ trait ErrorHandling {
         return $this;
     }
 
+    /**
+     * @return bool
+     */
     public function hasFriendlyMessages(): bool {
         return (count($this->friendlyMessages)>0);
     }
@@ -71,6 +81,10 @@ trait ErrorHandling {
         return $this->friendlyMessages;
     }
 
+    /**
+     * @param string $friendlyMessage
+     * @return $this
+     */
     public function addFriendlyMessage(string $friendlyMessage): static
     {
         $this->friendlyMessages[] = $friendlyMessage;
@@ -78,6 +92,9 @@ trait ErrorHandling {
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getFirstFriendlyMessage(): string {
         return $this->friendlyMessages[0] ?? '';
     }
@@ -92,6 +109,11 @@ trait ErrorHandling {
         return $this;
     }
 
+    /**
+     * @param string $errorMessage
+     * @param string $friendlyMessage
+     * @return $this
+     */
     public function recordError(string $errorMessage, string $friendlyMessage =''): static {
         $this->addErrorMessage($errorMessage);
         if (!empty($friendlyMessage)) {

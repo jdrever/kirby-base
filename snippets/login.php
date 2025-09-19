@@ -29,14 +29,24 @@ $loginDetails = $currentPage->getLoginDetails();
         <ol class="list-unstyled">
             <li class="mb-3">
                 <label for="userName" class="form-label">Username:</label>
-                <input type="text" name="userName" id="userName" required="required" aria-required="true" class="form-control"
+                <input type="text"
+                       name="userName"
+                       id="userName"
+                       required="required"
+                       aria-required="true"
+                       class="form-control"
                        value="<?= $loginDetails->getUserName() ?>">
             </li>
             <li class="mb-3">
                 <label for="password" class="form-label">
                     Password:
                 </label>
-                <input type="password" name="password" id="password" required="required" aria-required="true" class="form-control">
+                <input type="password"
+                       name="password"
+                       id="password"
+                       required="required"
+                       aria-required="true"
+                       class="form-control">
             </li>
             <li class="submit-buttons">
                 <input type="submit" value="LOGIN" name="loginButton" class="btn btn-success">

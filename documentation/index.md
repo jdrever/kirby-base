@@ -57,8 +57,8 @@ list for, e.g. EventsList (it must extend BaseList)
 - In that list class, overrride getItemType to return the class you want the list to be made up of, 
 e.g. Event (it must extend BaseModel)
 - If you're using a filter, create a Filter class (extending BaseFilter) to hold the parameters you can filter by, 
-and implement a filter function based on the list class name, e.g filterEventsList
-- If you using pagination, override UsePagination in the model list class.  
+and implement a filter function based on the list class name, e.g. filterEventsList
+- If you are using pagination, override UsePagination in the model list class.  
 You can optionally also override getPaginationPerPage (which is 10 by default) and call the base/pagination snippet, 
 passing in the getPagination() function for your class list 
 

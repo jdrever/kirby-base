@@ -6,6 +6,9 @@ use BSBI\WebBase\models\BaseWebPage;
 use BSBI\WebBase\models\WebPageLink;
 use BSBI\WebBase\models\WebPageLinks;
 
+/**
+ *
+ */
 trait CoreWebPageProperties {
 
     protected string $pageId;
@@ -24,12 +27,18 @@ trait CoreWebPageProperties {
     protected WebPageLinks $subPages;
 
 
-
+    /**
+     * @return string
+     */
     public function getPageId(): string
     {
         return $this->pageId;
     }
 
+    /**
+     * @param string $pageId
+     * @return CoreWebPageProperties|BaseWebPage|WebPageLink
+     */
     public function setPageId(string $pageId): self
     {
         $this->pageId = $pageId;
@@ -70,6 +79,10 @@ trait CoreWebPageProperties {
         return $this->description;
     }
 
+    /**
+     * @param string $description
+     * @return CoreWebPageProperties|BaseWebPage|WebPageLink
+     */
     public function setDescription(string $description): self
     {
         $this->description = $description;

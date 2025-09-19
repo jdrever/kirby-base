@@ -2,6 +2,9 @@
 
 namespace BSBI\WebBase\models;
 
+/**
+ *
+ */
 enum ImageSizes: string
 {
     case NOT_SPECIFIED = '';

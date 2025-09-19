@@ -3,6 +3,9 @@
 namespace BSBI\WebBase\models;
 
 
+/**
+ *
+ */
 class WebPageBlocks extends BaseList
 {
 
@@ -49,11 +52,17 @@ class WebPageBlocks extends BaseList
         return $html;
     }
 
+    /**
+     * @return string
+     */
     function getItemType(): string
     {
         return WebPageBlock::class;
     }
 
+    /**
+     * @return string
+     */
     function getFilterType(): string
     {
         return BaseFilter::class;

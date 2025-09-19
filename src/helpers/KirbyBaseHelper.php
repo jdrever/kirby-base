@@ -50,6 +50,9 @@ use Kirby\Http\Remote;
 use Kirby\Toolkit\Str;
 use Throwable;
 
+/**
+ *
+ */
 abstract class KirbyBaseHelper
 {
 
@@ -101,6 +104,10 @@ abstract class KirbyBaseHelper
      */
     abstract function setBasicPage(Page $kirbyPage, BaseWebPage $currentPage): BaseWebPage;
 
+    /**
+     * @param string $pageClass
+     * @return BaseWebPage
+     */
     public function getCurrentPage(string $pageClass = BaseWebPage::class) : BaseWebPage {
         return $this->getSpecificPage($this->page->id(), $pageClass);
     }
@@ -867,9 +874,9 @@ abstract class KirbyBaseHelper
             if ($pageFile != null) {
                 return $this->getDocumentFromFile($pageFile, $title);
             }
-            return (new Document())->recordError('Document not found');
+            return (new Document(''))->recordError('Document not found');
         } catch (KirbyRetrievalException) {
-            return (new Document())->recordError('Document not found');
+            return (new Document(''))->recordError('Document not found');
         }
     }
 
@@ -2469,6 +2476,10 @@ abstract class KirbyBaseHelper
 
     }
 
+    /**
+     * @param KirbyRetrievalException $exception
+     * @return string
+     */
     protected function getExceptionDetails(KirbyRetrievalException $exception): string
     {
         $details = "An exception was thrown in your application:<br><br>";
@@ -2494,6 +2505,10 @@ abstract class KirbyBaseHelper
         return $details;
     }
 
+    /**
+     * @param Throwable $exception
+     * @return string
+     */
     private function getExceptionDetail(Throwable $exception): string
     {
         $detail = "<b>Message:</b> " . $exception->getMessage() . "<br>";
@@ -2544,6 +2559,9 @@ abstract class KirbyBaseHelper
 
     #region BREADCRUMB
 
+    /**
+     * @return bool
+     */
     protected function hasBreadcrumb(): bool
     {
         return (isset($this->page)
@@ -2963,7 +2981,7 @@ abstract class KirbyBaseHelper
      * @return User
      */
     protected function getCurrentUser(): User {
-        $user = new User();
+        $user = new User('user');
 
         $userLoggedIn = $this->kirby->user();
         $userId = ($userLoggedIn) ? $userLoggedIn->id() : '';
@@ -3171,6 +3189,10 @@ abstract class KirbyBaseHelper
         return $tagLinkSet;
     }
 
+    /**
+     * @param Page $kirbyPage
+     * @return WebPageTagLinks
+     */
     protected function getTagLinks(Page $kirbyPage) : WebPageTagLinks {
         $tagFields = $this->getFieldsInSection($kirbyPage, 'tags');
         $tags = new WebPageTagLinks();
@@ -3527,11 +3549,15 @@ abstract class KirbyBaseHelper
      * @throws KirbyRetrievalException
      */
     public function redirectToPage(Page $page):void {
-        $redirect_link = $this->getPageFieldAsUrl($page,'redirect_link', true);
-        go($redirect_link );
+        $redirectLink = $this->getPageFieldAsUrl($page,'redirect_link', true);
+        go($redirectLink );
     }
 
 
+    /**
+     * @param string $redirectPage
+     * @return void
+     */
     protected function redirectToLogin(string $redirectPage=''): void
     {
         $loginPage = $this->findKirbyPage('login');
@@ -3543,6 +3569,9 @@ abstract class KirbyBaseHelper
         go($url);
     }
 
+    /**
+     * @return void
+     */
     protected function redirectToHome(): void
     {
         $homePage = $this->findKirbyPage('home');
@@ -3678,6 +3707,11 @@ abstract class KirbyBaseHelper
         return $this->asString($optionValue);
     }
 
+    /**
+     * @param Page $page
+     * @param string $sectionName
+     * @return array
+     */
     protected function getFieldsInSection(Page $page, string $sectionName): array
     {
 
@@ -3706,6 +3740,11 @@ abstract class KirbyBaseHelper
     }
 
 
+    /**
+     * @param mixed $value
+     * @param string $fallback
+     * @return string
+     */
     protected function asString(mixed $value, string $fallback = ''): string
     {
         if (is_string($value)) {

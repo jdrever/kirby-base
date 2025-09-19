@@ -6,10 +6,10 @@ namespace BSBI\WebBase\models;
  * Class LoginDetails
  * Handles login-related information and state for authentication processes.
  *
- * This class stores login attempt details including:
+ * This class stores login attempt details including
  * - Login success/failure status
  * - Username of the login attempt
- * - Messages related to login results
+ * - Messages related to log-in results
  * - CSRF token for form security
  *
  * @package BSBI\WebBase\models
@@ -26,13 +26,13 @@ class LoginDetails
     private bool $hasBeenProcessed = false;
 
     /**
-     * The username provided during login attempt
+     * The username provided during a login attempt
      * @var string
      */
     private string $userName = '';
 
     /**
-     * Message to display to user about login attempt result
+     * Message to display to the user about login attempt result
      * @var string
      */
     private string $loginMessage = '';
@@ -114,6 +114,9 @@ class LoginDetails
         $this->CSRFToken = $CSRFToken;
     }
 
+    /**
+     * @return bool
+     */
     public function hasRedirectPage(): bool {
         return !empty($this->redirectPage);
     }
