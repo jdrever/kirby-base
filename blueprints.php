@@ -1,6 +1,5 @@
 <?php
 
-use Kirby\Filesystem\F;
 
 $user = kirby()->user();
 $basePath = kirby()->root('blueprints');

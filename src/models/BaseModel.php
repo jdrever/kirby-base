@@ -26,13 +26,17 @@ abstract class BaseModel
      * @param string $title The title of the model
      * @param string $url The URL of the model
      */
-    public function __construct(string $title = '', string $url = '')
+    public function __construct(string $title, string $url = '')
     {
         $this->title = $title;
         $this->url = $url;
         $this->status = true;
     }
 
+    /**
+     * @return bool
+     * @noinspection PhpUnused
+     */
     public function hasUrl(): bool {
         return (!empty($this->url));
     }
@@ -47,6 +51,9 @@ abstract class BaseModel
 
     /**
      * Set the value of url
+     * @param string $url
+     * @return BaseModel
+     * @noinspection PhpUnused
      */
     public function setUrl(string $url): self
     {

@@ -1,6 +1,7 @@
 <?php
 
-use BSBI\Web\helpers\KirbyHelper;
+use BSBI\WebBase\helpers\KirbyInternalHelper;
+
 
 return [
     'page.update:after' => function ($newPage, $oldPage) {
@@ -16,7 +17,7 @@ return [
                 'publishedBy' => $user?->id()
             ]);
         }
-        $helper = new KirbyHelper(kirby(), kirby()->site(), kirby()->page());
+        $helper = new KirbyInternalHelper(kirby(), kirby()->site(), kirby()->page());
         $helper->handleTwoWayTagging($newPage, $oldPage);
         $helper->handleCaches($newPage);
 
@@ -33,7 +34,7 @@ return [
             ]);
         }
 
-        $helper = new KirbyHelper(kirby(), kirby()->site(), kirby()->page());
+        $helper = new KirbyInternalHelper(kirby(), kirby()->site(), kirby()->page());
         $helper->handleTwoWayTagging($page);
         $helper->handleCaches($page);
         return $page;
@@ -43,8 +44,8 @@ return [
     //    $helper = new KirbyHelper(kirby(), kirby()->site(), kirby()->page());
     //    //$helper->handleCaches($newPage);
     //},
-    'page.delete:before' => function (Kirby\Cms\Page $page, bool $force) {
-        $helper = new KirbyHelper(kirby(), kirby()->site(), kirby()->page());
+    'page.delete:before' => function (Kirby\Cms\Page $page) {
+        $helper = new KirbyInternalHelper(kirby(), kirby()->site(), kirby()->page());
         $helper->handleCaches($page);
     },
     'panel.route:after' => function () {

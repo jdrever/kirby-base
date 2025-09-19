@@ -28,11 +28,20 @@ abstract class BaseList
 
     /**
      * @return T[]
+     * @noinspection PhpUnused
      */
     abstract function getListItems(): array;
 
+    /**
+     * @return string
+     * @noinspection PhpUnused
+     */
     abstract function getItemType(): string;
 
+    /**
+     * @return string
+     * @noinspection PhpUnused
+     */
     abstract function getFilterType(): string;
 
     /** @var T[] $list */
@@ -64,6 +73,7 @@ abstract class BaseList
      * List the items
      *
      * @return BaseModel
+     * @noinspection PhpUnused
      */
     public function getList(): array
     {
@@ -97,6 +107,7 @@ abstract class BaseList
      * Will return null if no item found
      * @param string $title
      * @return BaseModel|null
+     * @noinspection PhpUnused
      */
     protected function findItemByTitle(string $title): BaseModel|null
     {
@@ -120,6 +131,7 @@ abstract class BaseList
      *
      * @param bool $descending Optional. If true, sorts in descending order. Default is false (ascending).
      * @return $this
+     * @noinspection PhpUnused
      */
     public function sortByTitle(bool $descending = false): static
     {
@@ -139,6 +151,7 @@ abstract class BaseList
 
     /**
      * @return bool
+     * @noinspection PhpUnused
      */
     public function hasPagination(): bool {
         return isset($this->pagination);
@@ -146,6 +159,7 @@ abstract class BaseList
 
     /**
      * @return Pagination
+     * @noinspection PhpUnused
      */
     public function getPagination(): Pagination
     {
@@ -173,6 +187,7 @@ abstract class BaseList
     /**
      * @param int $paginatePerPage
      * @return BaseList
+     * @noinspection PhpUnused
      */
     public function setPaginatePerPage(int $paginatePerPage): BaseList
     {
@@ -182,6 +197,7 @@ abstract class BaseList
 
     /**
      * @return BaseFilter
+     * @noinspection PhpUnused
      */
     public function getFilters(): BaseFilter
     {

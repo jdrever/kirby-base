@@ -2,8 +2,6 @@
 
 namespace BSBI\WebBase\models;
 
-use BSBI\WebBase\models\BaseList;
-
 /**
  * Represents a list of User objects, extending the BaseList functionality.
  * Provides methods to retrieve, add, and manage Users within the list.

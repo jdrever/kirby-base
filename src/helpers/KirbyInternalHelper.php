@@ -16,6 +16,7 @@ class KirbyInternalHelper extends KirbyBaseHelper
 {
     /**
      * @throws KirbyRetrievalException
+     * @noinspection PhpUnused
      */
     function getBasicPage(): BaseWebPage
     {

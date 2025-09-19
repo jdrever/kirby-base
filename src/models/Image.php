@@ -42,7 +42,12 @@ class Image extends BaseModel
      * @param int $width
      * @param int $height
      */
-    public function __construct(string $src = '', string $srcset = '', string $webpSrcset ='', string $alt = '', int $width = 0, int $height = 0)
+    public function __construct(string $src = '',
+                                string $srcset = '',
+                                string $webpSrcset = '',
+                                string $alt = '',
+                                int    $width = 0,
+                                int    $height = 0)
     {
         $this->src = $src;
         $this->srcset = $srcset;

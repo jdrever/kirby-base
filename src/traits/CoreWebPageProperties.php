@@ -2,6 +2,7 @@
 
 namespace BSBI\WebBase\traits;
 
+use BSBI\WebBase\models\BaseWebPage;
 use BSBI\WebBase\models\WebPageLink;
 use BSBI\WebBase\models\WebPageLinks;
 
@@ -45,19 +46,25 @@ trait CoreWebPageProperties {
 
     /**
      * @param string $pageType
-     * @return self
+     * @return static
      */
-    public function setPageType(string $pageType): self
+    public function setPageType(string $pageType): static
     {
         $this->pageType = $pageType;
         return $this;
     }
 
+    /**
+     * @return bool
+     */
     public function hasDescription(): bool
     {
         return isset($this->description);
     }
 
+    /**
+     * @return string
+     */
     public function getDescription(): string
     {
         return $this->description;
@@ -88,18 +95,18 @@ trait CoreWebPageProperties {
 
     /**
      * @param WebPageLinks $subPages
-     * @return self
+     * @return static
      */
-    public function setSubPages(WebPageLinks $subPages): self {
+    public function setSubPages(WebPageLinks $subPages): static {
         $this->subPages = $subPages;
         return $this;
     }
 
     /**
      * @param WebPageLink $subPage
-     * @return $this
+     * @return static
      */
-    public function addSubPage(WebPageLink $subPage): self
+    public function addSubPage(WebPageLink $subPage): static
     {
         $this->subPages->addListItem($subPage);
         return $this;

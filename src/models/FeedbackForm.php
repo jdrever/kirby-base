@@ -3,7 +3,6 @@
 namespace BSBI\WebBase\models;
 
 
-use BSBI\WebBase\traits\ErrorHandling;
 use BSBI\WebBase\traits\FormProperties;
 
 class FeedbackForm {

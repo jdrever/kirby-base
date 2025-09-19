@@ -11,6 +11,7 @@ interface ListHandler
 
     /**
      * @return T[]
+     * @noinspection PhpUnused
      */
     public function getListItems(): array;
 

@@ -14,6 +14,7 @@ class CoreLinks extends BaseList
     /**
      * Add a link
      * @param CoreLink $link
+     * @return CoreLinks
      */
     public function addListItem(CoreLink $link): self
     {

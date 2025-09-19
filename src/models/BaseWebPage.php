@@ -2,7 +2,6 @@
 
 namespace BSBI\WebBase\models;
 
-use BSBI\Web\traits\TagProperties;
 use BSBI\WebBase\traits\CoreWebPageProperties;
 
 /**
@@ -393,7 +392,7 @@ class BaseWebPage extends BaseModel
     }
 
     /**
-     * @return RelatedContentList
+     * @return WebPageLinks
      */
     public function getRelatedContentList(): WebPageLinks {
         return $this->relatedContent;
@@ -568,10 +567,9 @@ class BaseWebPage extends BaseModel
     }
 
     /**
-     * @param string $role
      * @return bool
      */
-    public function checkRoleAgainstRequiredRoles(string $role): bool
+    public function checkRoleAgainstRequiredRoles(): bool
     {
         if (count($this->requiredUserRoles) === 0) {
             return true;
@@ -579,6 +577,10 @@ class BaseWebPage extends BaseModel
         return (in_array($this->currentUser->getRole(), $this->requiredUserRoles, true));
     }
 
+    /**
+     * @param string $role
+     * @return bool
+     */
     public function hasRoleOrIsAdminEditor(string $role): bool {
         $currentRole = $this->currentUser->getRole();
         return ($currentRole === $role || $currentRole === 'admin' || $currentRole === 'editor');
@@ -603,6 +605,7 @@ class BaseWebPage extends BaseModel
     }
 
     /**
+     * @param string $attributeType
      * @return bool
      */
     public function hasAttribute(string $attributeType): bool

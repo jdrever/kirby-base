@@ -377,7 +377,7 @@ trait GenericKirbyHelper
             /** @noinspection PhpUndefinedMethodInspection */
             $pages = $pageField->toPages();
             return $this->getWebPageLinks($pages);
-        } catch (KirbyRetrievalException $e) {
+        } catch (KirbyRetrievalException) {
             return new WebPageLinks();
         }
     }
@@ -1174,12 +1174,14 @@ trait GenericKirbyHelper
 
 
     /**
-     * @deprecated
      * @param string $pageId
      * @param class-string<BaseWebPage> $pageClass
-     * @param callable|null $getPageFunction
+     * @param callable|null $setPageFunction
      * @param string $collectionName
+     * @param callable|null $getPageFunction
+     * @param bool $checkUserRoles
      * @return BaseWebPage
+     * @deprecated
      */
     private function getSpecialisedPage(
         string   $pageId,

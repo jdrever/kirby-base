@@ -48,7 +48,7 @@ if (option('debug') === false) {
                     ]
                 ];
                 kirby()->email($email);
-            } catch (Throwable $exception) {
+            } catch (Throwable) {
                 //continue if an exception occurs when sending the email
             }
         }

@@ -17,12 +17,17 @@ class ActionStatus
 
     use ErrorHandling;
     private KirbyRetrievalException|null $exception;
+
     /**
      * @param bool $status
      * @param string $errorMessage
      * @param string $friendlyMessage
+     * @param KirbyRetrievalException|null $exception
      */
-    public function __construct(bool $status, string $errorMessage = '', string $friendlyMessage = '', KirbyRetrievalException $exception = null)
+    public function __construct(bool                    $status,
+                                string                  $errorMessage = '',
+                                string                  $friendlyMessage = '',
+                                KirbyRetrievalException $exception = null)
     {
         $this->status = $status;
         $this->errorMessages[] = $errorMessage;

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+/** @noinspection HtmlUnknownTag */
+
 if (!isset($fullWidth) || !$fullWidth) :
     return;
 endif;

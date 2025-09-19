@@ -54,7 +54,7 @@ class LoginDetails
     }
 
     /**
-     * @param bool $loginFailed
+     * @param bool $loginStatus
      * @return void
      */
     public function setLoginStatus(bool $loginStatus): void

@@ -31,10 +31,9 @@ snippet('base/full-width-block-starts', ['fullWidth' => $fullWidth]) ?>
     //$ratio   = $image->ratio()->or('auto');
     $src     = null;
 
-    if ($block->fixedWidth()->isNotEmpty())
-    {
+    if ($block->fixedWidth()->isNotEmpty()) :
         $image=$image->resize((int)$block->fixedWidth()->value());
-    }
+    endif;
     $src = $image->url();
 
     $imgClass="figure-img img-fluid";

@@ -14,6 +14,7 @@ class WebPageLinks extends BaseList
     /**
      * Add a web page
      * @param WebPageLink $link
+     * @return WebPageLinks
      */
     public function addListItem(WebPageLink $link): self
     {

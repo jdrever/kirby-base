@@ -28,6 +28,11 @@ abstract class BaseFilter
 
     }
 
+    /**
+     * @param array $options
+     * @return array
+     * @noinspection PhpUnused
+     */
     protected function getSimpleSelectOptions(array $options): array
     {
         $selectOptions = [];

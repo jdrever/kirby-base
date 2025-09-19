@@ -32,7 +32,7 @@ trait ListHandling
      * Add the item.
      * For implementations, use a specific add function, e.g. addCategory, that enforces type
      * @param T $item
-     * @return $this
+     * @return static
      */
     protected function add(BaseModel $item): static
     {
@@ -43,7 +43,7 @@ trait ListHandling
     /**
      * List the items
      *
-     * @return BaseModel
+     * @return T[]
      */
     public function getList(): array
     {
@@ -51,6 +51,9 @@ trait ListHandling
     }
 
 
+    /**
+     * @return bool
+     */
     public function hasListItems(): bool {
         return count($this->list) > 0;
     }
@@ -106,7 +109,7 @@ trait ListHandling
      * @param Pagination $pagination
      * @return $this
      */
-    public function setPagination(Pagination $pagination): static
+    public function setPagination(Pagination $pagination): self
     {
         $this->pagination = $pagination;
         return $this;
@@ -124,7 +127,7 @@ trait ListHandling
      * @param BaseFilter $filter
      * @return $this
      */
-    public function setFilters(BaseFilter $filter): static
+    public function setFilters(BaseFilter $filter): self
     {
         $this->filter = $filter;
         return $this;
