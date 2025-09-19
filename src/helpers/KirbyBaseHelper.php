@@ -1028,6 +1028,18 @@ abstract class KirbyBaseHelper
         }
     }
 
+    /**
+     * @param string $fieldName
+     * @return bool
+     */
+    protected function isSiteFieldNotEmpty(string $fieldName): bool {
+        try {
+            return $this->site->content()->get($fieldName)->isEmpty();
+        } catch (InvalidArgumentException) {
+            return false;
+        }
+    }
+
     #endregion
 
     #region STRUCTURE_FIELDS

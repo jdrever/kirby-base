@@ -7,6 +7,7 @@ namespace BSBI\WebBase\helpers;
 use BSBI\WebBase\models\BaseWebPage;
 use Kirby\Cms\Page;
 
+
 /**
  * Intended for use within the plugin,
  * e.g. by the plugin controllers.

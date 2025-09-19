@@ -8,9 +8,8 @@ if (!isset($currentPage)) :
     throw new Exception('page-title snippet: $currentPage not provided');
 endif;
 
-/** @var BaseWebPage $currentPage */ ?>
-
 $textCentre = isset($centreText) && $centreText === false ? '' : ' class="text-center"';
 
+/** @var BaseWebPage $currentPage */ ?>
 
 <h1<?=$textCentre?>><?= $currentPage->getDisplayPageTitle() ?></h1>
