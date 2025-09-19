@@ -60,6 +60,7 @@ return [
 
     //section blueprints
     'sections/corePageFields' => __DIR__ . '/blueprints/sections/corePageFields.yml',
+    'sections/publicationFields' => __DIR__ . '/blueprints/sections/publicationFields.yml',
     'sections/templateName' => __DIR__ . '/blueprints/sections/templateName.yml',
 
     //tabs blueprints

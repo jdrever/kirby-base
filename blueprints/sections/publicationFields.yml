@@ -1,0 +1,10 @@
+type: fields
+fields:
+  publicationDate:
+    label: Publication Date
+    type: date
+    default: today
+    required: true
+  postedBy:
+    label: Posted By
+    type: users
