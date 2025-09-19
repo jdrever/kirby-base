@@ -19,8 +19,6 @@ use BSBI\WebBase\models\Languages;
 use BSBI\WebBase\models\LoginDetails;
 use BSBI\WebBase\models\Pagination;
 use BSBI\WebBase\models\PrevNextPageNavigation;
-use BSBI\WebBase\models\RelatedContent;
-use BSBI\WebBase\models\RelatedContentList;
 use BSBI\WebBase\models\WebPageBlock;
 use BSBI\WebBase\models\WebPageBlocks;
 use BSBI\WebBase\models\WebPageLink;
@@ -308,10 +306,10 @@ abstract class KirbyBaseHelper
 
     /**
      * @param string $collectionName
-     * @return \Kirby\Toolkit\Collection
+     * @return Collection
      * @throws KirbyRetrievalException
      */
-    protected function getPagesFromCollection(string $collectionName): \Kirby\Toolkit\Collection
+    protected function getPagesFromCollection(string $collectionName): Collection
     {
         $pages = $this->kirby->collection($collectionName);
         if (!isset($pages)) {
@@ -331,7 +329,7 @@ abstract class KirbyBaseHelper
         $fields = $pages->pluck('title');
 
         // Check if the result is an array and if its first element is a Field object
-        if (count($fields) > 0 && $fields[0] instanceof \Kirby\Content\Field) {
+        if (count($fields) > 0 && $fields[0] instanceof Field) {
             // If it is, map the array to convert each Field object to a string
             return array_map(function ($field) {
                 return (string) $field;
@@ -429,7 +427,7 @@ abstract class KirbyBaseHelper
     }
 
     /**
-     * Retrieves the specified field from the page as a string. If the field is empty or an exception occurs, returns the provided fallback value.
+     * Retrieves the specified field from the page as a string. If the field is empty or an exception occurs, then return the provided fallback value.
      *
      * @param Page $page The page object containing the field.
      * @param string $fieldName The name of the field to retrieve.
@@ -442,7 +440,7 @@ abstract class KirbyBaseHelper
         try {
             $pageField = $this->getPageField($page, $fieldName);
             return $pageField->isNotEmpty() ? $pageField->toString() : $fallback;
-        } catch (KirbyRetrievalException $e) {
+        } catch (KirbyRetrievalException) {
             return $fallback;
         }
     }
@@ -738,7 +736,7 @@ abstract class KirbyBaseHelper
             $page = $pageField->toPage();
             return $this->getWebPageLink($page, $simpleLinks);
         } catch (KirbyRetrievalException $e) {
-            return (new WebPageLink('','','','error'))->recordError('Page not found');
+            return (new WebPageLink('','','','error'))->recordError('Page not found: '.$e->getMessage());
         }
     }
 
@@ -755,7 +753,7 @@ abstract class KirbyBaseHelper
             /** @noinspection PhpUndefinedMethodInspection */
             $pages = $pageField->toPages();
             return $this->getWebPageLinks($pages, $simpleLinks);
-        } catch (KirbyRetrievalException $e) {
+        } catch (KirbyRetrievalException) {
             return new WebPageLinks();
         }
     }
@@ -773,7 +771,7 @@ abstract class KirbyBaseHelper
             $pageField = $this->getPageField($page, $fieldName);
             /** @noinspection PhpUndefinedMethodInspection */
             return $pageField->toPages();
-        } catch (KirbyRetrievalException $e) {
+        } catch (KirbyRetrievalException) {
             if ($isRequired) {
                 throw new KirbyRetrievalException('The field ' . $fieldName . ' does not exist');
             }
@@ -781,6 +779,12 @@ abstract class KirbyBaseHelper
         }
     }
 
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @return string
+     * @throws KirbyRetrievalException
+     */
     protected function getPageFieldAsPageTitle(Page $page, string $fieldName): string {
         $pages = $this->getPageFieldAsPages($page, $fieldName);
         $page = $pages->first();
@@ -790,6 +794,12 @@ abstract class KirbyBaseHelper
         return '';
     }
 
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @return string
+     * @throws KirbyRetrievalException
+     */
     protected function getPageFieldAsPageUrl(Page $page, string $fieldName): string {
         $pages = $this->getPageFieldAsPages($page, $fieldName);
         $page = $pages->first();
@@ -818,6 +828,12 @@ abstract class KirbyBaseHelper
         }
     }
 
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @param string $title
+     * @return Documents
+     */
     protected function getPageFieldAsDocuments(Page $page, string $fieldName, string $title = 'Download'): Documents
     {
         $documents = new Documents();
@@ -825,7 +841,7 @@ abstract class KirbyBaseHelper
             $pageFiles = $this->getPageFieldAsFiles($page, $fieldName);
             if ($pageFiles != null) {
                 foreach($pageFiles as $pageFile) {
-                    $documents->addListItem($this->getDocumentFromFile($pageFile));
+                    $documents->addListItem($this->getDocumentFromFile($pageFile, $title));
                 }
                 return $documents;
             }
@@ -835,6 +851,11 @@ abstract class KirbyBaseHelper
         }
     }
 
+    /**
+     * @param $pageFile
+     * @param string $title
+     * @return Document
+     */
     private function getDocumentFromFile($pageFile, string $title='Download'): Document {
         $url = $pageFile->url();
         /** @noinspection PhpUndefinedMethodInspection */
@@ -844,7 +865,12 @@ abstract class KirbyBaseHelper
         return $document;
     }
 
-    private function getFileModifiedAsDateTime(File $file): DateTime {
+    /**
+     * @param File $file
+     * @return DateTime
+     * @noinspection PhpUnused
+     */
+    protected function getFileModifiedAsDateTime(File $file): DateTime {
         $modified = $file->modified();
         return (new DateTime())->setTimestamp($modified);
     }
@@ -1736,12 +1762,12 @@ abstract class KirbyBaseHelper
 
 
     /**
-     * @param \Kirby\Toolkit\Collection $collection
+     * @param Collection $collection
      * @param bool $simpleLink
      * @return WebPageLinks
      * @throws KirbyRetrievalException
      */
-    protected function getWebPageLinks(\Kirby\Toolkit\Collection $collection, bool $simpleLink = true): WebPageLinks
+    protected function getWebPageLinks(Collection $collection, bool $simpleLink = true): WebPageLinks
     {
         $webPageLinks = new WebPageLinks();
         /** @var Page $collectionPage */
@@ -2016,7 +2042,7 @@ abstract class KirbyBaseHelper
      */
     protected function getRelatedContentListFromPagesField(Page $page, string $fieldName = 'related') : WebPageLinks
     {
-        $relatedContent = $this->getPageFieldAsPages($page, $fieldName);;
+        $relatedContent = $this->getPageFieldAsPages($page, $fieldName);
         $relatedContentList = new WebPageLinks();
         foreach ($relatedContent as $item) {
             $itemTitle = $this->getPageTitle($item);
@@ -2390,7 +2416,7 @@ abstract class KirbyBaseHelper
 
                 // Loop through the users to get their names
                 foreach ($users as $user) :
-                    $userNamesArray[] = $user->name(); // Adjust the method to get the desired user attribute, e.g., name or username
+                    $userNamesArray[] = $user->name(); // Adjust the method to get the desired user attribute, e.g. name or username
                 endforeach;
 
                 // Convert the array of usernames to a string separated by commas
@@ -2812,7 +2838,7 @@ abstract class KirbyBaseHelper
         if (!empty($siteRoles)) {
             $requiredRolesWithSpaces = explode(",",$siteRoles);
             $requiredRoles = array_map('trim', $requiredRolesWithSpaces);
-            //if the site has roles, and the user isn't logged in, or isn't using one of the roles
+            //if the site has roles, and the user isn't logged in or isn't using one of the roles
             if ((!$user || $user->isNobody()) || (!(in_array($user->role()->name(), $requiredRoles)))) {
                 return false;
             }
@@ -2875,7 +2901,7 @@ abstract class KirbyBaseHelper
                     $userName = str_replace(' ', '-', $userName);
                     $loginDetails->setUserName($userName);
 
-                    $loginResult = $this->kirby->auth()->login($userName, trim(get('password')), true);
+                    $this->kirby->auth()->login($userName, trim(get('password')), true);
                     $loginDetails->setLoginStatus(true);
                     $loginDetails->setLoginMessage('You have successfully logged in');
                     if ($loginDetails->hasRedirectPage()) {
@@ -2925,14 +2951,13 @@ abstract class KirbyBaseHelper
      */
     protected function filterStructureByPagesTag(Structure $structure, string $tagName, string $tagValue): Structure {
         if (empty($tagValue)) { return $structure;}
-        $structure = $structure->filter(function ($structureItem) use ($tagName, $tagValue) {
+        return $structure->filter(function ($structureItem) use ($tagName, $tagValue) {
             $pages = $structureItem->content()->get($tagName)->toPages();
             if ($pages->isNotEmpty()) {
                 return ($pages->filterBy('title', $tagValue)->count() > 0);
             }
             return false;
         });
-        return $structure;
     }
 
     /**
@@ -2962,7 +2987,10 @@ abstract class KirbyBaseHelper
     }
 
 
-
+    /**
+     * @throws KirbyRetrievalException
+     * @throws InvalidArgumentException
+     */
     public function syncTags($template) : string {
         $logFile = 'tag-sync';
 
@@ -3009,7 +3037,7 @@ abstract class KirbyBaseHelper
      * to link to other pages, this function ensures those 'tagged pages' have their
      * `taggedField` updated to reflect the link to the 'taggingPage'.
      *
-     * @param Page $taggingPage The page that was created or updated (e.g., a vacancy page).
+     * @param Page $taggingPage The page that was created or updated (e.g. a vacancy page).
      * @param Page|null $oldTaggingPage The old version of the tagging page (null for creation).
      * @param bool $singlePage
      * @return string
@@ -3053,16 +3081,16 @@ abstract class KirbyBaseHelper
         try {
             $tagMapping = option('tagMapping');
         }
-        catch (Throwable $e) {
+        catch (Throwable) {
             $isSyncing = false;
             throw new KirbyRetrievalException('Tag mapping config not set up');
         }
 
         try {
             $taggedByField = $tagMapping[$taggingPage->template()->name()];
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             $isSyncing = false;
-            throw new KirbyRetrievalException('Tag mapping config not set up for '.$taggingPage->template()->name());
+            throw new KirbyRetrievalException('Tag mapping config not set up for ' . $taggingPage->template()->name());
         }
 
         foreach ($taggingFields as $taggingField) {
@@ -3106,10 +3134,10 @@ abstract class KirbyBaseHelper
                                 $linkedPage->update([
                                     $taggedByField => array_unique($existingTaggingPageIds) // Ensure uniqueness
                                 ]);
-                                $log .= "{$taggingPageId} added to {$taggedByField} on {$linkedPageId}";
+                                $log .= "$taggingPageId added to $taggedByField on $linkedPageId";
                             } catch (Throwable $e) {
                                 $isSyncing = false;
-                                throw new KirbyRetrievalException("Error adding {$taggingPageId} to {$taggedByField} on {$linkedPageId}: " . $e->getMessage());
+                                throw new KirbyRetrievalException("Error adding $taggingPageId to $taggedByField on $linkedPageId: " . $e->getMessage());
                             }
                         } else {
                             $isSyncing = false;
@@ -3118,7 +3146,7 @@ abstract class KirbyBaseHelper
                     }
                 } else {
                     // Log or handle cases where a linked page from $newLinkedPageIds is not found
-                    $log.= "Warning: Linked page with ID '{$linkedPageId}' not found for tagging page '{$taggingPageId}' (add attempt).";
+                    $log.= "Warning: Linked page with ID '$linkedPageId' not found for tagging page '$taggingPageId' (add attempt).";
                     // Optionally, you might want to remove this invalid ID from $taggingPage here
                 }
             }
@@ -3152,10 +3180,10 @@ abstract class KirbyBaseHelper
                                 $linkedPage->update([
                                     $taggedByField => array_unique($updatedTaggingPageIds)
                                 ]);
-                                $log .= "{$taggingPageId} removed from {$taggedByField} on {$linkedPageId}";
+                                $log .= "$taggingPageId removed from $taggedByField on $linkedPageId";
                             } catch (Throwable $e) {
                                 $isSyncing = false;
-                                throw new KirbyRetrievalException("Error removing {$taggingPageId} from {$taggedByField} on {$linkedPageId}: " . $e->getMessage());
+                                throw new KirbyRetrievalException("Error removing $taggingPageId from $taggedByField on $linkedPageId: " . $e->getMessage());
                             }
                         } else {
                             $isSyncing = false;
@@ -3164,7 +3192,7 @@ abstract class KirbyBaseHelper
                     }
                 } else {
                     // Log or handle cases where a linked page from $removedLinkedPageIds is not found
-                    $log.= "Warning: Linked page with ID '{$linkedPageId}' not found for tagging page '{$taggingPageId}' (removal attempt).";
+                    $log.= "Warning: Linked page with ID '$linkedPageId' not found for tagging page '$taggingPageId' (removal attempt).";
                 }
             }
         }
@@ -3173,7 +3201,7 @@ abstract class KirbyBaseHelper
                 // Re-fetch the taggingPage to ensure it's the latest version
                 $taggingPage = kirby()->page($taggingPage->id());
                 $taggingPage->update([
-                    'lastTagSync' => date('Y-m-d H:i:s') // Use a format suitable for datetime field
+                    'lastTagSync' => date('Y-m-d H:i:s') // Use a format suitable for the datetime field
                 ]);
             } catch (Throwable $e) {
                 $isSyncing = false;
@@ -3189,7 +3217,7 @@ abstract class KirbyBaseHelper
      * @param Collection $pages
      * @return Collection
      */
-    public function applyLimit(Collection $pages, int $limit,): Collection {
+    public function applyLimit(Collection $pages, int $limit): Collection {
         if ($limit>0) {
             $pages = $pages->limit($limit);
         }
@@ -3231,7 +3259,7 @@ abstract class KirbyBaseHelper
                     $language->setIsActivePage($lang->code() === kirby()->language()->code());
                     $language->setCode($lang->code());
                     $language->setName($lang->name());
-                    /** @var \Kirby\Cms\Page $pageModel */
+                    /** @var Page $pageModel */
                     $pageModel = $translatedPage->model();
                     $language->setCurrentPageUrl($pageModel->url($lang->code()));
                     $languages->addLanguage($language);
@@ -3255,7 +3283,7 @@ abstract class KirbyBaseHelper
         if (array_key_exists($page->template()->name(), $cacheMapping)) {
             try {
                 $cache = $this->kirby->cache($cacheName);
-            } catch (InvalidArgumentException $e) {
+            } catch (InvalidArgumentException) {
                 return 'Failed to get cache';
             }
             $cacheKey = $cacheMapping[$page->template()->name()];
@@ -3316,7 +3344,7 @@ abstract class KirbyBaseHelper
         $turnstileSiteKey = (string) option('turnstile.siteKey');
 
         if (empty($turnstileSiteKey)) {
-            throw new KirbyRetrievalException('The Turnstile sitekey for Uniform is not configured');
+            throw new KirbyRetrievalException('The Turnstile site key for Uniform is not configured');
         }
         return $turnstileSiteKey;
     }
@@ -3495,7 +3523,7 @@ abstract class KirbyBaseHelper
         $microtime = microtime(true);
         $milliseconds = sprintf("%03d", ($microtime - floor($microtime)) * 1000);
         $timestamp = (new DateTime())->setTimestamp((int)$microtime)->format("Y-m-d H:i:s");
-        echo "[{$timestamp}.{$milliseconds}]<br>";
+        echo "[$timestamp.$milliseconds]<br>";
     }
 
     /**
@@ -3506,7 +3534,8 @@ abstract class KirbyBaseHelper
      */
     public function publishScheduledPages(): string {
 
-        $scheduledEntries = $this->site->scheduled()->toStructure();
+
+        $scheduledEntries = $this->getSiteFieldAsStructure('scheduled');
         $updatedList = [];
         $publishedCount = 0;
 
