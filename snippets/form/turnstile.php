@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnhandledExceptionInspection */
 
 if (!isset($siteKey)) :
     throw new Exception("Missing turnstile site key");

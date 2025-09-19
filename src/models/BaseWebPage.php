@@ -251,7 +251,7 @@ class BaseWebPage extends BaseModel
      */
     public function hasLowerContentBlocks(): bool
     {
-        return isset($this->lowerContentBlocks) && $this->lowerContentBlocks->count()>0;;
+        return isset($this->lowerContentBlocks) && $this->lowerContentBlocks->count()>0;
     }
 
     /**

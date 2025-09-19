@@ -1,4 +1,6 @@
-<?php
+<?php /** @noinspection PhpUnhandledExceptionInspection */
+
+/** @noinspection PhpUnhandledExceptionInspection */
 
 use Kirby\Cms\App as Kirby;
 use Kirby\Toolkit\Tpl;

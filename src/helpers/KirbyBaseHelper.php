@@ -2670,7 +2670,7 @@ abstract class KirbyBaseHelper
     protected function highlightSearchQuery(BaseWebPage $page, string $query): BaseWebPage
     {
         $mainContentBlocks = $page->getMainContent();
-        foreach ($mainContentBlocks->getBlocks() as $block) {
+        foreach ($mainContentBlocks->getListItems() as $block) {
             if (in_array($block->getBlockType(), ['text', 'heading', 'list', 'note'])) {
                 $highlightedContent = $this->highlightTerm($block->getBlockContent(), $query);
                 $block->setBlockContent($highlightedContent);

@@ -1,4 +1,6 @@
-<?php
+<?php /** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
 
 declare(strict_types=1);
 
@@ -35,7 +37,7 @@ use Kirby\Cms\Block;
     }
     ?>
     <lite-youtube videoid="<?= $ytId ?>" playlabel="<?= $block->caption()->value() ?>">
-        <a href="../../../../../index.php" class="lty-playbtn" title="Play Video">
+        <a href="<?=$block->url()->value()?>" class="lty-playbtn" title="Play Video">
             <span class="lyt-visually-hidden">Play Video: <?= $block->caption() ?></span>
         </a>
     </lite-youtube>

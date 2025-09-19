@@ -1,4 +1,6 @@
-<?php
+<?php /** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
 
 declare(strict_types=1);
 
@@ -36,7 +38,6 @@ if (isset($label)) : ?>
 </label>
 <?php endif ?>
 <textarea
-    type="textbox"
     name="<?=$name?>"
     id="<?=$id?>"
     rows="<?=$rows?>"

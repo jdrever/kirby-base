@@ -2,22 +2,10 @@
 
 namespace BSBI\WebBase\models;
 
-use BSBI\WebBase\traits\ListHandling;
-use BSBI\WebBase\traits\ErrorHandling;
 
-
-/**
- * Class WebPageBlocks
- * Represents a list of web pages blocks with various properties and methods.
- * @package BSBI\Web
- */
-class WebPageBlocks
+class WebPageBlocks extends BaseList
 {
-    /**
-     * @use ListHandling<WebPageBlock, BaseFilter>
-     */
-    use ListHandling;
-    use ErrorHandling;
+
     /**
      * Add a web page
      * @param WebPageBlock $block
@@ -30,7 +18,7 @@ class WebPageBlocks
     /**
      * @return WebPageBlock[]
      */
-    public function getBlocks(): array {
+    public function getListItems(): array {
         return $this->list;
     }
 
@@ -61,4 +49,13 @@ class WebPageBlocks
         return $html;
     }
 
+    function getItemType(): string
+    {
+        return WebPageBlock::class;
+    }
+
+    function getFilterType(): string
+    {
+        return BaseFilter::class;
+    }
 }

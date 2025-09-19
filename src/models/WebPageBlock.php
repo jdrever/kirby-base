@@ -40,7 +40,7 @@ class WebPageBlock extends BaseModel
     {
         $this->blockType = $blockType;
         $this->blockContent = $blockContent;
-        parent::__construct('', '');
+        parent::__construct('');
     }
 
     /**

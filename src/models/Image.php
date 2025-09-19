@@ -50,7 +50,7 @@ class Image extends BaseModel
         $this->alt = $alt;
         $this->width = $width;
         $this->height = $height;
-        parent::__construct('', '');
+        parent::__construct('');
     }
 
     /**

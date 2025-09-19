@@ -1,4 +1,5 @@
-<?php
+<?php /** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
 
 declare(strict_types=1);
 
@@ -27,16 +28,15 @@ $loginDetails = $currentPage->getLoginDetails();
     <fieldset class="border border-success rounded p-3">
         <ol class="list-unstyled">
             <li class="mb-3">
-                <label for="email" class="form-label">Username:
-                </label>
-                <input type="text" name="userName" required="required" aria-required="true" class="form-control"
+                <label for="userName" class="form-label">Username:</label>
+                <input type="text" name="userName" id="userName" required="required" aria-required="true" class="form-control"
                        value="<?= $loginDetails->getUserName() ?>">
             </li>
             <li class="mb-3">
                 <label for="password" class="form-label">
                     Password:
                 </label>
-                <input type="password" name="password" required="required" aria-required="true" class="form-control">
+                <input type="password" name="password" id="password" required="required" aria-required="true" class="form-control">
             </li>
             <li class="submit-buttons">
                 <input type="submit" value="LOGIN" name="loginButton" class="btn btn-success">

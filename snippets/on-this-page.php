@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnhandledExceptionInspection */
 
 declare(strict_types=1);
 
@@ -26,7 +26,7 @@ if ($mainContentBlocks->hasBlockOfType('heading')) : ?>
         <nav id="toc">
             <ul>
     <?php
-    foreach ($mainContentBlocks->getBlocks() as $contentBlock) :
+    foreach ($mainContentBlocks->getListItems() as $contentBlock) :
         if ($contentBlock->getBlockType() === 'heading'
             && (in_array($contentBlock->getBlockLevel(), ['h2','h3']))) :
             $margin = $contentBlock->getBlockLevel()== 'h3' ? 'ps-4 small' : '';

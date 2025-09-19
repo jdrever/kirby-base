@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpDeprecationInspection */
 
 namespace BSBI\WebBase\traits;
 
@@ -829,7 +829,7 @@ trait GenericKirbyHelper
             if ($this->isPageFieldNotEmpty($page, 'related')) {
                 $relatedContent = $this->getPageFieldAsStructure($page, 'related');
                 foreach ($relatedContent as $item) {
-                    $itemTitle = $this->getStructureFieldAsString($item, 'title', false);
+                    $itemTitle = $this->getStructureFieldAsString($item, 'title');
                     if (!empty($itemTitle)) {
                         $content = new RelatedContent(
                             strval($item->title()),
@@ -1030,13 +1030,7 @@ trait GenericKirbyHelper
      */
     private function getCoreLink(Page $page, string $linkType): CoreLink
     {
-        if ($page instanceof Page) {
-            $coreLink = new CoreLink($page->title()->toString(), $page->url(), $linkType);
-        } else {
-            $coreLink = new CoreLink('', '', 'NOT_FOUND');
-            $coreLink->setStatus(false);
-        }
-        return $coreLink;
+        return new CoreLink($page->title()->toString(), $page->url(), $linkType);
     }
 
     /**
@@ -1092,7 +1086,7 @@ trait GenericKirbyHelper
             return $webPageLink;
         }
         if ($this->isPageFieldNotEmpty($page, 'panelImage')) {
-            $panelImage = $this->getImage($page, 'panelImage', 300, 300, ImageType::SQUARE);
+            $panelImage = $this->getImage($page, 'panelImage', 300, 300);
             $webPageLink->setImage($panelImage);
         }
         $webPageLink->setSubPages($this->getSubPages($page));
@@ -1142,12 +1136,12 @@ trait GenericKirbyHelper
 
         // Check if the created $modelList instance has the addListItem function
         if (!method_exists($modelList, 'addListItem')) {
-            throw new KirbyRetrievalException("The class {$modelClass} does not have an addListItem function.");
+            throw new KirbyRetrievalException("The class $modelClass does not have an addListItem function.");
         }
 
         // Check if the created $modelList instance has the addListItem method
         if (!method_exists($modelList, 'setFilters')) {
-            throw new KirbyRetrievalException("The class {$modelClass} does not have an setFilters function.");
+            throw new KirbyRetrievalException("The class $modelClass does not have an setFilters function.");
         }
 
         // Ensure $modelClass is a subclass of BaseModel
@@ -1202,7 +1196,7 @@ trait GenericKirbyHelper
             if ($getPageFunction) {
                 // Check if the created $page instance has the addListItem method
                 if (!method_exists($page, 'addListItem')) {
-                    throw new KirbyRetrievalException("The class {$pageClass} does not have an addListItem method.");
+                    throw new KirbyRetrievalException("The class $pageClass does not have an addListItem method.");
                 }
                 $collectionPages = $this->getPagesFromCollection($collectionName);
 
@@ -1894,7 +1888,7 @@ trait GenericKirbyHelper
     private function highlightSearchQuery(BaseWebPage $page, string $query): BaseWebPage
     {
         $mainContentBlocks = $page->getMainContent();
-        foreach ($mainContentBlocks->getBlocks() as $block) {
+        foreach ($mainContentBlocks->getListItems() as $block) {
             if (in_array($block->getBlockType(), ['text', 'heading', 'list', 'note'])) {
                 $highlightedContent = $this->highlightTerm($block->getBlockContent(), $query);
                 $block->setBlockContent($highlightedContent);
@@ -2163,7 +2157,7 @@ trait GenericKirbyHelper
         $microtime = microtime(true);
         $milliseconds = sprintf("%03d", ($microtime - floor($microtime)) * 1000);
         $timestamp = (new DateTime())->setTimestamp((int)$microtime)->format("Y-m-d H:i:s");
-        echo "[{$timestamp}.{$milliseconds}]<br>";
+        echo "[$timestamp.$milliseconds]<br>";
     }
 
 

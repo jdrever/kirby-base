@@ -1,4 +1,6 @@
-<?php
+<?php /** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
 
 declare(strict_types=1);
 
@@ -99,4 +101,4 @@ snippet('base/full-width-block-starts', ['fullWidth' => $fullWidth]);
     <?php endif ?>
 </figure>
 
-<?php snippet('base/full-width-block-ends', ['fullWidth' => $fullWidth]);;
+<?php snippet('base/full-width-block-ends', ['fullWidth' => $fullWidth]);
