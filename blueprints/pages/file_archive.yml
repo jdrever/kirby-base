@@ -13,7 +13,8 @@ tabs:
             headline: About the File Archive
             text: >
               The File Archive allows you to upload and manage files
-              that can be reused across the site. <b>You must keep the filename the same in order for existing links to continue to work.</b>
+              that can be reused across the site. <b>You must keep the filename the same in order for existing links to
+              continue to work.</b>
       - width: 3/4
         sections:
           allImages:

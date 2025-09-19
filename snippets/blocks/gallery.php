@@ -5,14 +5,16 @@ declare(strict_types=1);
 /**
  * @var App $kirby
  * @var Site $site
- * @var CustomDefaultPage $page
+ * @var Page $page
  * @var Block $block
  */
 
-use BSBI\Course\CustomDefaultPage;
+use Kirby\Cms\Html;
+use Kirby\Cms\Page;
 use Kirby\Cms\App;
 use Kirby\Cms\Block;
 use Kirby\Cms\Site;
+use Kirby\Toolkit\Str;
 
 $overallCaption = $block->caption();
 $crop    = $block->crop()->isTrue();

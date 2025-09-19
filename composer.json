@@ -18,13 +18,19 @@
   "config": {
     "optimize-autoloader": true,
     "allow-plugins": {
-      "getkirby/composer-installer": true
+      "getkirby/composer-installer": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true
     }
   },
   "require": {
     "php": ">=8.3.0 <8.5.0",
     "getkirby/cms": "^5.0.0",
     "getkirby/composer-installer": "^1.2"
+  },
+  "require-dev": {
+    "squizlabs/php_codesniffer": "*",
+    "slevomat/coding-standard": "^8.0",
+    "dealerdirect/phpcodesniffer-composer-installer": "^1.1"
   },
   "minimum-stability": "stable"
 }

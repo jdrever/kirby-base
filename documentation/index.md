@@ -4,7 +4,8 @@
 
 > git submodule add https://github.com/jdrever/kirby-base.git site/plugins/kirby-base
 
-- Create your own Kirby plugin for the additonal code for the site, including a composer.json file with an entry to require KirbyBase
+- Create your own Kirby plugin for the additonal code for the site, 
+- including a composer.json file with an entry to require KirbyBase
 
 ```
 
@@ -25,7 +26,8 @@
 
 ## CoreLinks
 
-- Create a CoreLinkTypes enum, and add has/get functions using the enum to the WebPage model to allow easy handling of core links
+- Create a CoreLinkTypes enum, and add has/get functions using the enum 
+- to the WebPage model to allow easy handling of core links
 
 ```
     /**
@@ -50,10 +52,15 @@
 
 ## Lists and Pagination
 
-- Use getSpecificModelList and pass into the parameter $modelListClass  the list class you want to create a list for, e.g. EventsList (it must extend BaseList)
-- In that list class, overrride getItemType to return the class you want the list to be made up of, e.g. Event (it must extend BaseModel)
-- If you're using a filter, create a Filter class (extending BaseFilter) to hold the parameters you can filter by, and implement a filter function based on the list class name, e.g filterEventsList
-- If you using pagination, override UsePagination in the model list class.  You can optionally also override getPaginationPerPage (which is 10 by default) and call the base/pagination snippet, passing in the getPagination() function for your class list 
+- Use getSpecificModelList and pass into the parameter $modelListClass  the list class you want to create a 
+list for, e.g. EventsList (it must extend BaseList)
+- In that list class, overrride getItemType to return the class you want the list to be made up of, 
+e.g. Event (it must extend BaseModel)
+- If you're using a filter, create a Filter class (extending BaseFilter) to hold the parameters you can filter by, 
+and implement a filter function based on the list class name, e.g filterEventsList
+- If you using pagination, override UsePagination in the model list class.  
+You can optionally also override getPaginationPerPage (which is 10 by default) and call the base/pagination snippet, 
+passing in the getPagination() function for your class list 
 
 
 ## Menu Pages
@@ -62,7 +69,8 @@ Set up a collection called menuPages - this will be used to setMenuPages for the
 
 ## File Links
 
-If you want file links to download the associated file, you need to add a controller for file_link which calls the redirectToFile function, e.g:
+If you want file links to download the associated file, you need to add a controller for file_link which calls the 
+redirectToFile function, e.g:
 
 ```
     $helper = new KirbyHelper($kirby, $site, $page);

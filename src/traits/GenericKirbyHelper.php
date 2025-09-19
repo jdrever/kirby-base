@@ -1,4 +1,5 @@
-<?php /** @noinspection PhpDeprecationInspection */
+<?php
+/** @noinspection PhpDeprecationInspection */
 
 namespace BSBI\WebBase\traits;
 
@@ -51,7 +52,11 @@ trait GenericKirbyHelper
      * @param ImageType $imageType
      * @return Image
      */
-    private function getImage(Page $page, string $fieldName, int $width, ?int $height, ImageType $imageType = ImageType::SQUARE): Image
+    private function getImage(Page      $page,
+                              string    $fieldName,
+                              int       $width,
+                              ?int      $height,
+                              ImageType $imageType = ImageType::SQUARE): Image
     {
         try {
             $pageImage = $this->getPageFieldAsFile($page, $fieldName);
@@ -278,7 +283,10 @@ trait GenericKirbyHelper
      * @return string
      * @throws KirbyRetrievalException
      */
-    private function getPageFieldAsBlocksHtml(Page $page, string $fieldName, bool $required = false, int $excerpt = 0): string
+    private function getPageFieldAsBlocksHtml(Page   $page,
+                                              string $fieldName,
+                                              bool   $required = false,
+                                              int    $excerpt = 0): string
     {
         try {
             $pageField = $this->getPageField($page, $fieldName);
@@ -494,7 +502,9 @@ trait GenericKirbyHelper
      * @return string
      * @throws KirbyRetrievalException
      */
-    private function getStructureFieldAsString(StructureObject $structure, string $fieldName, bool $required = false): string
+    private function getStructureFieldAsString(StructureObject $structure,
+                                               string          $fieldName,
+                                               bool            $required = false): string
     {
         try {
             $structureField = $this->getStructureField($structure, $fieldName);
@@ -644,7 +654,12 @@ trait GenericKirbyHelper
      * @return Image
      * @throws InvalidArgumentException
      */
-    private function getBlockFieldAsImage(Block $block, string $fieldName, int $width, ?int $height, ImageType $imageType = ImageType::SQUARE, bool $fixedWidth = false): Image
+    private function getBlockFieldAsImage(Block     $block,
+                                          string    $fieldName,
+                                          int       $width,
+                                          ?int      $height,
+                                          ImageType $imageType = ImageType::SQUARE,
+                                          bool      $fixedWidth = false): Image
     {
         try {
             $blockImage = $this->getBlockFieldAsFile($block, $fieldName);
@@ -779,7 +794,9 @@ trait GenericKirbyHelper
      * @param bool $checkUserRoles
      * @return BaseWebPage
      */
-    private function getPage(Page $page, string $pageClass = BaseWebPage::class, bool $checkUserRoles = true): BaseWebPage
+    private function getPage(Page   $page,
+                             string $pageClass = BaseWebPage::class,
+                             bool   $checkUserRoles = true): BaseWebPage
     {
         try {
 
@@ -1224,7 +1241,9 @@ trait GenericKirbyHelper
         return $page;
     }
 
-    public function getSpecificPage(string $pageId, string $pageClass = BaseWebPage::class, $checkUserRoles = true) : BaseWebPage {
+    public function getSpecificPage(string $pageId,
+                                    string $pageClass = BaseWebPage::class,
+                                           $checkUserRoles = true) : BaseWebPage {
         try {
             $kirbyPage = $this->getKirbyPage($pageId);
             $page = $this->getPage($kirbyPage, $pageClass, $checkUserRoles);

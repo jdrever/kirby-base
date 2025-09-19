@@ -6,4 +6,4 @@ if (!isset($dataSite)) :
 endif; ?>
 
 
-<script src="https://cdn.usefathom.com/script.js" data-site="<?=$dataSite?>" defer></script>
+<script src="https://cdn.usefathom.com/script.js" data-site="<?= $dataSite ?>" defer></script>
