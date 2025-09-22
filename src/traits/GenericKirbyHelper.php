@@ -848,10 +848,11 @@ trait GenericKirbyHelper
                 foreach ($relatedContent as $item) {
                     $itemTitle = $this->getStructureFieldAsString($item, 'title');
                     if (!empty($itemTitle)) {
-                        $content = new RelatedContent(
+                        $content = new WebPageLink(
                             strval($item->title()),
                             $this->getStructureFieldAsUrl($item, 'url'),
-                            $this->getStructureFieldAsBool($item, 'openInNewTab')
+                            $this->getStructureFieldAsBool($item, 'openInNewTab'),
+                            ''
                         );
                         $webPage->addRelatedContent($content);
                     }
@@ -1980,9 +1981,9 @@ trait GenericKirbyHelper
                 $document->setSize($size);
                 return $document;
             }
-            return (new Document())->recordError('Document not found');
+            return (new Document('document'))->recordError('Document not found');
         } catch (KirbyRetrievalException) {
-            return (new Document())->recordError('Document not found');
+            return (new Document('document'))->recordError('Document not found');
         }
     }
 
