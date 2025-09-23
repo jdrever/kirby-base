@@ -64,6 +64,10 @@ trait PostProperties
         return $this;
     }
 
+    public function hasPublicationDate(): bool {
+        return isset($this->publicationDate);
+    }
+
     /**
      * @param DateTime $publicationDate
      * @return $this
