@@ -18,7 +18,7 @@ endif;
 <html lang="en" <?php snippet('colour-mode/tag') ?>>
 <head>
     <meta charset="utf-8">
-    <title><?=$currentPage->getTitle() ?></title>
+    <title><?=strip_tags($currentPage->getTitle()) ?></title>
     <?php if ($currentPage->hasDescription()) : ?>
     <meta name="description" content="<?=$currentPage->getDescription()?>">
     <?php endif ?>
