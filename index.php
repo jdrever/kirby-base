@@ -45,6 +45,7 @@ if (option('debug') === false) {
                             "<b>File:</b> " . $exception->getFile() . "<br>" .
                             "<b>Line:</b> " . $exception->getLine() . "<br>" .
                             "<b>Trace:</b> " . $exception->getTraceAsString(),
+                            "<b>Page:</b> " . kirby()->page()->url(),
                     ]
                 ];
                 kirby()->email($email);
