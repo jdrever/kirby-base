@@ -43,7 +43,7 @@ trait PostProperties
      */
     public function hasPostedBy(): bool
     {
-        return !empty($this->postedBy);
+        return !empty($this->postedBy) && ($this->postedBy !== 'Unknown');
     }
 
     /**
