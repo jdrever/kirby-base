@@ -3,4 +3,5 @@ type: files
 max: 1
 layout: cards
 query: kirby.page('image-bank').images
+help: this is displayed when a related content page has no panel image
 
