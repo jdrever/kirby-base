@@ -1065,6 +1065,18 @@ abstract class KirbyBaseHelper
 
     /**
      * @param string $fieldName
+     * @return File
+     * @throws KirbyRetrievalException
+     */
+    protected function getSiteFieldAsFile(string $fieldName): File
+    {
+        $siteField = $this->getSiteField($fieldName);
+        /** @noinspection PhpUndefinedMethodInspection */
+        return $siteField->toFile();
+    }
+
+    /**
+     * @param string $fieldName
      * @return Field
      * @throws KirbyRetrievalException
      */
@@ -2127,6 +2139,35 @@ abstract class KirbyBaseHelper
             $imageSizes);
     }
 
+    /**
+     * @param string $fieldName
+     * @param int $width
+     * @param int $height
+     * @param int $quality
+     * @param ImageType $imageType
+     * @param string $imageFormat
+     * @param ImageSizes $imageSizes
+     * @return Image
+     * @throws KirbyRetrievalException
+     */
+    protected function getImageFromSiteField(string     $fieldName,
+                                             int        $width,
+                                             int        $height,
+                                             int        $quality = 90,
+                                             ImageType  $imageType = ImageType::SQUARE,
+                                             string     $imageFormat = '',
+                                             ImageSizes $imageSizes = ImageSizes::NOT_SPECIFIED) : Image {
+
+        $structureImage = $this->getSiteFieldAsFile($fieldName);
+        return $this->getImageFromFile($structureImage,
+            $width,
+            $height,
+            $quality,
+            $imageType,
+            $imageFormat,
+            $imageSizes);
+    }
+
 
     /**
      * @param File $image
@@ -2237,6 +2278,16 @@ abstract class KirbyBaseHelper
                     if ($this->isPageFieldNotEmpty($page, 'panelImage')) {
                         $image = $this->getImage($page,
                             'panelImage',
+                            400,
+                            300,
+                            80,
+                            $imageType,
+                            '',
+                            ImageSizes::HALF_LARGE_SCREEN);
+                        $webPageLink->setImage($image);
+                    } elseif ($this->isSiteFieldNotEmpty('placeholderImage')) {
+                        $image = $this->getImageFromSiteField(
+                            'placeholderImage',
                             400,
                             300,
                             80,

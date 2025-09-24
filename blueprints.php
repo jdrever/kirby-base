@@ -13,8 +13,6 @@ $siteBluePrintPath =  $basePath . '/site_admin.yml';
 //    }
 //}
 
-
-
 return [
     'site' => $siteBluePrintPath,
 
@@ -50,6 +48,7 @@ return [
     'fields/pageLinks' => __DIR__ . '/blueprints/fields/pageLinks.yml',
     'fields/panelContent' => __DIR__ . '/blueprints/fields/panelContent.yml',
     'fields/panelImage' => __DIR__ . '/blueprints/fields/panelImage.yml',
+    'fields/placeholderImage' => __DIR__ . '/blueprints/fields/placeholderImage.yml',
     'fields/relatedContent' => __DIR__ . '/blueprints/fields/relatedContent.yml',
 
     //files blueprints

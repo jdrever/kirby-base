@@ -1,0 +1,6 @@
+label: Select a placeholder image from the image bank
+type: files
+max: 1
+layout: cards
+query: kirby.page('image-bank').images
+
