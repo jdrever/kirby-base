@@ -1075,6 +1075,20 @@ abstract class KirbyBaseHelper
         return $siteField->toFile();
     }
 
+    protected function getSiteFieldAsArray(string $fieldName, bool $required = false): array
+    {
+        try {
+            $siteField = $this->getSiteField($fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $siteField->split();
+        } catch (KirbyRetrievalException $e) {
+            if ($required) {
+                throw $e;
+            }
+            return [];
+        }
+    }
+
     /**
      * @param string $fieldName
      * @return Field
@@ -1309,6 +1323,27 @@ abstract class KirbyBaseHelper
     {
         $page = $this->getStructureFieldAsPage($structure, $fieldName);
         return $page->title()->value();
+    }
+
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @param bool $required
+     * @return array
+     * @throws KirbyRetrievalException
+     */
+    protected function getStructureFieldAsArray(Page $page, string $fieldName, bool $required = false): array
+    {
+        try {
+            $structureField = $this->getStructureField($page, $fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $structureField->split();
+        } catch (KirbyRetrievalException $e) {
+            if ($required) {
+                throw $e;
+            }
+            return [];
+        }
     }
 
     /**
@@ -3221,6 +3256,18 @@ abstract class KirbyBaseHelper
             $pages = $structureItem->content()->get($tagName)->toPages();
             if ($pages->isNotEmpty()) {
                 return ($pages->filterBy('title', $tagValue)->count() > 0);
+            }
+            return false;
+        });
+    }
+
+    protected function filterByContainsValue(Collection $pages, string $fieldName, string $value): Collection
+    {
+        return $pages->filter(function ($page) use ($fieldName, $value) {
+            $field = $page->{$fieldName}();
+            if ($field->isNotEmpty()) {
+                $values = $field->split(',');
+                return in_array($value, $values, true);
             }
             return false;
         });
