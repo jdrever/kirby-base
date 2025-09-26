@@ -3,6 +3,7 @@
 namespace BSBI\WebBase\models;
 
 use BSBI\WebBase\traits\ErrorHandling;
+use BSBI\WebBase\traits\OptionsHandling;
 
 /**
  * Class BaseModel
@@ -13,6 +14,7 @@ use BSBI\WebBase\traits\ErrorHandling;
 abstract class BaseModel
 {
     use ErrorHandling;
+    use OptionsHandling;
 
     /** @var string The URL associated with the model */
     protected string $url = '';

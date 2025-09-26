@@ -3,6 +3,7 @@
 namespace BSBI\WebBase\models;
 
 use BSBI\WebBase\traits\ErrorHandling;
+use BSBI\WebBase\traits\OptionsHandling;
 
 /**
  * Class EventCategories
@@ -13,33 +14,5 @@ use BSBI\WebBase\traits\ErrorHandling;
 abstract class BaseFilter
 {
     use ErrorHandling;
-
-    /**
-     * @param string $value
-     * @param string $display
-     * @return string[]
-     */
-    protected function createOption(string $value, string $display): array
-    {
-        return [
-            'value' => $value,
-            'display' => $display,
-        ];
-
-    }
-
-    /**
-     * @param array $options
-     * @return array
-     * @noinspection PhpUnused
-     */
-    protected function getSimpleSelectOptions(array $options): array
-    {
-        $selectOptions = [];
-        $selectOptions[] = $this->createOption('', 'Any');
-        foreach ($options as $option) {
-            $selectOptions[] = $this->createOption($option, $option);
-        }
-        return $selectOptions;
-    }
+    use OptionsHandling;
 }
