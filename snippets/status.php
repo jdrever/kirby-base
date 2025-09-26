@@ -19,10 +19,16 @@ if ($currentPage->hasFriendlyMessages()) :
             <?=$message?> <br>
         <?php endforeach ?>
     </h3>
-    <?php if (!$currentPage->getStatus()) : ?>
-    <a href="/" class="btn btn-outline-primary">Return to home page</a>
-    <?php endif ?>
 </div>
+
+<?php if (!($currentPage->isCriticalError())) :
+    return;
+endif;
+if (!$currentPage->getStatus()) : ?>
+    <div class="container mt-2">
+        <a href="/" class="btn btn-outline-primary">Return to home page</a>
+    </div>
+<?php endif ?>
 
     <?php if (!$currentPage->getStatus()) :
         if ($currentPage->getCurrentUserRole()==='admin') : ?>

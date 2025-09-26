@@ -13,7 +13,7 @@ if (!isset($name)) :
 endif;
 
 if (!isset($value)) :
-    throw new Exception('textarea snippet: $value not provided');
+    $value = '';
 endif;
 
 if (!isset($required)) :

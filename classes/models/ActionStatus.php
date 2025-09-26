@@ -30,9 +30,15 @@ class ActionStatus
                                 KirbyRetrievalException $exception = null)
     {
         $this->status = $status;
-        $this->errorMessages[] = $errorMessage;
-        $this->friendlyMessages[] = $friendlyMessage;
-        $this->exception = $exception;
+        if (!empty($errorMessage)) {
+            $this->errorMessages[] = $errorMessage;
+        }
+        if (!empty($friendlyMessage)) {
+            $this->friendlyMessages[] = $friendlyMessage;
+        }
+        if ($exception !== null) {
+            $this->exception = $exception;
+        }
     }
 
     /**

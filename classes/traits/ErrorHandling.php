@@ -16,6 +16,8 @@ trait ErrorHandling {
     /** @var bool The status related to the model */
     protected bool $status;
 
+    protected bool $isCriticalError;
+
     /**
      * Get the errorMessage(s)
      * @return string []
@@ -135,6 +137,26 @@ trait ErrorHandling {
         $this->setStatus(false);
         return $this;
     }
+
+    /**
+     * @return bool
+     */
+    public function isCriticalError(): bool
+    {
+        return $this->isCriticalError ?? true;
+    }
+
+    /**
+     * @param bool $isCriticalError
+     * @return $this
+     */
+    public function setIsCriticalError(bool $isCriticalError): static
+    {
+        $this->isCriticalError = $isCriticalError;
+        return $this;
+    }
+
+
 
     /**
      * did the model complete (e.g. was status true)?

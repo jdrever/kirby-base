@@ -2412,7 +2412,7 @@ abstract class KirbyBaseHelper
      * @param $message
      * @return void
      */
-    protected function writeToLog($logFile, $message): void {
+    public function writeToLog($logFile, $message): void {
         $logDir = kirby()->root('logs');
 
         // Check if the directory doesn't exist and create it if necessary
@@ -2542,7 +2542,7 @@ abstract class KirbyBaseHelper
      * @param KirbyRetrievalException $e
      * @return void
      */
-    protected function sendErrorEmail(KirbyRetrievalException $e): void
+    public function sendErrorEmail(KirbyRetrievalException $e): void
     {
 
         $exceptionAsString =  "Message: " . $e->getMessage() . "\n" .
