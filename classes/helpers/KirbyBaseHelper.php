@@ -995,6 +995,20 @@ abstract class KirbyBaseHelper
         }
     }
 
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @return string
+     * @throws KirbyRetrievalException
+     */
+    protected function getPageLinkFieldType(Page $page, string $fieldName): string
+    {
+        $pageField = $this->getPageField($page, $fieldName);
+        /** @noinspection PhpUndefinedMethodInspection */
+        $pageFieldAsObject = $pageField->toObject();
+        return $pageFieldAsObject->type();
+    }
+
     #endregion
 
     #region SITE_FIELDS
@@ -1942,7 +1956,15 @@ abstract class KirbyBaseHelper
         $webPageLinks = new WebPageLinks();
         /** @var Page $collectionPage */
         foreach ($collection as $collectionPage) {
+            if ($collectionPage->template()->name() === 'page_link') {
+                if ($this->getPageLinkFieldType($collectionPage, 'redirect_link')) {
+                    $linkedPage = $this->getPageFieldAsWebPageLink($collectionPage, 'redirect_link', $simpleLink);
+                    $webPageLinks->addListItem($linkedPage);
+                    break;
+                }
+            }
             $webPageLinks->addListItem($this->getWebPageLink($collectionPage, $simpleLink));
+
         }
         return $webPageLinks;
     }
