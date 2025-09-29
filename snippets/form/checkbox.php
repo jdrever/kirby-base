@@ -35,6 +35,10 @@ elseif ($labelLayout === 'badge') :
     $labelClass = 'badge';
 endif;
 
+if (!isset($foregroundColour)) :
+    $foregroundColour = 'white';
+endif;
+
 if (!isset($checked)) :
     $checked = (str_contains($selectedValue, $value)) ? 'checked' : '';
 else:
@@ -52,9 +56,6 @@ if ($labelLayout !== 'badge') : ?>
     name="<?=$name?>"
     id="<?=$id?>"
     value="<?=$value ?>"
-<?php if (isset($backgroundColour)) : ?>
-    style="background-color: <?=$backgroundColour?>;"
-<?php endif ?>
     class="form-check-input p-2 m-1"
     <?=$checked ?>
 >
@@ -66,10 +67,10 @@ if ($labelLayout !== 'badge') : ?>
 <label
     for="<?=$id?>"
     <?php if (isset($backgroundColour)) : ?>
-    style="background-color: <?=$backgroundColour?>;"
+    style=" background-color: <?=$backgroundColour?>; color: <?=$foregroundColour?>;"
     <?php endif ?>
     title="<?=$labelTitle?>"
-    class="p-2 m-1 <?=$labelClass?>"
+    class="p-1 m-1 <?=$labelClass?>"
 >
     <?=$label ?>
 </label>
