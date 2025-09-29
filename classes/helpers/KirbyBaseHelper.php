@@ -1344,12 +1344,14 @@ abstract class KirbyBaseHelper
      * @return array
      * @throws KirbyRetrievalException
      */
-    protected function getStructureFieldAsArray(Page $page, string $fieldName, bool $required = false): array
+    protected function getStructureAsArray(Structure $structure, bool $required = false): array
     {
         try {
-            $structureField = $this->getStructureField($page, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $structureField->split();
+            $returnArray = [];
+            foreach ($structure as $structureObject) {
+                $returnArray[] = $this->getStructureFieldAsString($structureObject, 'name');
+            }
+            return $returnArray;
         } catch (KirbyRetrievalException $e) {
             if ($required) {
                 throw $e;
@@ -3284,6 +3286,12 @@ abstract class KirbyBaseHelper
         });
     }
 
+    /**
+     * @param Collection $pages
+     * @param string $fieldName
+     * @param string $value
+     * @return Collection
+     */
     protected function filterByContainsValue(Collection $pages, string $fieldName, string $value): Collection
     {
         return $pages->filter(function ($page) use ($fieldName, $value) {
@@ -3291,6 +3299,18 @@ abstract class KirbyBaseHelper
             if ($field->isNotEmpty()) {
                 $values = $field->split(',');
                 return in_array($value, $values, true);
+            }
+            return false;
+        });
+    }
+
+    protected function filterByContainsValues(Collection $pages, string $fieldName, array $values): Collection
+    {
+        return $pages->filter(function ($page) use ($fieldName, $values) {
+            $field = $page->{$fieldName}();
+            if ($field->isNotEmpty()) {
+                $fieldValues = $field->split(',');
+                return array_intersect($values, $fieldValues);
             }
             return false;
         });
