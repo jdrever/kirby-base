@@ -787,7 +787,12 @@ abstract class KirbyBaseHelper
             $pageField = $this->getPageField($page, $fieldName);
             /** @noinspection PhpUndefinedMethodInspection */
             $page = $pageField->toPage();
-            return $this->getWebPageLink($page, $simpleLinks);
+            if ($page) {
+                return $this->getWebPageLink($page, $simpleLinks);
+            }
+            else {
+                return (new WebPageLink('','','','error'))->recordError('Page not found: not page type');
+            }
         } catch (KirbyRetrievalException $e) {
             return (new WebPageLink('','','','error'))->recordError('Page not found: '.$e->getMessage());
         }
@@ -799,14 +804,17 @@ abstract class KirbyBaseHelper
      * @param bool $simpleLinks
      * @return WebPageLinks
      */
-    protected function getPageFieldAsWebPageLinks(Page $page, string $fieldName, bool $simpleLinks = true): WebPageLinks
+    protected function getPageFieldAsWebPageLinks(Page $page, string $fieldName, bool $simpleLinks = true, bool $required = false): WebPageLinks
     {
         try {
             $pageField = $this->getPageField($page, $fieldName);
             /** @noinspection PhpUndefinedMethodInspection */
             $pages = $pageField->toPages();
             return $this->getWebPageLinks($pages, $simpleLinks);
-        } catch (KirbyRetrievalException) {
+        } catch (KirbyRetrievalException $e) {
+            if ($required) {
+                throw $e;
+            }
             return new WebPageLinks();
         }
     }
@@ -995,19 +1003,6 @@ abstract class KirbyBaseHelper
         }
     }
 
-    /**
-     * @param Page $page
-     * @param string $fieldName
-     * @return string
-     * @throws KirbyRetrievalException
-     */
-    protected function getPageLinkFieldType(Page $page, string $fieldName): string
-    {
-        $pageField = $this->getPageField($page, $fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        $pageFieldAsObject = $pageField->toObject();
-        return $pageFieldAsObject->type();
-    }
 
     #endregion
 
@@ -1956,14 +1951,17 @@ abstract class KirbyBaseHelper
         $webPageLinks = new WebPageLinks();
         /** @var Page $collectionPage */
         foreach ($collection as $collectionPage) {
+            $linkedPageAdded = false;
             if ($collectionPage->template()->name() === 'page_link') {
-                if ($this->getPageLinkFieldType($collectionPage, 'redirect_link')) {
-                    $linkedPage = $this->getPageFieldAsWebPageLink($collectionPage, 'redirect_link', $simpleLink);
+                $linkedPage = $this->getPageFieldAsWebPageLink($collectionPage, 'redirect_link', $simpleLink);
+                if ($linkedPage->didComplete()) {
                     $webPageLinks->addListItem($linkedPage);
-                    break;
+                    $linkedPageAdded = true;
                 }
             }
-            $webPageLinks->addListItem($this->getWebPageLink($collectionPage, $simpleLink));
+            if (!$linkedPageAdded) {
+                $webPageLinks->addListItem($this->getWebPageLink($collectionPage, $simpleLink));
+            }
 
         }
         return $webPageLinks;
@@ -2007,7 +2005,7 @@ abstract class KirbyBaseHelper
             $webPageLink->setImage($panelImage);
         }
 
-        $webPageLink->setShowSubPageImages($this->getPageFieldAsBool($page, 'showSubPageImages'));
+        $webPageLink->setShowSubPageImages($this->getPageFieldAsBool($page, 'showSubPageImages', false, true));
         $webPageLink->setSubPages($this->getSubPages($page, $simpleLink));
         return $webPageLink;
     }
