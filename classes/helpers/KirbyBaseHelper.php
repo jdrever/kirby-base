@@ -334,11 +334,14 @@ abstract class KirbyBaseHelper
      * @return Collection
      * @throws KirbyRetrievalException
      */
-    protected function getPagesFromCollection(string $collectionName): Collection
+    protected function getPagesFromCollection(string $collectionName, string $sortBy = ''): Collection
     {
         $pages = $this->kirby->collection($collectionName);
         if (!isset($pages)) {
             throw new KirbyRetrievalException('Collection ' . $collectionName . ' pages not found');
+        }
+        if (!empty($sortBy)) {
+            $pages = $pages->sortBy($sortBy);
         }
         return $pages;
     }
@@ -349,9 +352,9 @@ abstract class KirbyBaseHelper
      * @throws KirbyRetrievalException
      * @noinspection PhpUnused
      */
-    protected function getPageTitlesFromCollection(string $collectionName): array
+    protected function getPageTitlesFromCollection(string $collectionName, string $sortBy = ''): array
     {
-        $pages = $this->getPagesFromCollection($collectionName);
+        $pages = $this->getPagesFromCollection($collectionName, $sortBy);
         $fields = $pages->pluck('title');
 
         // Check if the result is an array and if its first element is a Field object
