@@ -1087,12 +1087,37 @@ abstract class KirbyBaseHelper
         return $siteField->toFile();
     }
 
+    /**
+     * @param string $fieldName
+     * @param bool $required
+     * @return array
+     * @throws KirbyRetrievalException
+     */
     protected function getSiteFieldAsArray(string $fieldName, bool $required = false): array
     {
         try {
             $siteField = $this->getSiteField($fieldName);
             /** @noinspection PhpUndefinedMethodInspection */
             return $siteField->split();
+        } catch (KirbyRetrievalException $e) {
+            if ($required) {
+                throw $e;
+            }
+            return [];
+        }
+    }
+
+    /**
+     * @param string $fieldName
+     * @param bool $required
+     * @return array
+     * @throws KirbyRetrievalException
+     */
+    protected function getSiteStructureFieldAsArray(string $fieldName, bool $required = false): array
+    {
+        try {
+            $siteFieldAsStructure = $this->getSiteFieldAsStructure($fieldName);
+            return $this->getStructureAsArray($siteFieldAsStructure);
         } catch (KirbyRetrievalException $e) {
             if ($required) {
                 throw $e;
