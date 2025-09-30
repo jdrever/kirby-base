@@ -12,4 +12,4 @@ fields:
     required: true
     uploads: true
     help: Upload a new file or select from the current page or the file archive.
-    query: pages.files.merge(site.find('file-archive').files)
+    query: site.find("file-archive").files
