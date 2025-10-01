@@ -3268,10 +3268,13 @@ abstract class KirbyBaseHelper
             }
         }
 
-        $csrfToken = csrf();
-        $loginDetails->setCSRFToken($csrfToken);
+        $loginDetails->setCSRFToken($this->getCSFRToken());
 
         return $loginDetails;
+    }
+
+    protected function getCSFRToken() : string {
+        return csrf();
     }
 
     #endregion
