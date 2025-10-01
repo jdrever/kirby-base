@@ -41,6 +41,17 @@ class WebPageBlocks extends BaseList
         return count($matchingBlock) > 0;
     }
 
+    public function hasBlockTypeStarting(string $blockTypeStart): bool
+    {
+        $matchingBlock = array_filter($this->list, function ($item) use ($blockTypeStart) {
+            if ($item instanceof WebPageBlock) {
+                return str_starts_with($item->getBlockType(),$blockTypeStart);
+            }
+            return false;
+        });
+        return count($matchingBlock) > 0;
+    }
+
     /**
      * @return string
      */

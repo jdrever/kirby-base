@@ -281,6 +281,10 @@ class BaseWebPage extends BaseModel
         return $this->mainContentBlocks->hasBlockOfType($blockType);
     }
 
+    public function hasBlockTypeStarting(string $blockTypeStart): bool {
+        return $this->mainContentBlocks->hasBlockTypeStarting($blockTypeStart);
+    }
+
     /**
      * @return bool
      */
