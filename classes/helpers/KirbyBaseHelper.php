@@ -3273,6 +3273,9 @@ abstract class KirbyBaseHelper
         return $loginDetails;
     }
 
+    /**
+     * @return string
+     */
     protected function getCSFRToken() : string {
         return csrf();
     }
