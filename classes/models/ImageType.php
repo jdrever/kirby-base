@@ -13,6 +13,7 @@ enum ImageType: string
     case THUMBNAIL = 'Thumbnail';
     case PANEL = 'Panel';
     case SIXTEEN_NINE = '16_9';
+    case DEFAULT = 'Default';
 
     // Add more types as needed
 }

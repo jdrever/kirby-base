@@ -30,7 +30,7 @@ class Image extends BaseModel
     private int $width;
 
     /** @var int The height */
-    private int $height;
+    private ?int $height;
 
     private string $sizes = '';
 
@@ -47,7 +47,7 @@ class Image extends BaseModel
                                 string $webpSrcset = '',
                                 string $alt = '',
                                 int    $width = 0,
-                                int    $height = 0)
+                                ?int    $height = 0)
     {
         $this->src = $src;
         $this->srcset = $srcset;

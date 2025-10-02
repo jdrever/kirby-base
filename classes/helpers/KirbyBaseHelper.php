@@ -2172,25 +2172,29 @@ abstract class KirbyBaseHelper
      * @param Page $page
      * @param string $fieldName
      * @param int $width
-     * @param int $height
+     * @param int|null $height
      * @param int $quality
      * @param ImageType $imageType
      * @param string $imageFormat
      * @param ImageSizes $imageSizes
+     * @param bool $crop
+     * @param string $imageClass
      * @return Image
      * @throws KirbyRetrievalException
      */
     protected function getImage(Page       $page,
                                 string     $fieldName,
                                 int        $width,
-                                int        $height,
+                                ?int        $height,
                                 int        $quality = 90,
                                 ImageType  $imageType = ImageType::SQUARE,
                                 string     $imageFormat = '',
-                                ImageSizes $imageSizes = ImageSizes::NOT_SPECIFIED) : Image {
+                                ImageSizes $imageSizes = ImageSizes::NOT_SPECIFIED,
+                                bool       $crop = true,
+                                string     $imageClass ='') : Image {
 
         $pageImage = $this->getPageFieldAsFile($page, $fieldName);
-        return $this->getImageFromFile($pageImage, $width, $height, $quality, $imageType, $imageFormat, $imageSizes);
+        return $this->getImageFromFile($pageImage, $width, $height, $quality, $imageType, $imageFormat, $imageSizes, $crop, $imageClass);
     }
 
     /**
@@ -2202,6 +2206,8 @@ abstract class KirbyBaseHelper
      * @param ImageType $imageType
      * @param string $imageFormat
      * @param ImageSizes $imageSizes
+     * @param bool $crop
+     * @param string $imageClass
      * @return Image
      * @throws KirbyRetrievalException
      */
@@ -2212,7 +2218,9 @@ abstract class KirbyBaseHelper
                                                   int             $quality = 90,
                                                   ImageType       $imageType = ImageType::SQUARE,
                                                   string          $imageFormat = '',
-                                                  ImageSizes      $imageSizes = ImageSizes::NOT_SPECIFIED) : Image {
+                                                  ImageSizes      $imageSizes = ImageSizes::NOT_SPECIFIED,
+                                                  bool $crop = true,
+                                                  string     $imageClass ='') : Image {
 
         $structureImage = $this->getStructureFieldAsFile($structureObject, $fieldName);
         return $this->getImageFromFile($structureImage,
@@ -2221,7 +2229,9 @@ abstract class KirbyBaseHelper
             $quality,
             $imageType,
             $imageFormat,
-            $imageSizes);
+            $imageSizes,
+            $crop,
+            $imageClass);
     }
 
     /**
@@ -2232,6 +2242,8 @@ abstract class KirbyBaseHelper
      * @param ImageType $imageType
      * @param string $imageFormat
      * @param ImageSizes $imageSizes
+     * @param bool $crop
+     * @param string $imageClass
      * @return Image
      * @throws KirbyRetrievalException
      */
@@ -2241,7 +2253,9 @@ abstract class KirbyBaseHelper
                                              int        $quality = 90,
                                              ImageType  $imageType = ImageType::SQUARE,
                                              string     $imageFormat = '',
-                                             ImageSizes $imageSizes = ImageSizes::NOT_SPECIFIED) : Image {
+                                             ImageSizes $imageSizes = ImageSizes::NOT_SPECIFIED,
+                                             bool       $crop = true,
+                                             string     $imageClass ='') : Image {
 
         $structureImage = $this->getSiteFieldAsFile($fieldName);
         return $this->getImageFromFile($structureImage,
@@ -2250,7 +2264,9 @@ abstract class KirbyBaseHelper
             $quality,
             $imageType,
             $imageFormat,
-            $imageSizes);
+            $imageSizes,
+            $crop,
+            $imageClass);
     }
 
 
@@ -2262,6 +2278,7 @@ abstract class KirbyBaseHelper
      * @param ImageType $imageType
      * @param string $imageFormat (e.g. webp)
      * @param ImageSizes $imageSizes
+     * @param bool $crop
      * @return Image
      * @throws KirbyRetrievalException
      */
@@ -2271,17 +2288,17 @@ abstract class KirbyBaseHelper
                                         int        $quality = 90,
                                         ImageType  $imageType = ImageType::SQUARE,
                                         string     $imageFormat = '',
-                                        ImageSizes $imageSizes = ImageSizes::NOT_SPECIFIED): Image
+                                        ImageSizes $imageSizes = ImageSizes::NOT_SPECIFIED,
+                                        bool $crop = true,
+                                        string $imageClass = ''): Image
     {
         $thumbOptions = [
             'width' => $width,
             'height' => $height,
             'quality' => $quality,
-            'crop' => true // Enable cropping
+            'crop' => $crop // Enable cropping
         ];
 
-        // If a specific image format is provided, add it to the options.
-        // This will instruct Kirby to generate a thumbnail in that format.
         if (!empty($imageFormat)) {
             $thumbOptions['format'] = $imageFormat;
         }
@@ -2298,7 +2315,9 @@ abstract class KirbyBaseHelper
         /** @noinspection PhpUndefinedMethodInspection */
         $alt = $image->alt()->isNotEmpty() ? $image->alt()->value() : '';
         if ($src !== null && $srcSet !== null && $webpSrcSet !== null) {
-            return (new Image ($src, $srcSet, $webpSrcSet, $alt, $width, $height))->setSizes($imageSizes->value);
+            return (new Image ($src, $srcSet, $webpSrcSet, $alt, $width, $height))
+                ->setSizes($imageSizes->value)
+                ->setClass($imageClass);
         }
         return (new Image())->recordError('Image not found');
 
