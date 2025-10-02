@@ -3190,7 +3190,7 @@ abstract class KirbyBaseHelper
      */
     protected function checkPagePermissions(Page $currentPage) : bool {
 
-        if ($currentPage->template()->name() === 'login') { return true; }
+        if (in_array($currentPage->template()->name(), ['login', 'reset_password'])) { return true; }
 
         $user = $this->kirby->user();
 
