@@ -2126,6 +2126,10 @@ abstract class KirbyBaseHelper
             }
         }
 
+        if (!empty($sortBy)) {
+            $collectionPages = $collectionPages->sortBy($sortBy, $sortDirection);
+        }
+
         if ($filter === null) {
             $setFilterFunction = 'set' . $this->extractClassName($filterClass);
             if (method_exists($this, $setFilterFunction)) {
@@ -2139,11 +2143,6 @@ abstract class KirbyBaseHelper
             if (method_exists($this, $filterFunction)) {
                 $collectionPages = $this->$filterFunction($collectionPages, $filter);
             }
-        }
-
-
-        if (!empty($sortBy)) {
-            $collectionPages = $collectionPages->sortBy($sortBy, $sortDirection);
         }
 
         if ($modelList->usePagination()) {
