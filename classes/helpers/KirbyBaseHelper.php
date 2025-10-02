@@ -3710,8 +3710,8 @@ abstract class KirbyBaseHelper
      * @param Page $page
      * @return void
      */
-    public function redirectToFile(Page $page):void {
-        $file = $this->getPageFieldAsDocument($page, 'file');
+    public function redirectToFile(Page $page, string $fieldName = 'file'):void {
+        $file = $this->getPageFieldAsDocument($page, $fieldName);
         go($file->getUrl());
     }
 
