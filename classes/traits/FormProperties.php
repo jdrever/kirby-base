@@ -3,6 +3,7 @@
 namespace BSBI\WebBase\traits;
 
 
+
 use BSBI\WebBase\models\FeedbackForm;
 
 /**
@@ -11,6 +12,26 @@ use BSBI\WebBase\models\FeedbackForm;
 trait FormProperties {
 
     use ErrorHandling;
+
+    private string $csrfToken = '';
+
+    /**
+     * @return string
+     */
+    public function getCsrfToken(): string
+    {
+        return $this->csrfToken;
+    }
+
+    /**
+     * @param string $csrfToken
+     * @return static
+     */
+    public function setCsrfToken(string $csrfToken): static
+    {
+        $this->csrfToken = $csrfToken;
+        return $this;
+    }
 
     private string $turnstileSiteKey;
 
