@@ -96,6 +96,11 @@ class WebPageLink extends BaseModel
         return $this->pageType;
     }
 
+    public function getFormattedPageType(): string
+    {
+        return ucfirst(str_replace('_', ' ', $this->pageType));
+    }
+
     /**
      * @param string $pageType
      * @return $this

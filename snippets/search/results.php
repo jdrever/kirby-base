@@ -44,6 +44,7 @@ snippet('search/form');
                 <a href="<?= $resultPage->getUrl() ?>?q=<?= $query ?>">
                     <?=$resultPage->getTitle() ?>
                 </a>
+                (<?=ucfirst($resultPage->getFormattedPageType())?>)
                 <?php if ($resultPage->hasDescription()) : ?>
                     <p style="font-size:0.8em;">
                         <?=$resultPage->getDescription()?>
