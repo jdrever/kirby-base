@@ -2,26 +2,36 @@
 
 use BSBI\WebBase\helpers\KirbyInternalHelper;
 
+function handlePageChange($newPage, $oldPage) {
+    $user = kirby()->user();
+
+    $newPage = $newPage->update([
+        'updatedDate' => date('Y-m-d H:i:s'),
+        'updatedBy' => $user?->id()
+    ]);
+    if ($newPage->publishedDate()->isEmpty()) {
+        $newPage = $newPage->update([
+            'publishedDate' => date('Y-m-d H:i:s'),
+            'publishedBy' => $user?->id()
+        ]);
+    }
+    $helper = new KirbyInternalHelper(kirby(), kirby()->site(), kirby()->page());
+    $helper->handleTwoWayTagging($newPage, $oldPage);
+    $helper->handleCaches($newPage);
+    return $newPage;
+}
 
 return [
     'page.update:after' => function ($newPage, $oldPage) {
-        $user = kirby()->user();
+        return handlePageChange($newPage, $oldPage);
+    },
 
-        $newPage = $newPage->update([
-            'updatedDate' => date('Y-m-d H:i:s'),
-            'updatedBy' => $user?->id()
-        ]);
-        if ($newPage->publishedDate()->isEmpty()) {
-            $newPage = $newPage->update([
-                'publishedDate' => date('Y-m-d H:i:s'),
-                'publishedBy' => $user?->id()
-            ]);
-        }
-        $helper = new KirbyInternalHelper(kirby(), kirby()->site(), kirby()->page());
-        $helper->handleTwoWayTagging($newPage, $oldPage);
-        $helper->handleCaches($newPage);
+    'page.changeTitle:after' => function ($newPage, $oldPage) {
+        return handlePageChange($newPage, $oldPage);
+    },
 
-        return $newPage;
+    'page.changeSlug:after' => function ($newPage, $oldPage) {
+        return handlePageChange($newPage, $oldPage);
     },
 
 
