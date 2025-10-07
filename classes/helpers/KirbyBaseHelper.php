@@ -1982,6 +1982,11 @@ abstract class KirbyBaseHelper
             if ($collectionPage->template()->name() === 'page_link') {
                 $linkedPage = $this->getPageFieldAsWebPageLink($collectionPage, 'redirect_link', $simpleLink);
                 if ($linkedPage->didComplete()) {
+                    if ($this->isPageFieldNotEmpty($collectionPage, 'linkTitle'))
+                    {
+                        $linkTitle =  $this->getPageFieldAsString($collectionPage, 'linkTitle');
+                        $linkedPage->setTitle($linkTitle);
+                    }
                     $webPageLinks->addListItem($linkedPage);
                     $linkedPageAdded = true;
                 }
@@ -3462,6 +3467,10 @@ abstract class KirbyBaseHelper
     ):string {
         // Static flag to prevent re-entry for the current request lifecycle
         static $isSyncing = false;
+
+        if ($this->getSiteFieldAsBool('pauseTaggingSync')) {
+            return '';
+        }
 
         // If the function is already running, exit to prevent infinite loops/re-entry
         if ($isSyncing) {

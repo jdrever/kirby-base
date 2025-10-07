@@ -9,3 +9,7 @@ fields:
     options:
       - page
       - url
+  linkTitle:
+    type: text
+    label: Link Title
+    help: if left blank, the title of the linked page will be displayed
