@@ -1982,11 +1982,7 @@ abstract class KirbyBaseHelper
             if ($collectionPage->template()->name() === 'page_link') {
                 $linkedPage = $this->getPageFieldAsWebPageLink($collectionPage, 'redirect_link', $simpleLink);
                 if ($linkedPage->didComplete()) {
-                    if ($this->isPageFieldNotEmpty($collectionPage, 'linkTitle'))
-                    {
-                        $linkTitle =  $this->getPageFieldAsString($collectionPage, 'linkTitle');
-                        $linkedPage->setTitle($linkTitle);
-                    }
+                    $linkedPage->setTitle($this->getPageTitle($collectionPage));
                     $webPageLinks->addListItem($linkedPage);
                     $linkedPageAdded = true;
                 }
