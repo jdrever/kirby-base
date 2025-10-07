@@ -1990,7 +1990,6 @@ abstract class KirbyBaseHelper
             if (!$linkedPageAdded) {
                 $webPageLinks->addListItem($this->getWebPageLink($collectionPage, $simpleLink));
             }
-
         }
         return $webPageLinks;
     }
