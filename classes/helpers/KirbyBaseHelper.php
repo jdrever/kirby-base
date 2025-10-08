@@ -3828,22 +3828,33 @@ abstract class KirbyBaseHelper
 
                 if ($this->isPageFieldNotEmpty($parentPage, 'emailRecepient')) {
                     try {
-                        $emailBody = '';
+                        $htmlBody = '
+    <ul style="list-style: none; padding: 0;">
+';
 
                         foreach ($formSubmission as $item) {
-                            // Add the question, a colon, a space, the answer, and a double line break
-                            $emailBody .= trim($item['question']) . ": " . trim($item['answer']) . "\n\n";
+                            // Use strong tags for the question for better readability
+                            $htmlBody .= '
+        <li style="margin-bottom: 15px;">
+            <strong style="display: block; font-size: 14px; color: #333;">' . htmlspecialchars(trim($item['question'])) . '</strong>
+            <span style="display: block; font-size: 16px; color: #555;">' . nl2br(htmlspecialchars(trim($item['answer']))) . '</span>
+        </li>
+    ';
                         }
 
-                        $emailReceipient = $this->getPageFieldAsString($parentPage, 'emailRecepient');
+                        $htmlBody .= '
+    </ul>
+';
+
+                        $emailRecipient = $this->getPageFieldAsString($parentPage, 'emailRecepient');
                         $this->sendEmail(
                             'form-notification',
                             option('defaultEmail'),
                             option('defaultEmail'),
-                            $emailReceipient,
+                            $emailRecipient,
                             'Form submission: ' . $this->getPageTitle($parentPage),
                             [
-                                'content' => $emailBody,
+                                'content' => $htmlBody,
                             ]
                         );
                     } catch (KirbyRetrievalException $e) {
