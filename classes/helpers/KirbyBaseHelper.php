@@ -3782,6 +3782,8 @@ abstract class KirbyBaseHelper
     #region FORMS
 
     /**
+     * Will also email if a receipient has been given in the
+     * Email Recipient field for the page
      * @param Page $parentPage
      * @return ActionStatus
      */

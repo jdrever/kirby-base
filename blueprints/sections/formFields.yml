@@ -3,3 +3,6 @@ fields:
   emailRecepient:
     type: email
     label: Email Receipient
+  successContent:
+    type: blocks
+    label: Success content
