@@ -15,6 +15,8 @@ trait FormProperties {
 
     private string $csrfToken = '';
 
+    private bool $submissionSuccessful = false;
+
     /**
      * @return string
      */
@@ -50,6 +52,24 @@ trait FormProperties {
     public function setTurnstileSiteKey(string $turnstileSiteKey): self
     {
         $this->turnstileSiteKey = $turnstileSiteKey;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isSubmissionSuccessful(): bool
+    {
+        return $this->submissionSuccessful;
+    }
+
+    /**
+     * @param bool $submissionSuccessful
+     * @return $this
+     */
+    public function setSubmissionSuccessful(bool $submissionSuccessful): static
+    {
+        $this->submissionSuccessful = $submissionSuccessful;
         return $this;
     }
 }
