@@ -3828,6 +3828,13 @@ abstract class KirbyBaseHelper
 
                 if ($this->isPageFieldNotEmpty($parentPage, 'emailRecepient')) {
                     try {
+                        $emailBody = '';
+
+                        foreach ($formSubmission as $item) {
+                            // Add the question, a colon, a space, the answer, and a double line break
+                            $emailBody .= trim($item['question']) . ": " . trim($item['answer']) . "\n\n";
+                        }
+
                         $emailReceipient = $this->getPageFieldAsString($parentPage, 'emailRecepient');
                         $this->sendEmail(
                             'form-notification',
@@ -3836,7 +3843,7 @@ abstract class KirbyBaseHelper
                             $emailReceipient,
                             'Form submission: ' . $this->getPageTitle($parentPage),
                             [
-                                'content' => $formSubmission,
+                                'content' => $emailBody,
                             ]
                         );
                     } catch (KirbyRetrievalException $e) {
