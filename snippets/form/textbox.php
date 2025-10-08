@@ -33,11 +33,12 @@ $isRequired = ($required) ? 'required' : '';
 if (isset($label)) : ?>
     <label
             for="<?=$id?>"
-            class="col-form-label"
+            class="col-form-label fw-bold"
     >
         <?=$label ?>
     <?php if ($required) : ?>
-        <abbr title="required">*</abbr>
+        <span class="visually-hidden">(required)</span>
+        <span aria-hidden="true">*</span>
    <?php endif ?>
     </label>
 <?php endif ?>

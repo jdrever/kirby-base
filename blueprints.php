@@ -19,6 +19,7 @@ return [
     //pages blueprints
     'pages/file_archive' => __DIR__ . '/blueprints/pages/file_archive.yml',
     'pages/file_link' => __DIR__ . '/blueprints/pages/file_link.yml',
+    'pages/form_submission' => __DIR__ . '/blueprints/pages/form_submission.yml',
     'pages/page_link' => __DIR__ . '/blueprints/pages/page_link.yml',
     'pages/image_bank' => __DIR__ . '/blueprints/pages/image_bank.yml',
 
@@ -58,6 +59,7 @@ return [
 
     //section blueprints
     'sections/corePageFields' => __DIR__ . '/blueprints/sections/corePageFields.yml',
+    'sections/formFields' => __DIR__ . '/blueprints/sections/formFields.yml',
     'sections/publicationFields' => __DIR__ . '/blueprints/sections/publicationFields.yml',
     'sections/templateName' => __DIR__ . '/blueprints/sections/templateName.yml',
 

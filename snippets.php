@@ -33,6 +33,8 @@ return [
     'form/select' => __DIR__ . '/snippets/form/select.php',
     'form/checkbox' => __DIR__ . '/snippets/form/checkbox.php',
     'form/turnstile' => __DIR__ . '/snippets/form/turnstile.php',
+    'form/likert' => __DIR__ . '/snippets/form/likert.php',
+    'form/csrf' => __DIR__ . '/snippets/form/csrf.php',
 
     //search blocks
     'search/bar' => __DIR__ . '/snippets/search/bar.php',

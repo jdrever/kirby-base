@@ -1,0 +1,14 @@
+title: "- Form Submission"
+icon: heart-filled
+fields:
+  submission:
+    type: structure
+    fields:
+      question:
+        type: text
+      answer:
+        type: text
+
+
+
+

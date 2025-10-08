@@ -18,7 +18,7 @@ trait FormProperties {
     /**
      * @return string
      */
-    public function getCsrfToken(): string
+    public function getCSRFToken(): string
     {
         return $this->csrfToken;
     }
@@ -27,7 +27,7 @@ trait FormProperties {
      * @param string $csrfToken
      * @return static
      */
-    public function setCsrfToken(string $csrfToken): static
+    public function setCSRFToken(string $csrfToken): static
     {
         $this->csrfToken = $csrfToken;
         return $this;

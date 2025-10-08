@@ -32,6 +32,7 @@ use DateTimeZone;
 use Kirby\Cms\App;
 use Kirby\Cms\Block;
 use Kirby\Cms\Blocks;
+use Kirby\Data\Data;
 use Kirby\Data\Yaml;
 use Kirby\Exception\NotFoundException;
 use Kirby\Toolkit\Collection;
@@ -2475,6 +2476,10 @@ abstract class KirbyBaseHelper
 
     #region ERROR HANDLING
 
+    public function writeToErrorLog($message): void {
+        $this->writeToLog('errors', $message);
+    }
+
     /**
      * @param $logFile .log is added
      * @param $message
@@ -3774,7 +3779,82 @@ abstract class KirbyBaseHelper
 
     #endregion
 
-    #region TURNSTILE
+    #region FORMS
+
+    /**
+     * @param Page $parentPage
+     * @return ActionStatus
+     */
+    protected function createFormSubmission(Page $parentPage): ActionStatus
+    {
+        if ($this->kirby->request()->is('POST')) {
+            if (csrf(get('csrf')) === true) {
+                // 1. Define fields to exclude (like the submission trigger)
+                $excludeFields = ['submit', 'csrf'];
+
+                // 2. Transform the data into the structure object format
+                $formSubmission = [];
+                $formData = $this->kirby->request()->data(); // Get all POST data
+
+                foreach ($formData as $inputName => $inputValue) {
+
+                    // Skip fields not intended for saving
+                    if (in_array($inputName, $excludeFields) || empty($inputName)) {
+                        continue;
+                    }
+                    $spacedString = str_replace(['-', '_'], ' ', $inputName);
+                    $questionTitle = ucwords($spacedString);
+
+                    // Add the Q&A pair to the new submission entry array
+                    $formSubmission[] = [
+                        'question' => $questionTitle,
+                        'answer' => $inputValue,
+                    ];
+                }
+
+                $slug = date('M-j-H.i');
+
+
+                $submissionPage = $parentPage->createChild([
+                    'slug' => $slug,
+                    'template' => 'form_submission',
+                    'content' => [
+                        'title' => 'Submission: ' . $slug,
+                        'submission' => Data::encode($formSubmission, 'yaml')
+                    ]
+                ]);
+
+                $submissionPage = $submissionPage->changeStatus('unlisted');
+
+                if ($this->isPageFieldNotEmpty($parentPage, 'emailRecepient')) {
+                    try {
+                        $emailReceipient = $this->getPageFieldAsString($parentPage, 'emailRecepient');
+                        $this->sendEmail(
+                            'form-notification',
+                            option('defaultEmail'),
+                            option('defaultEmail'),
+                            $emailReceipient,
+                            'Form submission: ' . $this->getPageTitle($parentPage),
+                            [
+                                'responses' => $formSubmission,
+                            ]
+                        );
+                    } catch (KirbyRetrievalException $e) {
+                        $this->writeToErrorLog($e->getMessage());
+                    }
+                }
+            } else {
+                return (new ActionStatus(false,'', 'Your security token has expired.  Please try again.'));
+            }
+
+            return (new ActionStatus(
+                true,
+                '',
+                'Thank you, your submission has been receieved.')
+            );
+        }
+        return (new ActionStatus(true));
+    }
 
     /**
      * @return string
