@@ -3836,7 +3836,7 @@ abstract class KirbyBaseHelper
                             $emailReceipient,
                             'Form submission: ' . $this->getPageTitle($parentPage),
                             [
-                                'responses' => $formSubmission,
+                                'content' => $formSubmission,
                             ]
                         );
                     } catch (KirbyRetrievalException $e) {
