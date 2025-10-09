@@ -1004,6 +1004,44 @@ abstract class KirbyBaseHelper
         }
     }
 
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @return string
+     * @noinspection PhpUnused
+     */
+    protected function getUserNames(Page $page, string $fieldName): string
+    {
+        try {
+            // Get the 'postedBy' field from the current page
+            $postedByField = $page->content()->get($fieldName);
+
+            // Check if the field is not empty
+            if ($postedByField instanceof Field && $postedByField->isNotEmpty()) :
+                // Get the users from the 'postedBy' field
+                /** @noinspection PhpUndefinedMethodInspection */
+                $users = $postedByField->toUsers();
+
+                // Initialise an array to hold usernames
+                $userNamesArray = [];
+
+                // Loop through the users to get their names
+                foreach ($users as $user) :
+                    $userNamesArray[] = $user->name();
+                endforeach;
+
+                // Convert the array of usernames to a string separated by commas
+                $userNames = implode(', ', $userNamesArray);
+            else :
+                $userNames = 'Unknown';
+            endif;
+            return $userNames;
+        } catch (\Exception) {
+            return '';
+        }
+    }
+
+
 
     #endregion
 
@@ -2754,41 +2792,24 @@ abstract class KirbyBaseHelper
     }
 
     /**
-     * @param Page $page
-     * @param string $fieldName
+     * @param string $pageId
+     * @param string $delimiter
      * @return string
-     * @noinspection PhpUnused
+     * @throws InvalidArgumentException
      */
-    protected function getUserNames(Page $page, string $fieldName): string
+    protected function getPageBreadcrumbAsString(string $pageId, string $delimiter = ' | '): string
     {
-        try {
-            // Get the 'postedBy' field from the current page
-            $postedByField = $page->content()->get($fieldName);
-
-            // Check if the field is not empty
-            if ($postedByField instanceof Field && $postedByField->isNotEmpty()) :
-                // Get the users from the 'postedBy' field
-                /** @noinspection PhpUndefinedMethodInspection */
-                $users = $postedByField->toUsers();
-
-                // Initialise an array to hold usernames
-                $userNamesArray = [];
-
-                // Loop through the users to get their names
-                foreach ($users as $user) :
-                    $userNamesArray[] = $user->name();
-                endforeach;
-
-                // Convert the array of usernames to a string separated by commas
-                $userNames = implode(', ', $userNamesArray);
-            else :
-                $userNames = 'Unknown';
-            endif;
-            return $userNames;
-        } catch (\Exception) {
+        $page = page($pageId);
+        if (!$page) {
             return '';
         }
+        $breadcrumbPages = $page->parents()->flip();
+        $titles = $breadcrumbPages->map(function ($p) {
+            return $p->title()->value();
+        })->values();
+        return implode($delimiter, $titles);
     }
+
 
     #endregion
 
@@ -2851,6 +2872,7 @@ abstract class KirbyBaseHelper
                     $highlightedDescription = $this->highlightTerm($searchResult->getDescription(), $query);
                     $searchResult->setTitle($highlightedTitle);
                     $searchResult->setDescription($highlightedDescription);
+                    $searchResult->setBreadcrumb($this->getPageBreadcrumbAsString($searchResult->getPageId()));
                 }
 
                 $paginationFromKirby = $collection->pagination();

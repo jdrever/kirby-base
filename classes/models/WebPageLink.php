@@ -23,6 +23,8 @@ class WebPageLink extends BaseModel
 
     private string $requirements;
 
+    private string $breadcrumb;
+
     private bool $showSubPageImages = false;
 
     private bool $excludeFromMenus = false;
@@ -190,6 +192,31 @@ class WebPageLink extends BaseModel
         $this->openInNewTab = $openInNewTab;
         return $this;
     }
+
+    public function hasBreadcrumb(): bool
+    {
+        return !empty($this->breadcrumb);
+    }
+
+    /**
+     * @return string
+     */
+    public function getBreadcrumb(): string
+    {
+        return $this->breadcrumb;
+    }
+
+    /**
+     * @param string $breadcrumb
+     * @return WebPageLink
+     */
+    public function setBreadcrumb(string $breadcrumb): WebPageLink
+    {
+        $this->breadcrumb = $breadcrumb;
+        return $this;
+    }
+
+
 
     
 }
