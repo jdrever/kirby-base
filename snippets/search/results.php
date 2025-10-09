@@ -44,9 +44,7 @@ snippet('search/form');
                 <?php if ($resultPage->hasBreadcrumb()) : ?>
                 <small class="font-size:0.5em;"><?=$resultPage->getBreadCrumb()?></small><br>
                 <?php endif ?>
-                <a href="<?= $resultPage->getUrl() ?>?q=<?= $query ?>">
-                    <?=$resultPage->getTitle() ?>
-                </a>
+                <a href="<?= $resultPage->getUrl() ?>?q=<?= $query ?>"><?=$resultPage->getTitle() ?></a>
                 &nbsp;<span class="badge text-bg-info"><?=ucfirst($resultPage->getFormattedPageType())?></span>
                 <?php if ($resultPage->hasDescription()) : ?>
                     <p style="font-size:0.8em;">

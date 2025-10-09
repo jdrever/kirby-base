@@ -2952,7 +2952,7 @@ abstract class KirbyBaseHelper
             // apply the default score for pages
             $options['score'] = array_merge([
                 'id' => 64,
-                'title' => 64,
+                'title' => 128,
                 'description' => 64,
                 'keywords' => 64,
                 'maincontent' => 32
