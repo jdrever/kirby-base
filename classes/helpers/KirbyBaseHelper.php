@@ -2535,7 +2535,11 @@ abstract class KirbyBaseHelper
         // Define the log file path
         $logFile = $logDir .'/'. $logFile.'.log';
         // Clear the log file at the start
-        file_put_contents($logFile, $message, FILE_APPEND);
+
+        $date = new DateTime();
+        $date = $date->format("y:m:d h:i:s");
+
+        file_put_contents($logFile, $date. ' '. $message, FILE_APPEND);
     }
 
     /**
