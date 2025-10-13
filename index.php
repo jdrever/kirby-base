@@ -1,7 +1,5 @@
 <?php /** @noinspection PhpUnhandledExceptionInspection */
 
-/** @noinspection PhpUnhandledExceptionInspection */
-
 use Kirby\Cms\App as Kirby;
 use Kirby\Toolkit\Tpl;
 
@@ -21,7 +19,10 @@ Kirby::plugin(
         'controllers' => [
             'file_link' =>  require __DIR__ . '/controllers/file_link.php',
             'page_link' =>  require __DIR__ . '/controllers/page_link.php',
-        ]
+        ],
+        'sections' => [
+            'externalfiles' => require __DIR__ . '/sections/externalfiles.php'
+        ],
     ]
 );
 
