@@ -2,8 +2,6 @@
 
 namespace BSBI\WebBase\traits;
 
-use BSBI\WebBase\models\Image;
-
 /**
  * Trait ImageHandling
  * To add an image to a model

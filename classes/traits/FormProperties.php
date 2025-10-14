@@ -3,9 +3,6 @@
 namespace BSBI\WebBase\traits;
 
 
-
-use BSBI\WebBase\models\FeedbackForm;
-
 /**
  *
  */
@@ -47,9 +44,9 @@ trait FormProperties {
 
     /**
      * @param string $turnstileSiteKey
-     * @return FeedbackForm|FormProperties
+     * @return $this
      */
-    public function setTurnstileSiteKey(string $turnstileSiteKey): self
+    public function setTurnstileSiteKey(string $turnstileSiteKey): static
     {
         $this->turnstileSiteKey = $turnstileSiteKey;
         return $this;

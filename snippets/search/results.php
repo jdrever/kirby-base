@@ -1,6 +1,6 @@
-<?php /** @noinspection PhpUnhandledExceptionInspection */
+<?php
 /** @noinspection PhpUnhandledExceptionInspection */
-/** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection PhpUndefinedMethodInspection */
 
 declare(strict_types=1);
 

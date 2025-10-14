@@ -19,7 +19,7 @@ return
             return [ 'items' => [] ];
         }
 
-        $absolutePath = kirby()->root('index') . $path;
+        $absolutePath = kirby()->root() . $path;
         $baseURL = Url::index() . 'externalfiles.php/' . $path . '/';
 
         $files = [];

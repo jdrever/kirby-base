@@ -1,2 +1,2 @@
-<?php snippet('scripts') ?>
-<?php echo('</body></html>');
+<?php snippet('scripts');
+echo('</body></html>');

@@ -32,7 +32,7 @@ trait PostProperties
      * @param string $excerpt
      * @return $this
      */
-    public function setExcerpt(string $excerpt): self
+    public function setExcerpt(string $excerpt): static
     {
         $this->excerpt = $excerpt;
         return $this;
@@ -58,7 +58,7 @@ trait PostProperties
      * @param string $postedBy
      * @return $this
      */
-    public function setPostedBy(string $postedBy): self
+    public function setPostedBy(string $postedBy): static
     {
         $this->postedBy = $postedBy;
         return $this;
@@ -72,7 +72,7 @@ trait PostProperties
      * @param DateTime $publicationDate
      * @return $this
      */
-    public function setPublicationDate(DateTime $publicationDate): self
+    public function setPublicationDate(DateTime $publicationDate): static
     {
         $this->publicationDate = $publicationDate;
         return $this;

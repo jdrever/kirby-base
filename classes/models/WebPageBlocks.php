@@ -58,6 +58,7 @@ class WebPageBlocks extends BaseList
     public function getAllContentAsHTML(): string {
         $html = '';
         foreach ($this->list as $block) {
+            /** @noinspection PhpPossiblePolymorphicInvocationInspection */
             $html.= $block->getBlockContent();
         }
         return $html;

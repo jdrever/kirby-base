@@ -1,4 +1,6 @@
-<?php
+<?php /** @noinspection PhpDocFieldTypeMismatchInspection */
+/** @noinspection PhpDeprecationInspection */
+
 
 namespace BSBI\WebBase\traits;
 
@@ -19,7 +21,9 @@ trait ListHandling
     /** @var T[] $list */
     protected array $list = [];
 
-    /** @var U $filter */
+    /** @var U $filter
+     * @noinspection PhpDocFieldTypeMismatchInspection
+     */
     protected BaseFilter $filter;
 
     /**
@@ -33,6 +37,7 @@ trait ListHandling
      * For implementations, use a specific add function, e.g. addCategory, that enforces type
      * @param T $item
      * @return static
+     * @noinspection PhpDocSignatureInspection
      */
     protected function add(BaseModel $item): static
     {

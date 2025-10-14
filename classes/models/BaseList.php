@@ -62,8 +62,9 @@ abstract class BaseList
      * For implementations, use a specific add function, e.g. addCategory, that enforces type
      * @param T $item
      * @return $this
+     * @noinspection PhpDocSignatureInspection
      */
-    protected function add(BaseModel $item): static
+    protected function add(BaseModel $item): BaseList
     {
         $this->list[] = $item;
         return $this;
@@ -71,8 +72,7 @@ abstract class BaseList
 
     /**
      * List the items
-     *
-     * @return BaseModel
+     * @return T[]
      * @noinspection PhpUnused
      */
     public function getList(): array

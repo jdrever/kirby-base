@@ -29,9 +29,9 @@ trait SearchPageProperties
 
     /**
      * @param WebPageLinks $searchResults
-     * @return SearchPageProperties
+     * @return $this
      */
-    public function setSearchResults(WebPageLinks $searchResults): self
+    public function setSearchResults(WebPageLinks $searchResults): static
     {
         $this->searchResults = $searchResults;
         return $this;

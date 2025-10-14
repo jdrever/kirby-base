@@ -15,7 +15,9 @@ function handlePageChange($newPage, $oldPage) {
             'publishedBy' => $user?->id()
         ]);
     }
+    /** @noinspection PhpUnhandledExceptionInspection */
     $helper = new KirbyInternalHelper(kirby(), kirby()->site(), kirby()->page());
+    /** @noinspection PhpUnhandledExceptionInspection */
     $helper->handleTwoWayTagging($newPage, $oldPage);
     $helper->handleCaches($newPage);
     return $newPage;

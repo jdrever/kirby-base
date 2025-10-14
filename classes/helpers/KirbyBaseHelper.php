@@ -332,6 +332,7 @@ abstract class KirbyBaseHelper
 
     /**
      * @param string $collectionName
+     * @param string $sortBy
      * @return Collection
      * @throws KirbyRetrievalException
      */
@@ -349,9 +350,9 @@ abstract class KirbyBaseHelper
 
     /**
      * @param string $collectionName
+     * @param string $sortBy
      * @return array
      * @throws KirbyRetrievalException
-     * @noinspection PhpUnused
      */
     protected function getPageTitlesFromCollection(string $collectionName, string $sortBy = ''): array
     {
@@ -803,7 +804,9 @@ abstract class KirbyBaseHelper
      * @param Page $page
      * @param string $fieldName
      * @param bool $simpleLinks
+     * @param bool $required
      * @return WebPageLinks
+     * @throws KirbyRetrievalException
      */
     protected function getPageFieldAsWebPageLinks(Page $page, string $fieldName, bool $simpleLinks = true, bool $required = false): WebPageLinks
     {
@@ -1402,8 +1405,7 @@ abstract class KirbyBaseHelper
     }
 
     /**
-     * @param Page $page
-     * @param string $fieldName
+     * @param Structure $structure
      * @param bool $required
      * @return array
      * @throws KirbyRetrievalException
@@ -1502,7 +1504,7 @@ abstract class KirbyBaseHelper
                 } else {
                     if (!empty($itemTitle)) {
                         $webPageLink = new WebPageLink(
-                            strval($item->title()),
+                            $this->getStructureFieldAsString($item, 'title'),
                             $this->getStructureFieldAsLinkUrl($item, 'url'),
                             '',
                             ''
@@ -2317,6 +2319,7 @@ abstract class KirbyBaseHelper
      * @param string $imageFormat (e.g. webp)
      * @param ImageSizes $imageSizes
      * @param bool $crop
+     * @param string $imageClass
      * @return Image
      * @throws KirbyRetrievalException
      */
@@ -2442,7 +2445,7 @@ abstract class KirbyBaseHelper
                 } else {
                     if (!empty($itemTitle)) {
                         $webPageLink = new WebPageLink(
-                            strval($item->title()),
+                            $this->getStructureFieldAsString($item, 'title'),
                             $this->getStructureFieldAsLinkUrl($item, 'url'),
                             '',
                             ''
@@ -3401,6 +3404,7 @@ abstract class KirbyBaseHelper
      * @param string $tagType
      * @param string $fieldName
      * @return WebPageTagLinkSet
+     * @throws KirbyRetrievalException
      */
     protected function getWebPageTagLinkSet(Page $kirbyPage, string $tagType, string $fieldName): WebPageTagLinkSet
     {
@@ -3413,6 +3417,7 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $kirbyPage
      * @return WebPageTagLinks
+     * @throws KirbyRetrievalException
      */
     protected function getTagLinks(Page $kirbyPage) : WebPageTagLinks {
         $tagFields = $this->getFieldsInSection($kirbyPage, 'tags');
@@ -3445,6 +3450,7 @@ abstract class KirbyBaseHelper
         foreach ($sitePages as $page) {
             if (array_key_exists($page->template()->name(), $tagMapping))
             {
+                /** @noinspection PhpUndefinedMethodInspection */
                 $lastSyncTimestamp = $page->lastTagSync()->toTimestamp();
                 $currentTime = time();
                 // Calculate the time difference in minutes
@@ -3761,6 +3767,7 @@ abstract class KirbyBaseHelper
 
     /**
      * @param Page $page
+     * @param string $fieldName
      * @return void
      */
     public function redirectToFile(Page $page, string $fieldName = 'file'):void {
@@ -3852,7 +3859,12 @@ abstract class KirbyBaseHelper
                     ]
                 ]);
 
-                $submissionPage = $submissionPage->changeStatus('unlisted');
+
+                try {
+                    $submissionPage->changeStatus('unlisted');
+                } catch (InvalidArgumentException) {
+                    return (new ActionStatus(false,'', 'An error occurred while saving your submission.'));
+                }
 
                 if ($this->isPageFieldNotEmpty($parentPage, 'emailRecepient')) {
                     try {
@@ -4121,11 +4133,14 @@ abstract class KirbyBaseHelper
 
             foreach ($scheduledEntries as $entry) {
                 // Get the collection of Page objects from the field
+                /** @noinspection PhpUndefinedMethodInspection */
                 $pages = $entry->page()->toPages();
 
                 // If there's at least one page selected
                 if ($pages->isNotEmpty()) {
+                    /** @noinspection PhpUndefinedMethodInspection */
                     $scheduledDate = $entry->scheduledPublishDate()->value();
+                    /** @noinspection PhpUndefinedMethodInspection */
                     $scheduledTime = $entry->scheduledPublishTime()->value();
 
                     // If a date and time exist for the entry

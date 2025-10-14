@@ -17,9 +17,9 @@ trait ImageHandling
 
     /**
      * @param Image $image
-     * @return ImageHandling
+     * @return $this
      */
-    public function setImage(Image $image): self
+    public function setImage(Image $image): static
     {
         $this->image = $image;
         return $this;

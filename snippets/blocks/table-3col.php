@@ -8,16 +8,21 @@ use Kirby\Cms\Block;
  * @var Block $block
  */
 
+/** @noinspection PhpUndefinedMethodInspection */
 $fullWidth = $block->fullWidth()->toBool();
 
+/** @noinspection PhpUndefinedMethodInspection */
 $rows = $block->rows()->toStructure();
 if ($rows->isNotEmpty()) :
     snippet('base/full-width-block-starts', ['fullWidth' => $fullWidth]);?>
     <table class="table">
         <tr>
-            <th><?= $block->col1Title()->kt() ?></th>
-            <th><?= $block->col2Title()->kt() ?></th>
-            <th><?= $block->col3Title()->kt() ?></th>
+            <th><?= /** @noinspection PhpUndefinedMethodInspection */
+                $block->col1Title()->kt() ?></th>
+            <th><?= /** @noinspection PhpUndefinedMethodInspection */
+                $block->col2Title()->kt() ?></th>
+            <th><?= /** @noinspection PhpUndefinedMethodInspection */
+                $block->col3Title()->kt() ?></th>
         </tr>
         <?php foreach ($rows as $row) : ?>
             <tr>

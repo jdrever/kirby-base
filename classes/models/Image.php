@@ -29,7 +29,7 @@ class Image extends BaseModel
     /** @var int The width */
     private int $width;
 
-    /** @var int The height */
+    /** @var ?int The height */
     private ?int $height;
 
     private string $sizes = '';
@@ -40,7 +40,7 @@ class Image extends BaseModel
      * @param string $webpSrcset
      * @param string $alt
      * @param int $width
-     * @param int $height
+     * @param ?int $height
      */
     public function __construct(string $src = '',
                                 string $srcset = '',
