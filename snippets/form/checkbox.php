@@ -43,6 +43,12 @@ else:
     $checked = $checked ? 'checked' : '';
 endif;
 
+if (!isset($rounded)||!$rounded) :
+    $rounded = '';
+else:
+    $rounded = 'rounded';
+endif;
+
 
 if ($labelLayout !== 'badge') : ?>
 <div class="form-check">
@@ -68,7 +74,7 @@ if ($labelLayout !== 'badge') : ?>
     style=" background-color: <?=$backgroundColour?>; color: <?=$foregroundColour?>;"
     <?php endif ?>
     title="<?=$labelTitle?>"
-    class="p-1 m-1 <?=$labelClass?>"
+    class="p-1 m-1 <?=$labelClass?> <?=$rounded?>"
 >
     <?=$label ?>
 </label>

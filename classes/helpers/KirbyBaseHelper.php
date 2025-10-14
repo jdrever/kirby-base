@@ -3393,10 +3393,10 @@ abstract class KirbyBaseHelper
      * @param array $values
      * @return Collection
      */
-    protected function filterByContainsValues(Collection $pages, string $fieldName, array $values): Collection
+    protected function filterByContainsValues(Collection $pages, string $fieldName, array $values, bool $includeIfEmpty = false): Collection
     {
         $targetValues = array_map('trim', $values);
-        return $pages->filter(function ($page) use ($fieldName, $targetValues) {
+        return $pages->filter(function ($page) use ($fieldName, $targetValues, $includeIfEmpty) {
             $field = $page->{$fieldName}();
             if ($field->isNotEmpty()) {
                 $fieldValues = $field->split(',');
@@ -3404,7 +3404,7 @@ abstract class KirbyBaseHelper
                 $intersection = array_intersect($targetValues, $fieldValues);
                 return count($intersection) > 0;
             }
-            return false;
+            return $includeIfEmpty;
         });
     }
 
