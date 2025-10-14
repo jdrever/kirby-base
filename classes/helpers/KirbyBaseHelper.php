@@ -3387,13 +3387,22 @@ abstract class KirbyBaseHelper
         });
     }
 
+    /**
+     * @param Collection $pages
+     * @param string $fieldName
+     * @param array $values
+     * @return Collection
+     */
     protected function filterByContainsValues(Collection $pages, string $fieldName, array $values): Collection
     {
-        return $pages->filter(function ($page) use ($fieldName, $values) {
+        $targetValues = array_map('trim', $values);
+        return $pages->filter(function ($page) use ($fieldName, $targetValues) {
             $field = $page->{$fieldName}();
             if ($field->isNotEmpty()) {
                 $fieldValues = $field->split(',');
-                return array_intersect($values, $fieldValues);
+                $fieldValues = array_map('trim', $fieldValues);
+                $intersection = array_intersect($targetValues, $fieldValues);
+                return count($intersection) > 0;
             }
             return false;
         });
