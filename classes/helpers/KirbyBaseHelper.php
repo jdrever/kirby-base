@@ -449,7 +449,7 @@ abstract class KirbyBaseHelper
      * @return string
      * @throws KirbyRetrievalException if the page or field cannot be found
      */
-    protected function getPageFieldAsString(Page   $page,
+    public function getPageFieldAsString(Page   $page,
                                             string $fieldName,
                                             bool   $required = false,
                                             string $defaultValue = ''): string
@@ -2676,6 +2676,25 @@ abstract class KirbyBaseHelper
             [
                 'errorMessage' => $this->getExceptionDetails($e),
             ]
+        );
+
+    }
+
+    /**
+     * Will send email from defaultEmail in config
+     * @param string $template
+     * @param string $subject
+     * @param array $content
+     * @return void
+     */
+    public function sendNotificationEmail(string $template, string $to, string $subject, array $content): void
+    {
+        $this->sendEmail($template,
+            option('defaultEmail'),
+            option('defaultEmail'),
+            $to,
+            $subject,
+            $content
         );
 
     }
