@@ -1841,7 +1841,7 @@ abstract class KirbyBaseHelper
         /** @var Collection|null $menuPagesCollection */
         $menuPagesCollection = $this->kirby->collection('menuPages');
         if (isset($menuPagesCollection)) {
-            return $this->getWebPageLinks($menuPagesCollection);
+            return $this->getWebPageLinks($menuPagesCollection, false);
         } else {
             return (new WebPageLinks())->recordError('No menu pages found');
         }
