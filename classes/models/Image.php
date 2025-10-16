@@ -34,6 +34,8 @@ class Image extends BaseModel
 
     private string $sizes = '';
 
+    private string $caption = '';
+
     /**
      * @param string $src
      * @param string $srcset
@@ -225,6 +227,29 @@ class Image extends BaseModel
         return $this;
     }
 
+    public function hasCaption(): bool
+    {
+        return !empty($this->caption);
+    }
+
+
+    /**
+     * @return string
+     */
+    public function getCaption(): string
+    {
+        return $this->caption;
+    }
+
+    /**
+     * @param string $caption
+     * @return Image
+     */
+    public function setCaption(string $caption): Image
+    {
+        $this->caption = $caption;
+        return $this;
+    }
 
 
 }

@@ -966,6 +966,7 @@ abstract class KirbyBaseHelper
      * @throws KirbyRetrievalException
      */
     protected function getLinkFieldType(Page $page, string $fieldName): string {
+        return 'page';
         $linkField = $this->getPageField($page, $fieldName);
         /** @noinspection PhpUndefinedMethodInspection */
         if ($linkField->toPage()) {
@@ -2377,14 +2378,24 @@ abstract class KirbyBaseHelper
         $webpSrcSet = $image->srcset($srcSetType . '-webp');
         /** @noinspection PhpUndefinedMethodInspection */
         $alt = $image->alt()->isNotEmpty() ? $image->alt()->value() : '';
+        $caption = $this->getCaptionForImage($image);
         if ($src !== null && $srcSet !== null && $webpSrcSet !== null) {
             return (new Image ($src, $srcSet, $webpSrcSet, $alt, $width, $height))
                 ->setSizes($imageSizes->value)
-                ->setClass($imageClass);
+                ->setClass($imageClass)
+                ->setCaption($caption);
         }
+
         return (new Image())->recordError('Image not found');
 
     }
+
+    private function getCaptionForImage(File $image): string {
+        $caption = $image->caption()->isNotEmpty() ? $image->caption()->value(): '';
+        return $caption;
+    }
+
+
     #endregion
 
 
