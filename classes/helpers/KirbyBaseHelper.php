@@ -193,7 +193,7 @@ abstract class KirbyBaseHelper
             $webPage->setMenuPages($this->getMenuPages());
 
             if ($webPage->doSimpleGetSubPages()) {
-                $webPage->setSubPages($this->getSubPages($page, $webPage->isUsingSimpleLinksForSubPages()));
+                //$webPage->setSubPages($this->getSubPages($page, $webPage->isUsingSimpleLinksForSubPages()));
             }
             if ($this->isPageFieldNotEmpty($page, 'mainContent')) {
                 $webPage->setMainContentBlocks($this->getContentBlocks($page));
