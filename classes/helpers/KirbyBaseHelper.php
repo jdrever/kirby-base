@@ -959,6 +959,26 @@ abstract class KirbyBaseHelper
         }
     }
 
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @return string ('page', or 'url' - blank string if neither page or url)
+     * @throws KirbyRetrievalException
+     */
+    protected function getLinkFieldType(Page $page, string $fieldName): string {
+        $linkField = $this->getPageField($page, $fieldName);
+        /** @noinspection PhpUndefinedMethodInspection */
+        if ($linkField->toPage()) {
+            return 'page';
+        }
+        /** @noinspection PhpUndefinedMethodInspection */
+        elseif ($linkField->toUrl()) {
+            return 'url';
+        }
+        //TODO: cope with other link types
+        return '';
+    }
+
 
     /**
      * @param Page $page
@@ -2021,11 +2041,13 @@ abstract class KirbyBaseHelper
         foreach ($collection as $collectionPage) {
             $linkedPageAdded = false;
             if ($collectionPage->template()->name() === 'page_link') {
-                $linkedPage = $this->getPageFieldAsWebPageLink($collectionPage, 'redirect_link', $simpleLink);
-                if ($linkedPage->didComplete()) {
-                    $linkedPage->setTitle($this->getPageTitle($collectionPage));
-                    $webPageLinks->addListItem($linkedPage);
-                    $linkedPageAdded = true;
+                if ($this->getLinkFieldType($collectionPage, 'redirect_link') === 'page') {
+                    $linkedPage = $this->getPageFieldAsWebPageLink($collectionPage, 'redirect_link', $simpleLink);
+                    if ($linkedPage->didComplete()) {
+                        $linkedPage->setTitle($this->getPageTitle($collectionPage));
+                        $webPageLinks->addListItem($linkedPage);
+                        $linkedPageAdded = true;
+                    }
                 }
             }
             if (!$linkedPageAdded) {

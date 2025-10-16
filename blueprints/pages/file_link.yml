@@ -4,12 +4,22 @@ icon: file-code
 image:
   color: green
 
-fields:
-  file:
-    type: files
-    label: Upload or select a file
-    max: 1
-    required: true
-    uploads: true
-    help: Upload a new file or select from the current page or the file archive.
-    query: site.find("file-archive").files
+
+tabs:
+  linkTab:
+    label: Link
+    fields:
+      file:
+        type: files
+        label: Upload or select a file
+        max: 1
+        required: true
+        uploads: true
+        help: Upload a new file or select from the current page or the file archive.
+        query: site.find("file-archive").files
+  panelTab:
+    extends: tabs/panel
+    columns:
+      main:
+        fields:
+          showSubPageImages: false

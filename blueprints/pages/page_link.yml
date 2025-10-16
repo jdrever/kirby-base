@@ -1,11 +1,22 @@
 title: Page Link
 icon: repeat
 
-fields:
-  redirect_link:
-    label: Link Page/URL
-    type: link
-    required: true
-    options:
-      - page
-      - url
+
+tabs:
+  linkTab:
+    label: Link
+    fields:
+      redirect_link:
+        label: Link Page/URL
+        type: link
+        required: true
+        options:
+          - page
+          - url
+        help: if you choose a page, that page's panel content and image will be displayed in navigation
+  panelTab:
+    extends: tabs/panel
+    columns:
+      main:
+        fields:
+          showSubPageImages: false
