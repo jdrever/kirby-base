@@ -42,7 +42,6 @@ return [
     'blocks/table-6col' => __DIR__ . '/blueprints/blocks/table-6col.yml',
 
     //field blueprints
-    'fields/includeInMenu' => __DIR__ . '/blueprints/fields/includeInMenu.yml',
     'fields/mainContent' => __DIR__ . '/blueprints/fields/mainContent.yml',
     'fields/simpleContent' => __DIR__ . '/blueprints/fields/simpleContent.yml',
     'fields/mainImage' => __DIR__ . '/blueprints/fields/mainImage.yml',
@@ -60,6 +59,7 @@ return [
     //section blueprints
     'sections/corePageFields' => __DIR__ . '/blueprints/sections/corePageFields.yml',
     'sections/formFields' => __DIR__ . '/blueprints/sections/formFields.yml',
+    'sections/menuFields' => __DIR__ . '/blueprints/sections/menuFields.yml',
     'sections/publicationFields' => __DIR__ . '/blueprints/sections/publicationFields.yml',
     'sections/templateName' => __DIR__ . '/blueprints/sections/templateName.yml',
 

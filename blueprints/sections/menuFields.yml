@@ -1,0 +1,11 @@
+type: fields
+fields:
+  includeInMenu:
+    label: Include in menu?
+    type: toggle
+  menuPosition:
+    type: number
+    label: Menu Position
+    help: (1 is at start)
+    when:
+      includeInMenu: true
