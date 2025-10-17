@@ -1860,12 +1860,13 @@ abstract class KirbyBaseHelper
     protected function getMenuPages(): WebPageLinks
     {
         /** @var Collection|null $menuPagesCollection */
-        return (new WebPageLinks())->recordError('No menu pages found');
+        //return (new WebPageLinks())->recordError('No menu pages found');
         $menuPagesCollection = $this->kirby->collection('menuPages');
         $menuPageLinks = new WebPageLinks();
         if (isset($menuPagesCollection)) {
             foreach ($menuPagesCollection as $menuPage) {
                 $menuPageLink = new WebPageLink($menuPage->title(), $menuPage->url(), $menuPage->id(), $menuPage->template());
+                $menuPageLink->setSubPages(new WebPageLinks());
                 $menuPageLinks->addListItem($menuPageLink);
             }
             return $menuPageLinks;
