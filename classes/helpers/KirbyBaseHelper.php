@@ -966,7 +966,6 @@ abstract class KirbyBaseHelper
      * @throws KirbyRetrievalException
      */
     protected function getLinkFieldType(Page $page, string $fieldName): string {
-        return 'page';
         $linkField = $this->getPageField($page, $fieldName);
         /** @noinspection PhpUndefinedMethodInspection */
         if ($linkField->toPage()) {
@@ -1861,6 +1860,7 @@ abstract class KirbyBaseHelper
         /** @var Collection|null $menuPagesCollection */
         //return (new WebPageLinks())->recordError('No menu pages found');
         $menuPagesCollection = $this->kirby->collection('menuPages');
+        return $this->getWebPageLinks($menuPagesCollection, true, true);
         $menuPageLinks = new WebPageLinks();
         if (isset($menuPagesCollection)) {
             foreach ($menuPagesCollection as $menuPage) {
@@ -1893,7 +1893,7 @@ abstract class KirbyBaseHelper
         $subPagesCollection = $templates ?
             $this->getSubPagesUsingTemplates($page, $templates) : $this->getSubPagesAsCollection($page);
         if ($subPagesCollection instanceof Collection) {
-            return $this->getWebPageLinks($subPagesCollection, $simpleLink);
+            return $this->getWebPageLinks($subPagesCollection, $simpleLink, true);
         }
         return new WebPageLinks();
     }
@@ -1907,20 +1907,13 @@ abstract class KirbyBaseHelper
      */
     protected function getSubPagesAsCollection(Page $page): Pages|Collection|null
     {
-        if ($page->template()->name() !== 'home') {
-            $excludedTemplates = option('subPagesExclude');
+        $excludedTemplates = option('subPagesExclude');
 
-            // Ensure it returns an array
-            if (!is_array($excludedTemplates)) {
-                $excludedTemplates = [];
-            }
-            return $page->children()->listed()->notTemplate($excludedTemplates);
+        // Ensure it returns an array
+        if (!is_array($excludedTemplates)) {
+            $excludedTemplates = [];
         }
-        $menuPages = $this->kirby->collection('menuPages');
-        if ($menuPages instanceof Collection) {
-            return $menuPages->filterBy('template', '!=', 'home');
-        }
-        return null;
+        return $page->children()->listed()->notTemplate($excludedTemplates);
     }
 
     /**
@@ -1931,15 +1924,15 @@ abstract class KirbyBaseHelper
      */
     protected function getSubPageLink(Page $page, string $template): WebPageLink
     {
-        $reportPagesFromKirby = $this->getSubPagesUsingTemplates($page, [$template]);
-        if ($reportPagesFromKirby->count() > 0) {
-            $reportPageFromKirby = $reportPagesFromKirby->first();
-            if ($reportPageFromKirby instanceof Page) {
+        $pagesFromKirby = $this->getSubPagesUsingTemplates($page, [$template]);
+        if ($pagesFromKirby->count() > 0) {
+            $pageFromKirby = $pagesFromKirby->first();
+            if ($pageFromKirby instanceof Page) {
                 return new WebPageLink(
-                    $reportPageFromKirby->title()->toString(),
-                    $reportPageFromKirby->url(),
-                    $reportPageFromKirby->id(),
-                    $reportPageFromKirby->template()->name()
+                    $pageFromKirby->title()->toString(),
+                    $pageFromKirby->url(),
+                    $pageFromKirby->id(),
+                    $pageFromKirby->template()->name()
                 );
             }
         }
@@ -2048,25 +2041,17 @@ abstract class KirbyBaseHelper
      * @return WebPageLinks
      * @throws KirbyRetrievalException
      */
-    protected function getWebPageLinks(Collection $collection, bool $simpleLink = true): WebPageLinks
+    protected function getWebPageLinks(Collection $collection, bool $simpleLink = true, bool $getSubPages = false, bool $getImages = true): WebPageLinks
     {
         $webPageLinks = new WebPageLinks();
         /** @var Page $collectionPage */
         foreach ($collection as $collectionPage) {
-            $linkedPageAdded = false;
-            if ($collectionPage->template()->name() === 'page_link') {
-                if ($this->getLinkFieldType($collectionPage, 'redirect_link') === 'page') {
-                    $linkedPage = $this->getPageFieldAsWebPageLink($collectionPage, 'redirect_link', $simpleLink);
-                    if ($linkedPage->didComplete()) {
-                        $linkedPage->setTitle($this->getPageTitle($collectionPage));
-                        $webPageLinks->addListItem($linkedPage);
-                        $linkedPageAdded = true;
-                    }
-                }
+            $webPageLink = $this->getWebPageLink($collectionPage, $simpleLink, null, null, $getImages);
+            if ($getSubPages) {
+                $subPages = $this->getSubPagesAsCollection($collectionPage);
+                $webPageLink->setSubPages($this->getWebPageLinks($subPages, $simpleLink, false, $getImages));
             }
-            if (!$linkedPageAdded) {
-                $webPageLinks->addListItem($this->getWebPageLink($collectionPage, $simpleLink));
-            }
+            $webPageLinks->addListItem($webPageLink);
         }
         return $webPageLinks;
     }
@@ -2083,19 +2068,32 @@ abstract class KirbyBaseHelper
     protected function getWebPageLink(Page   $page,
                                       bool   $simpleLink = true,
                                       string $linkTitle = null,
-                                      string $linkDescription = null): WebPageLink
+                                      string $linkDescription = null,
+                                      bool $getImages = true): WebPageLink
     {
         $templateName = $page->template()->name();
+
+        if ($templateName === 'page_link') {
+            $linkType = $this->getLinkFieldType($page, 'redirect_link');
+            if ($linkType === 'page') {
+                $linkedPage = $this->getPageFieldAsPages($page, 'redirect_link', $simpleLink);
+                $linkTitle = $this->getPageTitle($page);
+                if ($linkedPage->first()) {
+                    $page = $linkedPage->first();
+                }
+            } elseif ($linkType === 'url') {
+                $pageUrl = $this->getPageFieldAsUrl($page, 'redirect_link');
+            }
+
+        }
         if ($templateName === 'file_link') {
             $file = $this->getPageFieldAsFile($page, 'file');
             $pageUrl = $file ? $file->url() : '';
-        } else {
-            $pageUrl = $page->url();
         }
 
         $linkDescription = $linkDescription ?? $this->getPageFieldAsString($page, 'panelContent');
         $linkTitle = $linkTitle ?? $this->getPageTitle($page);
-        $webPageLink = new WebPageLink($linkTitle, $pageUrl , $page->id(), $page->template()->name());
+        $webPageLink = new WebPageLink($linkTitle, $pageUrl ?? $page->url(), $page->id(), $page->template()->name());
         $webPageLink->setLinkDescription($linkDescription);
         if ($this->isPageFieldNotEmpty($page, 'requirements')) {
             $webPageLink->setRequirements($this->getPageFieldAsString($page, 'requirements'));
@@ -2103,17 +2101,15 @@ abstract class KirbyBaseHelper
         if ($simpleLink) {
             return $webPageLink;
         }
-        if ($this->isPageFieldNotEmpty($page, 'panelImage')) {
+        if ($getImages && $this->isPageFieldNotEmpty($page, 'panelImage')) {
             $panelImage = $this->getImage($page, 'panelImage', 400, 300, 80, ImageType::PANEL);
             $panelImage->setClass('img-fix-size img-fix-size--four-three');
             $webPageLink->setImage($panelImage);
         }
 
         $webPageLink->setShowSubPageImages($this->getPageFieldAsBool($page, 'showSubPageImages', false, true));
-        $webPageLink->setSubPages($this->getSubPages($page, $simpleLink));
         return $webPageLink;
     }
-
 
 
 
@@ -2729,6 +2725,7 @@ abstract class KirbyBaseHelper
     /**
      * Will send email from defaultEmail in config
      * @param string $template
+     * @param string $to
      * @param string $subject
      * @param array $content
      * @return void
@@ -3456,6 +3453,7 @@ abstract class KirbyBaseHelper
      * @param Collection $pages
      * @param string $fieldName
      * @param array $values
+     * @param bool $includeIfEmpty
      * @return Collection
      */
     protected function filterByContainsValues(Collection $pages, string $fieldName, array $values, bool $includeIfEmpty = false): Collection
