@@ -1865,7 +1865,13 @@ abstract class KirbyBaseHelper
         if (isset($menuPagesCollection)) {
             foreach ($menuPagesCollection as $menuPage) {
                 $menuPageLink = new WebPageLink($menuPage->title(), $menuPage->url(), $menuPage->id(), $menuPage->template());
-                $menuPageLink->setSubPages(new WebPageLinks());
+                $subPageLinks = new WebPageLinks();
+                $subPages = $this->getSubPagesAsCollection($menuPage);
+                foreach($subPages as $subPage) {
+                    $subPageLink = new WebPageLink($subPage->title(), $subPage->url(), $subPage->id(), $subPage->template());
+                    $subPageLinks->addListItem($subPageLink);
+                }
+                $menuPageLink->setSubPages($subPageLinks);
                 $menuPageLinks->addListItem($menuPageLink);
             }
             return $menuPageLinks;
