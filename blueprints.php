@@ -44,6 +44,7 @@ return [
     //field blueprints
     'fields/mainContent' => __DIR__ . '/blueprints/fields/mainContent.yml',
     'fields/simpleContent' => __DIR__ . '/blueprints/fields/simpleContent.yml',
+    'fields/image' => __DIR__ . '/blueprints/fields/image.yml',
     'fields/mainImage' => __DIR__ . '/blueprints/fields/mainImage.yml',
     'fields/pageLinks' => __DIR__ . '/blueprints/fields/pageLinks.yml',
     'fields/panelContent' => __DIR__ . '/blueprints/fields/panelContent.yml',

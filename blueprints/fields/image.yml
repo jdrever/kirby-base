@@ -1,0 +1,8 @@
+type: files
+label: Image
+multiple: false
+query: page.images.template('image').add(page('image-bank').images.template('image'))
+uploads:
+  template: image
+crop: true
+help: either upload, or select from the image bank
