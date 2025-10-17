@@ -1866,6 +1866,7 @@ abstract class KirbyBaseHelper
         if (isset($menuPagesCollection)) {
             foreach ($menuPagesCollection as $menuPage) {
                 $menuPageLink = new WebPageLink($menuPage->title(), $menuPage->url(), $menuPage->id(), $menuPage->template());
+                $menuPageLink->setSubPages(new WebPageLinks());
                 $menuPageLinks->addListItem($menuPageLink);
             }
             return $menuPageLinks;
