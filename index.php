@@ -35,7 +35,7 @@ if (option('debug') === false) {
         $exceptionAsString = "Message: " . $exception->getMessage() . "\n" .
             "File:" . $exception->getFile() . "'\n" .
             "Line:" . $exception->getLine() . "\n" .
-            "Trace:" . $exception->getTraceAsString() . "\n";
+            "Trace:" . $exception->getTraceAsString() . "\n" .
             "Page: " . $pageUrl . "\n";
 
         error_log($exceptionAsString);
