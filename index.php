@@ -29,14 +29,18 @@ Kirby::plugin(
 if (option('debug') === false) {
 // Set a global exception handler
     set_exception_handler(function (Throwable $exception) {
+
+        $pageUrl = kirby()->page()->url() ?? '';
+
         $exceptionAsString = "Message: " . $exception->getMessage() . "\n" .
             "File:" . $exception->getFile() . "'\n" .
             "Line:" . $exception->getLine() . "\n" .
-            "Trace:" . $exception->getTraceAsString();
+            "Trace:" . $exception->getTraceAsString() . "\n";
+            "Page: " . $pageUrl . "\n";
 
         error_log($exceptionAsString);
 
-        //$pageUrl = kirby()->page()->url();
+        $pageUrl = kirby()->page()->url() ?? '';
 
         if (!str_starts_with($_SERVER['HTTP_HOST'], 'localhost')) {
             try {
@@ -50,7 +54,7 @@ if (option('debug') === false) {
                             "<b>File:</b> " . $exception->getFile() . "<br>" .
                             "<b>Line:</b> " . $exception->getLine() . "<br>" .
                             "<b>Trace:</b> " . $exception->getTraceAsString(),
-                            //"<b>Page:</b> " . kirby()->page()->url(),
+                            "<b>Page:</b> " . $pageUrl,
                     ]
                 ];
                 kirby()->email($email);
