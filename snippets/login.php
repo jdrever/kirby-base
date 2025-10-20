@@ -14,6 +14,12 @@ endif;
 $loginDetails = $currentPage->getLoginDetails();
 
 ?>
+<style>
+    .login-form {
+        max-width: 330px;
+        padding: 1rem;
+    }
+</style>
 
 <?php if ($loginDetails->hasBeenProcessed()) :?>
     <div class="alert alert-danger" role="alert">
@@ -21,7 +27,7 @@ $loginDetails = $currentPage->getLoginDetails();
     </div>
 <?php endif ?>
 
-<form method="post">
+<form method="post" class="login-form">
     <input type="hidden" name="csrf" value="<?= $loginDetails->getCSRFToken() ?>">
     <input type="hidden" name="redirectPage" id="redirectPage" value="<?=$loginDetails->getRedirectPage()?>">
     <fieldset class="border border-success rounded p-3">
