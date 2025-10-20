@@ -25,6 +25,7 @@ return [
 
     //block blueprints
     'blocks/accordion' => __DIR__ . '/blueprints/blocks/accordion.yml',
+    'blocks/button' => __DIR__ . '/blueprints/blocks/button.yml',
     'blocks/description-list' => __DIR__ . '/blueprints/blocks/description-list.yml',
     'blocks/faq' => __DIR__ . '/blueprints/blocks/faq.yml',
     'blocks/file' => __DIR__ . '/blueprints/blocks/file.yml',

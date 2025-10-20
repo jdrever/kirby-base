@@ -44,6 +44,7 @@ return [
 
     // snippet blocks
     'blocks/accordion' => __DIR__ . '/snippets/blocks/accordion.php',
+    'blocks/button' => __DIR__ . '/snippets/blocks/button.php',
     'blocks/description-list' => __DIR__ . '/snippets/blocks/description-list.php',
     'blocks/faq' => __DIR__ . '/snippets/blocks/faq.php',
     'blocks/file' => __DIR__ . '/snippets/blocks/file.php',
