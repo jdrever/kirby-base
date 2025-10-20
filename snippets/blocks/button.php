@@ -9,6 +9,6 @@ use Kirby\Cms\Block;
  */
 
 ?>
-<a href="<?= $block->link() ?>" class="btn btn-primary m-2">
+<a href="<?= $block->link() ?>" class="btn btn-primary mx-3">
     <?= $block->text() ?>
 </a>
