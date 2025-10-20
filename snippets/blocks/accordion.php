@@ -12,5 +12,6 @@ if ($block->summary()->isNotEmpty()) : ?>
 <details class="as-accordion">
     <summary class="h5"><?= $block->summary() ?></summary>
     <?= $block->details()->kt() ?>
+    <?= $block->detailsAsBlocks()->toBlocks()?>
 </details>
 <?php endif; ?>

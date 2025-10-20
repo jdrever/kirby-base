@@ -10,7 +10,7 @@ use Kirby\Cms\Block;
 
 ?>
 <p>
-    <a href="<?= $block->link() ?>" class="btn btn-primary">
+    <a href="<?= $block->link()->toUrl() ?>" class="btn btn-primary">
     <?= $block->text() ?>
     </a>
 </p>

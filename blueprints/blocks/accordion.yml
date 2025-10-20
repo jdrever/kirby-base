@@ -7,6 +7,19 @@ fields:
     marks: false
     placeholder: Enter summary…
   details:
-    label: Detail
+    label: Detail (Simple)
     type: textarea
     marks: true
+  detailsAsBlocks:
+    label: Detail (Longer blocks)
+    type: blocks
+    fieldsets:
+      - heading
+      - text
+      - list
+      - note
+      - description-list
+      - button
+      - image
+
+
