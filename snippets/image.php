@@ -18,4 +18,7 @@ endif;
     src="<?= $image->getSrc() ?>"
     width="<?= $image->getWidth() ?>"
     height="<?= $image->getHeight() ?>"
+    <?php if ($image->hasCaption()) : ?>
+        title="<?= $image->getCaption() ?>"
+    <?php endif ?>
 >

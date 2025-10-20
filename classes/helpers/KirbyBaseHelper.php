@@ -2394,13 +2394,18 @@ abstract class KirbyBaseHelper
                 ->setClass($imageClass)
                 ->setCaption($caption);
         }
-
         return (new Image())->recordError('Image not found');
 
     }
 
     private function getCaptionForImage(File $image): string {
         $caption = $image->caption()->isNotEmpty() ? $image->caption()->value(): '';
+        if ($image->photographer()->isNotEmpty()) {
+            $caption .= ' Photographer: '.$image->photographer()->value();
+        }
+        if ($image->license()->isNotEmpty()) {
+            $caption .= ' License: '.$image->license()->value();
+        }
         return $caption;
     }
 
