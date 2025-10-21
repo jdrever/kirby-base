@@ -31,7 +31,6 @@ if (option('debug') === false) {
     set_exception_handler(function (Throwable $exception) {
 
         $pageUrl = kirby()->page() ? kirby()->page()->url() : '';
-
         $exceptionAsString = "Message: " . $exception->getMessage() . "\n" .
             "File:" . $exception->getFile() . "'\n" .
             "Line:" . $exception->getLine() . "\n" .
