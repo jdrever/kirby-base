@@ -2080,6 +2080,12 @@ abstract class KirbyBaseHelper
         if ($this->isPageFieldNotEmpty($page, 'requirements')) {
             $webPageLink->setRequirements($this->getPageFieldAsString($page, 'requirements'));
         }
+
+        $getWebPageLinkForFunction = 'getWebPageLinkFor'.ucfirst($templateName);
+        if (method_exists($this, $getWebPageLinkForFunction)) {
+            $webPageLink = $this->$getWebPageLinkForFunction($page, $webPageLink);
+        }
+
         if ($simpleLink) {
             return $webPageLink;
         }
