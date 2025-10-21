@@ -242,6 +242,14 @@ class Image extends BaseModel
     }
 
     /**
+     * @return string
+     */
+    public function getCaptionWithoutHTML(): string
+    {
+        return strip_tags($this->caption);
+    }
+
+    /**
      * @param string $caption
      * @return Image
      */

@@ -2380,12 +2380,21 @@ abstract class KirbyBaseHelper
 
     }
 
+    /**
+     * @param File $image
+     * @return string
+     */
     private function getCaptionForImage(File $image): string {
-        $caption = $image->caption()->isNotEmpty() ? $image->caption()->value(): '';
+        /** @noinspection PhpUndefinedMethodInspection */
+        $caption = $image->caption()->isNotEmpty() ? $image->caption()->kt() : $image->alt()->value() ?? '';
+        /** @noinspection PhpUndefinedMethodInspection */
         if ($image->photographer()->isNotEmpty()) {
+            /** @noinspection PhpUndefinedMethodInspection */
             $caption .= ' Photographer: '.$image->photographer()->value();
         }
+        /** @noinspection PhpUndefinedMethodInspection */
         if ($image->license()->isNotEmpty()) {
+            /** @noinspection PhpUndefinedMethodInspection */
             $caption .= ' License: '.$image->license()->value();
         }
         return $caption;
