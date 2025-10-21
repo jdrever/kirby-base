@@ -39,8 +39,6 @@ if (option('debug') === false) {
 
         error_log($exceptionAsString);
 
-        $pageUrl = kirby()->page()->url() ?? '';
-
         if (!str_starts_with($_SERVER['HTTP_HOST'], 'localhost')) {
             try {
                 $email = [
