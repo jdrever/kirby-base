@@ -1861,24 +1861,6 @@ abstract class KirbyBaseHelper
         //return (new WebPageLinks())->recordError('No menu pages found');
         $menuPagesCollection = $this->kirby->collection('menuPages');
         return $this->getWebPageLinks($menuPagesCollection, true, true);
-        $menuPageLinks = new WebPageLinks();
-        if (isset($menuPagesCollection)) {
-            foreach ($menuPagesCollection as $menuPage) {
-                $menuPageLink = new WebPageLink($menuPage->title(), $menuPage->url(), $menuPage->id(), $menuPage->template());
-                $subPageLinks = new WebPageLinks();
-                $subPages = $this->getSubPagesAsCollection($menuPage);
-                foreach($subPages as $subPage) {
-                    $subPageLink = new WebPageLink($subPage->title(), $subPage->url(), $subPage->id(), $subPage->template());
-                    $subPageLinks->addListItem($subPageLink);
-                }
-                $menuPageLink->setSubPages($subPageLinks);
-                $menuPageLinks->addListItem($menuPageLink);
-            }
-            return $menuPageLinks;
-            //return $this->getWebPageLinks($menuPagesCollection, false);
-        } else {
-            return (new WebPageLinks())->recordError('No menu pages found');
-        }
     }
 
     /**
