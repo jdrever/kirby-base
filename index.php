@@ -30,7 +30,7 @@ if (option('debug') === false) {
 // Set a global exception handler
     set_exception_handler(function (Throwable $exception) {
 
-        $pageUrl = kirby()->page()->url() ?? '';
+        $pageUrl = kirby()->page() ? kirby()->page()->url() : '';
 
         $exceptionAsString = "Message: " . $exception->getMessage() . "\n" .
             "File:" . $exception->getFile() . "'\n" .
