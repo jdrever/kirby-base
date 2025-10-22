@@ -98,7 +98,7 @@ $figCaptionClass="figure-caption";
         ?>
         <details class="as-accordion mt-2 p-0">
             <summary class="mb-2">
-                See all Images
+                See all images
             </summary>
             <div class="row row-cols-2 pt-6">
                 <?php foreach ($hiddenImages as $image) : ?>
