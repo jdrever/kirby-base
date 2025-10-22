@@ -43,10 +43,10 @@ $renderImage = function (Kirby\Cms\File $image, string $ratio, bool $crop, Block
     $caption = $image->caption();
     $title = $image->caption();
     if ($image->photographer()->isNotEmpty()) {
-        $title .= ' Photographer: '.$image->license()->value();
+        $title .= ' Photographer: '.$image->photographer()->value();
     }
     if ($image->license()->isNotEmpty()) {
-        $title .= ' License: '.$image->photographer()->value();
+        $title .= ' License: '.$image->license()->value();
     }
     $link    = $image->link();
     $src     = null;
