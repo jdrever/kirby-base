@@ -74,7 +74,7 @@ $figCaptionClass="figure-caption";
 
 <?php snippet('base/full-width-block-starts', ['fullWidth' => $fullWidth]) ?>
 <div class="container">
-    <div class="row row-cols-2">
+    <div class="row row-cols-1 row-cols-sm-2">
         <?php
         // --- RENDER VISIBLE IMAGES (Max 2, or all if no split) ---
         foreach ($visibleImages as $image) :
