@@ -395,16 +395,32 @@ abstract class KirbyBaseHelper
     /**
      * Gets the field - if the field is empty, returns an empty string
      * @param string $fieldName
+     * @param bool $required
+     * @param string $default
      * @return string
      * @throws KirbyRetrievalException if the page or field cannot be found
-     * @noinspection PhpUnused
      */
-    public function getCurrentPageField(string $fieldName): string
+    public function getCurrentPageFieldAsString(string $fieldName, bool $required = false, string $default =''): string
     {
         if (!isset($this->page)) {
             throw new KirbyRetrievalException('Current page not found');
         }
-        return $this->getPageFieldAsString($this->page, $fieldName);
+        return $this->getPageFieldAsString($this->page, $fieldName, $required, $default);
+    }
+
+    /**
+     * @param string $fieldName
+     * @param bool $required
+     * @param bool $default
+     * @return bool
+     * @throws KirbyRetrievalException
+     */
+    public function getCurrentPageFieldAsBool(string $fieldName, bool $required = false, bool $default = false): bool
+    {
+        if (!isset($this->page)) {
+            throw new KirbyRetrievalException('Current page not found');
+        }
+        return $this->getPageFieldAsBool($this->page, $fieldName, $required, $default);
     }
 
     /**
