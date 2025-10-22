@@ -41,6 +41,13 @@ if ($showSeeAllButton && $allImages->count() > 2) {
 $renderImage = function (Kirby\Cms\File $image, string $ratio, bool $crop, Block $block, string $imgClass, string $figCaptionClass) {
     $alt     = $image->alt();
     $caption = $image->caption();
+    $title = $image->caption();
+    if ($image->photographer()->isNotEmpty()) {
+        $title .= ' Photographer: '.$image->license()->value();
+    }
+    if ($image->license()->isNotEmpty()) {
+        $title .= ' License: '.$image->photographer()->value();
+    }
     $link    = $image->link();
     $src     = null;
 
@@ -53,10 +60,10 @@ $renderImage = function (Kirby\Cms\File $image, string $ratio, bool $crop, Block
         <figure<?= Html::attr(['data-ratio' => $ratio, 'data-crop' => $crop], null, ' ') ?>>
             <?php if ($link->isNotEmpty()): ?>
                 <a href="<?= Str::esc($link->toUrl()) ?>">
-                    <img class="<?= $imgClass ?>" src="<?= $src ?>" alt="<?= $alt->esc() ?>">
+                    <img class="<?= $imgClass ?>" src="<?= $src ?>" alt="<?= $alt->esc() ?>" title="<?=$title?>">
                 </a>
             <?php else: ?>
-                <img class="<?= $imgClass ?>" src="<?= $src ?>" alt="<?= $alt->esc() ?>">
+                <img class="<?= $imgClass ?>" src="<?= $src ?>" alt="<?= $alt->esc() ?>" title="<?=$title?>">
             <?php endif ?>
 
             <?php if ($caption->isNotEmpty()): ?>
@@ -91,7 +98,7 @@ $figCaptionClass="figure-caption";
         ?>
         <details class="as-accordion mt-2 p-0">
             <summary class="mb-2">
-                See All Images
+                See all Images
             </summary>
             <div class="row row-cols-2 pt-6">
                 <?php foreach ($hiddenImages as $image) : ?>
