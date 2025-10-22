@@ -24,7 +24,7 @@ $fullWidth = $block->fullWidth()->toBool();
 $figCaptionClass = '';
 
 $allImages = $block->images()->toFiles();
-$showSeeAllButton = $block->showSeeAllButton()->toBool(); // NEW: Check for the new field
+$hideSeeAllButton = $block->hideSeeAllButton()->toBool(); // NEW: Check for the new field
 
 /** @var Collection<Kirby\Cms\File> $visibleImages */
 $visibleImages = $allImages;
@@ -32,7 +32,7 @@ $visibleImages = $allImages;
 $hiddenImages = null;
 
 // Logic to split images if 'showSeeAllButton' is true and there are more than 2 images
-if ($showSeeAllButton && $allImages->count() > 2) {
+if (!$hideSeeAllButton && $allImages->count() > 2) {
     $visibleImages = $allImages->slice(0, 2);
     $hiddenImages  = $allImages->slice(2);
 }

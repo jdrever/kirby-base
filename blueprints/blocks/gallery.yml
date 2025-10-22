@@ -53,8 +53,8 @@ fields:
         text: Large
       - value: '1024'
         text: Extra Large
-  showSeeAllButton:
+  hideSeeAllButton:
     type: toggle
-    label: Show See All Button?
+    label: Hide See All Button?
     default: false
 
