@@ -902,7 +902,11 @@ abstract class KirbyBaseHelper
      */
     protected function getPageFieldAsPageTitles(Page $page, string $fieldName): array {
         $pages = $this->getPageFieldAsPages($page, $fieldName);
-        return $pages->pluck('title');
+        if ($pages) {
+            return $pages->pluck('title');
+        } else {
+            return [];
+        }
     }
 
     /**
