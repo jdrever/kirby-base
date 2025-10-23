@@ -641,11 +641,19 @@ abstract class KirbyBaseHelper
      * @return string
      * @throws KirbyRetrievalException
      */
-    protected function getPageFieldAsTime(Page $page, string $fieldName): string
+    protected function getPageFieldAsTime(Page $page, string $fieldName, bool $isRequired = false): string
     {
-        $pageField = $this->getPageField($page, $fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        return $pageField->toDate('g:i a');
+        try {
+            $pageField = $this->getPageField($page, $fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $pageField->toDate('g:i a');
+        }
+        catch (KirbyRetrievalException $e) {
+            if ($isRequired) {
+                throw $e;
+            }
+            return '';
+        }
     }
 
     /**
