@@ -638,6 +638,19 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $page
      * @param string $fieldName
+     * @return string
+     * @throws KirbyRetrievalException
+     */
+    protected function getPageFieldAsTime(Page $page, string $fieldName): string
+    {
+        $pageField = $this->getPageField($page, $fieldName);
+        /** @noinspection PhpUndefinedMethodInspection */
+        return $pageField->toDate('g:i a');
+    }
+
+    /**
+     * @param Page $page
+     * @param string $fieldName
      * @param bool $isRequired
      * @return Structure
      * @throws KirbyRetrievalException
@@ -2032,10 +2045,11 @@ abstract class KirbyBaseHelper
     }
 
 
-
     /**
      * @param Collection $collection
      * @param bool $simpleLink
+     * @param bool $getSubPages
+     * @param bool $getImages
      * @return WebPageLinks
      * @throws KirbyRetrievalException
      */
@@ -2060,6 +2074,7 @@ abstract class KirbyBaseHelper
      * @param bool $simpleLink
      * @param string|null $linkTitle
      * @param string|null $linkDescription
+     * @param bool $getImages
      * @return WebPageLink
      * @throws KirbyRetrievalException
      */
