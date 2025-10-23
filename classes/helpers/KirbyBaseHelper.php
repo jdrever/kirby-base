@@ -2066,7 +2066,8 @@ abstract class KirbyBaseHelper
             $webPageLink = $this->getWebPageLink($collectionPage, $simpleLink, null, null, $getImages);
             if ($getSubPages) {
                 $subPages = $this->getSubPagesAsCollection($collectionPage);
-                $webPageLink->setSubPages($this->getWebPageLinks($subPages, $simpleLink, false, $getImages));
+                $getSubPageImages = $webPageLink->doShowSubPageImages();
+                $webPageLink->setSubPages($this->getWebPageLinks($subPages, $simpleLink, false, $getSubPageImages));
             }
             $webPageLinks->addListItem($webPageLink);
         }
