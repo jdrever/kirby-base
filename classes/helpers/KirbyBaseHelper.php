@@ -897,6 +897,17 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $page
      * @param string $fieldName
+     * @return array
+     * @throws KirbyRetrievalException
+     */
+    protected function getPageFieldAsPageTitles(Page $page, string $fieldName): array {
+        $pages = $this->getPageFieldAsPages($page, $fieldName);
+        return $pages->pluck('title');
+    }
+
+    /**
+     * @param Page $page
+     * @param string $fieldName
      * @return string
      * @throws KirbyRetrievalException
      * @noinspection PhpUnused
@@ -2123,6 +2134,8 @@ abstract class KirbyBaseHelper
             $webPageLink = $this->$getWebPageLinkForFunction($page, $webPageLink);
         }
 
+        $webPageLink->setShowSubPageImages($this->getPageFieldAsBool($page, 'showSubPageImages', false, false));
+
         if ($simpleLink) {
             return $webPageLink;
         }
@@ -2132,7 +2145,7 @@ abstract class KirbyBaseHelper
             $webPageLink->setImage($panelImage);
         }
 
-        $webPageLink->setShowSubPageImages($this->getPageFieldAsBool($page, 'showSubPageImages', false, true));
+
         return $webPageLink;
     }
 
