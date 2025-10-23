@@ -3512,6 +3512,20 @@ abstract class KirbyBaseHelper
         });
     }
 
+    protected function filterByContainsPageTitle(Collection $pages, string $fieldName, string $pageFieldName, string $value): Collection
+    {
+        return $pages->filter(function ($page) use ($fieldName, $pageFieldName, $value) {
+            $fieldPages = $page->{$fieldName}()->toPages();
+            foreach($fieldPages as $fieldPage) {
+                if ($this->isPageFieldNotEmpty($fieldPage,$pageFieldName) && $this->getPageFieldAsPageTitle($fieldPage, $pageFieldName) === $value) {
+                    return true;
+                }
+            }
+            return false;
+        });
+
+    }
+
     /**
      * @param Page $kirbyPage
      * @param string $tagType
