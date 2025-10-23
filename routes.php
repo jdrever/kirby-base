@@ -17,7 +17,7 @@ return [
         'pattern' => 'scheduled-publish',
         'action'  => function () {
             kirby()->impersonate('kirby');
-            $helper = new KirbyInternalHelper(kirby(), site(), page());
+            $helper = new KirbyInternalHelper();
             return $helper->publishScheduledPages();
         }
     ]

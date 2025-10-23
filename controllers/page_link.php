@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use BSBI\WebBase\helpers\KirbyInternalHelper;
 
-return function ($page, $pages, $site, $kirby) {
-    $helper = new KirbyInternalHelper($kirby, $site, $page);
+return function ($page) {
+    $helper = new KirbyInternalHelper();
     $helper->redirectToPage($page);
 };

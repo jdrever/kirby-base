@@ -16,7 +16,7 @@ function handlePageChange($newPage, $oldPage) {
         ]);
     }
     /** @noinspection PhpUnhandledExceptionInspection */
-    $helper = new KirbyInternalHelper(kirby(), kirby()->site(), kirby()->page());
+    $helper = new KirbyInternalHelper();
     /** @noinspection PhpUnhandledExceptionInspection */
     $helper->handleTwoWayTagging($newPage, $oldPage);
     $helper->handleCaches($newPage);
@@ -46,7 +46,7 @@ return [
             ]);
         }
 
-        $helper = new KirbyInternalHelper(kirby(), kirby()->site(), kirby()->page());
+        $helper = new KirbyInternalHelper();
         $helper->handleTwoWayTagging($page);
         $helper->handleCaches($page);
         return $page;
@@ -57,7 +57,7 @@ return [
     //    //$helper->handleCaches($newPage);
     //},
     'page.delete:before' => function (Kirby\Cms\Page $page) {
-        $helper = new KirbyInternalHelper(kirby(), kirby()->site(), kirby()->page());
+        $helper = new KirbyInternalHelper();
         $helper->handleCaches($page);
     },
     'panel.route:after' => function () {

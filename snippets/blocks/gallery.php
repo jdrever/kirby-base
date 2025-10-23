@@ -49,7 +49,6 @@ $renderImage = function (Kirby\Cms\File $image, string $ratio, bool $crop, Block
         $title .= ' License: '.$image->license()->value();
     }
     $link    = $image->link();
-    $src     = null;
 
     if ($block->fixedWidth()->isNotEmpty()) {
         $image = $image->resize((int)$block->fixedWidth()->value());

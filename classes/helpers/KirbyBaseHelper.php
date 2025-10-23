@@ -74,18 +74,15 @@ abstract class KirbyBaseHelper
      */
     protected ?Page $page;
 
+
     /**
-     * Class constructor, passing in the Kirby objects
-     * @param App $kirby the Kirby object
-     * @param Site $site the Kirby site object
-     * @param Page|null $page the Kirby page object
-     * @throws Throwable
+     *
      */
-    public function __construct(App $kirby, Site $site, ?Page $page)
+    public function __construct()
     {
-        $this->kirby = $kirby;
-        $this->site = $site;
-        $this->page = $page;
+        $this->kirby = kirby();
+        $this->site = site();
+        $this->page = page();
     }
     #endregion
 
@@ -3446,7 +3443,7 @@ abstract class KirbyBaseHelper
      * @return Collection
      * @noinspection PhpUnused
      */
-    protected function filterByPagesTag(Collection $pages, string $tagName, string $tagValue): Collection {
+    public function filterByPagesTag(Collection $pages, string $tagName, string $tagValue): Collection {
         if (empty($tagValue)) { return $pages;}
         return $pages->filter(function ($page) use ($tagName, $tagValue) {
             $pages = $page->content()->get($tagName)->toPages();
@@ -3461,7 +3458,7 @@ abstract class KirbyBaseHelper
      * @return Structure
      * @noinspection PhpUnused
      */
-    protected function filterStructureByPagesTag(Structure $structure, string $tagName, string $tagValue): Structure {
+    public function filterStructureByPagesTag(Structure $structure, string $tagName, string $tagValue): Structure {
         if (empty($tagValue)) { return $structure;}
         return $structure->filter(function ($structureItem) use ($tagName, $tagValue) {
             $pages = $structureItem->content()->get($tagName)->toPages();
@@ -3478,7 +3475,7 @@ abstract class KirbyBaseHelper
      * @param string $value
      * @return Collection
      */
-    protected function filterByContainsValue(Collection $pages, string $fieldName, string $value): Collection
+    public function filterByContainsValue(Collection $pages, string $fieldName, string $value): Collection
     {
         return $pages->filter(function ($page) use ($fieldName, $value) {
             $field = $page->{$fieldName}();
@@ -3497,7 +3494,7 @@ abstract class KirbyBaseHelper
      * @param bool $includeIfEmpty
      * @return Collection
      */
-    protected function filterByContainsValues(Collection $pages, string $fieldName, array $values, bool $includeIfEmpty = false): Collection
+    public function filterByContainsValues(Collection $pages, string $fieldName, array $values, bool $includeIfEmpty = false): Collection
     {
         $targetValues = array_map('trim', $values);
         return $pages->filter(function ($page) use ($fieldName, $targetValues, $includeIfEmpty) {
@@ -3512,7 +3509,7 @@ abstract class KirbyBaseHelper
         });
     }
 
-    protected function filterByContainsPageTitle(Collection $pages, string $fieldName, string $pageFieldName, string $value): Collection
+    public function filterByContainsPageTitle(Collection $pages, string $fieldName, string $pageFieldName, string $value): Collection
     {
         return $pages->filter(function ($page) use ($fieldName, $pageFieldName, $value) {
             $fieldPages = $page->{$fieldName}()->toPages();
