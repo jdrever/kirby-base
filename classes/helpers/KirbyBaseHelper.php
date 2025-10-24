@@ -3327,6 +3327,10 @@ abstract class KirbyBaseHelper
         return $this->kirby->user() ? $this->kirby->user()->role()->name() : '';
     }
 
+    protected function getUserFieldAstring(User $user, string $fieldName, string $default =''): string {
+        return $user->{$fieldName}()->value() ?? $default;
+    }
+
 
     /**
      * Checks whether the current user has the necessary permissions to access the given page.
@@ -3346,7 +3350,7 @@ abstract class KirbyBaseHelper
 
         $user = $this->kirby->user();
 
-        if ($user && !$user->isKirby() && ($user->role()->name() === 'admin' || $user->role()->name() === 'editor')) {
+        if ($this->isCurrentUserAdminOrEditor()) {
             return true;
         }
         $siteRoles = $this->getSiteFieldAsString('requiredRoles');
@@ -3392,6 +3396,15 @@ abstract class KirbyBaseHelper
         }
 
         // If none of the above conditions are met, the user does not have permission
+        return false;
+    }
+
+    public function isCurrentUserAdminOrEditor() : bool
+    {
+        $user = $this->kirby->user();
+        if ($user && !$user->isKirby() && ($user->role()->name() === 'admin' || $user->role()->name() === 'editor')) {
+            return true;
+        }
         return false;
     }
 
@@ -3484,6 +3497,19 @@ abstract class KirbyBaseHelper
                 return ($pages->filterBy('title', $tagValue)->count() > 0);
             }
             return false;
+        });
+    }
+
+    /**
+     * @param Collection $pages
+     * @param string $fieldName
+     * @param string $value
+     * @return Collection
+     */
+    public function filterByEqualsValue(Collection $pages, string $fieldName, string $value): Collection
+    {
+        return $pages->filter(function ($page) use ($fieldName, $value) {
+            return $page->content()->{$fieldName}()->value() === $value;
         });
     }
 
