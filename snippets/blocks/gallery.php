@@ -40,8 +40,10 @@ if (!$hideSeeAllButton && $allImages->count() > 2) {
 // Function to render a single image figure (to avoid repetition)
 $renderImage = function (Kirby\Cms\File $image, string $ratio, bool $crop, Block $block, string $imgClass, string $figCaptionClass) {
     $alt     = $image->alt();
-    $caption = $image->caption();
-    $title = $image->caption();
+    $caption = $image->caption() ?? '';
+
+
+    $title = $image->caption()->isNotEmpty()  ? $image->caption() :  $image->alt();
     if ($image->photographer()->isNotEmpty()) {
         $title .= ' Photographer: '.$image->photographer()->value();
     }
