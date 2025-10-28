@@ -3402,7 +3402,15 @@ abstract class KirbyBaseHelper
     public function isCurrentUserAdminOrEditor() : bool
     {
         $user = $this->kirby->user();
-        if ($user && !$user->isKirby() && ($user->role()->name() === 'admin' || $user->role()->name() === 'editor')) {
+        if ($user) {
+            return $this->isUserAdminOrEditor($user);
+        }
+        return false;
+    }
+
+    public function isUserAdminOrEditor(\Kirby\Cms\User $user) : bool
+    {
+        if (!$user->isKirby() && ($user->role()->name() === 'admin' || $user->role()->name() === 'editor')) {
             return true;
         }
         return false;
