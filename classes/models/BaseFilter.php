@@ -19,6 +19,8 @@ abstract class BaseFilter
     /** @var string[] */
     private array $description;
 
+    private string $keywords;
+
 
     public function hasDescription(): bool
     {
@@ -43,5 +45,26 @@ abstract class BaseFilter
         return $this;
     }
 
+    public function hasKeywords(): bool
+    {
+        return !empty($this->keywords);
+    }
 
+    /**
+     * @return string
+     */
+    public function getKeywords(): string
+    {
+        return $this->keywords;
+    }
+
+    /**
+     * @param string $keywords
+     * @return BaseFilter
+     */
+    public function setKeywords(string $keywords): BaseFilter
+    {
+        $this->keywords = $keywords;
+        return $this;
+    }
 }
