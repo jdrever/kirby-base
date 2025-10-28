@@ -731,6 +731,49 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $page
      * @param string $fieldName
+     * @param int $length
+     * @param bool $required
+     * @return string
+     * @throws KirbyRetrievalException
+     */
+    protected function getPageFieldTextBlocksAsExcerpt(Page   $page,
+                                                       string $fieldName,
+                                                       int    $length,
+                                                       bool   $required = false): string
+    {
+        if ($length <= 0) {
+            return '';
+        }
+
+        try {
+            $pageField = $this->getPageField($page, $fieldName);
+
+            /** @noinspection PhpUndefinedMethodInspection */
+            $allBlocks = $pageField->toBlocks();
+
+            // Filter the blocks collection to only include blocks of type 'text'
+            // We use an arrow function for brevity (requires PHP 7.4+)
+            $textBlocks = $allBlocks->filter(fn($block) => $block->type() === 'text');
+
+            // Convert only the filtered text blocks to HTML
+            $textContent = $textBlocks->toHtml();
+
+            // Return an excerpt of the specified length
+            return Str::excerpt($textContent, $length);
+
+        } catch (\Exception $e) { // Using \Exception as placeholder
+            if ($required) {
+                throw $e;
+            }
+            return '';
+        }
+    }
+
+
+
+    /**
+     * @param Page $page
+     * @param string $fieldName
      * @return Blocks
      * @throws KirbyRetrievalException
      */
