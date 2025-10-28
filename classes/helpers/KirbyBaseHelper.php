@@ -2303,7 +2303,7 @@ abstract class KirbyBaseHelper
             }
         }
 
-        if ($modelList->usePagination()) {
+        if ($modelList->usePagination() && !$filter->doStopPagination()) {
 
             $collectionPages = $collectionPages->paginate($modelList->getPaginatePerPage());
             $paginationFromKirby = $collectionPages->pagination();

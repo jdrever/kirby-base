@@ -19,7 +19,9 @@ abstract class BaseFilter
     /** @var string[] */
     private array $description;
 
-    private string $keywords;
+    private string $keywords = '';
+
+    private bool $stopPagination = false;
 
 
     public function hasDescription(): bool
@@ -67,4 +69,24 @@ abstract class BaseFilter
         $this->keywords = $keywords;
         return $this;
     }
+
+    /**
+     * @return bool
+     */
+    public function doStopPagination(): bool
+    {
+        return $this->stopPagination;
+    }
+
+    /**
+     * @param bool $stopPagination
+     * @return BaseFilter
+     */
+    public function setStopPagination(bool $stopPagination): BaseFilter
+    {
+        $this->stopPagination = $stopPagination;
+        return $this;
+    }
+
+
 }
