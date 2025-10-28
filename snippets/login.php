@@ -52,6 +52,10 @@ $loginDetails = $currentPage->getLoginDetails();
                        required="required"
                        aria-required="true"
                        class="form-control">
+                    <input class="form-check-input" type="checkbox" id="showPasswordToggle">
+                    <label class="form-check-label" for="showPasswordToggle">
+                        Show Password
+                    </label>
             </li>
             <li class="submit-buttons">
                 <input type="submit" value="LOGIN" name="loginButton" class="btn btn-success">
@@ -59,3 +63,19 @@ $loginDetails = $currentPage->getLoginDetails();
         </ol>
     </fieldset>
 </form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const passwordInput = document.getElementById('password');
+        const showPasswordToggle = document.getElementById('showPasswordToggle');
+
+        showPasswordToggle.addEventListener('change', function() {
+            // Toggle the type attribute between 'password' and 'text'
+            if (showPasswordToggle.checked) {
+                passwordInput.setAttribute('type', 'text');
+            } else {
+                passwordInput.setAttribute('type', 'password');
+            }
+        });
+    });
+</script>
