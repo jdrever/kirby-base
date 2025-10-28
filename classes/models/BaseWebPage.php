@@ -587,6 +587,14 @@ class BaseWebPage extends BaseModel
     }
 
     /**
+     * @return bool
+     */
+    public function isAdminEditor(): bool {
+        $currentRole = $this->currentUser->getRole();
+        return ($currentRole === 'admin' || $currentRole === 'editor');
+    }
+
+    /**
      * @param string $role
      * @return bool
      */
