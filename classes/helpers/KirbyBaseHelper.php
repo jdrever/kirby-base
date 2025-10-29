@@ -3370,7 +3370,7 @@ abstract class KirbyBaseHelper
         return $this->kirby->user() ? $this->kirby->user()->role()->name() : '';
     }
 
-    protected function getUserFieldAstring(User $user, string $fieldName, string $default =''): string {
+    protected function getUserFieldAsString(\Kirby\Cms\User $user, string $fieldName, string $default =''): string {
         return $user->{$fieldName}()->value() ?? $default;
     }
 
@@ -3445,15 +3445,12 @@ abstract class KirbyBaseHelper
     public function isCurrentUserAdminOrEditor() : bool
     {
         $user = $this->kirby->user();
-        if ($user) {
-            return $this->isUserAdminOrEditor($user);
-        }
-        return false;
+        return $this->isUserAdminOrEditor($user);
     }
 
-    public function isUserAdminOrEditor(\Kirby\Cms\User $user) : bool
+    public function isUserAdminOrEditor(\Kirby\Cms\User|null $user) : bool
     {
-        if (!$user->isKirby() && ($user->role()->name() === 'admin' || $user->role()->name() === 'editor')) {
+        if ($user && !$user->isKirby() && ($user->role()->name() === 'admin' || $user->role()->name() === 'editor')) {
             return true;
         }
         return false;
@@ -3483,8 +3480,10 @@ abstract class KirbyBaseHelper
                 if (csrf(get('csrf')) === true) {
                     $userName = trim(get('userName'));
                     $userName = str_replace(' ', '-', $userName);
+                    if (!str_contains($userName, '@') && $loginDomain = option('useLoginDomain')) {
+                        $userName .= '@' . $loginDomain;
+                    }
                     $loginDetails->setUserName($userName);
-
                     $this->kirby->auth()->login($userName, trim(get('password')), true);
                     $loginDetails->setLoginStatus(true);
                     $loginDetails->setLoginMessage('You have successfully logged in');

@@ -40,4 +40,16 @@ trait OptionsHandling
         return $selectOptions;
     }
 
+    protected function getSelectOptions(array $options, bool $includeAny = false): array
+    {
+        $selectOptions = [];
+        if ($includeAny) {
+            $selectOptions[] = $this->createOption('', 'Any');
+        }
+        foreach ($options as $option) {
+            $selectOptions[] = $this->createOption($option[0], $option[1]);
+        }
+        return $selectOptions;
+    }
+
 }

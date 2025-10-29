@@ -11,6 +11,10 @@ if (!method_exists($currentPage, 'getLoginDetails')) :
     throw new Exception('$currentPage must implement getLoginDetails method');
 endif;
 
+if (!isset($userNameLabel)) :
+    $userNameLabel = 'Username';
+endif;
+
 $loginDetails = $currentPage->getLoginDetails();
 
 ?>
@@ -33,7 +37,7 @@ $loginDetails = $currentPage->getLoginDetails();
     <fieldset class="border border-success rounded p-3">
         <ol class="list-unstyled">
             <li class="mb-3">
-                <label for="userName" class="form-label">Username:</label>
+                <label for="userName" class="form-label"><?=$userNameLabel?>:</label>
                 <input type="text"
                        name="userName"
                        id="userName"
