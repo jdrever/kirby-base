@@ -5,7 +5,8 @@ namespace BSBI\WebBase\traits;
 /**
  *
  */
-trait ErrorHandling {
+trait ErrorHandling
+{
 
     /** @var string[] The error message(s) related to the model */
     protected array $errorMessages = [];
@@ -25,6 +26,11 @@ trait ErrorHandling {
     public function getErrorMessages(): array
     {
         return $this->errorMessages;
+    }
+
+    public function getErrorMessagesAsString(): string
+    {
+        return implode(',', $this->errorMessages);
     }
 
     /**
