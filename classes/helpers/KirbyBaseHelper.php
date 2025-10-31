@@ -1962,7 +1962,7 @@ abstract class KirbyBaseHelper
      * @return WebPageLinks
      * @throws KirbyRetrievalException
      */
-    protected function getSubPages(Page $page, bool $simpleLink = true, array $templates = null ): WebPageLinks
+    protected function getSubPages(Page $page, bool $simpleLink = true, array|null $templates = null ): WebPageLinks
     {
         $subPagesCollection = $templates ?
             $this->getSubPagesUsingTemplates($page, $templates) : $this->getSubPagesAsCollection($page);
