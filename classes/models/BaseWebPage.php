@@ -118,6 +118,8 @@ class BaseWebPage extends BaseModel
 
     private string $displayPageTitle;
 
+    private string $displayPageTitleClass = '';
+
 
     /**
      * @param string $title
@@ -692,6 +694,23 @@ class BaseWebPage extends BaseModel
         return $this;
     }
 
+    /**
+     * @return string
+     */
+    public function getDisplayPageTitleClass(): string
+    {
+        return $this->displayPageTitleClass;
+    }
+
+    /**
+     * @param string $displayPageTitleClass
+     * @return BaseWebPage
+     */
+    public function setDisplayPageTitleClass(string $displayPageTitleClass): BaseWebPage
+    {
+        $this->displayPageTitleClass = $displayPageTitleClass;
+        return $this;
+    }
 
 
 }
