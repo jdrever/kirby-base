@@ -3933,7 +3933,7 @@ abstract class KirbyBaseHelper
             foreach ($languagesFromKirby as $lang) {
                 try {
                     $translatedPage = $this->page->translation($lang->code());
-                } catch (NotFoundException $e) {
+                } catch (\Throwable $e) {
                     throw new KirbyRetrievalException('The language could not be found: '.$e->getMessage());
                 }
 
