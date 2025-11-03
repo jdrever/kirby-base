@@ -95,7 +95,7 @@ trait CoreWebPageProperties {
      */
     public function hasSubPages(): bool
     {
-        return $this->subPages->hasListItems();
+        return isset($this->subPages) && $this->subPages->hasListItems();
     }
 
     /**

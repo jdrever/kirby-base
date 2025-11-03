@@ -98,6 +98,9 @@ class WebPageLink extends BaseModel
         return $this->pageType;
     }
 
+    /**
+     * @return string
+     */
     public function getFormattedPageType(): string
     {
         return ucfirst(str_replace('_', ' ', $this->pageType));
@@ -193,6 +196,9 @@ class WebPageLink extends BaseModel
         return $this;
     }
 
+    /**
+     * @return bool
+     */
     public function hasBreadcrumb(): bool
     {
         return !empty($this->breadcrumb);
