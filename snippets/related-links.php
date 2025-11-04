@@ -15,7 +15,7 @@ if ($currentPage->hasRelatedLinks()) : ?>
     <div class="p-4 mt-4 bg-light d-print-none">
         <div class="container">
             <h3>Relevant to this page</h3>
-            <div class="grid">
+            <div class="grid mb-3">
           
 <?php
     if ($currentPage->hasTagLinks()) :
