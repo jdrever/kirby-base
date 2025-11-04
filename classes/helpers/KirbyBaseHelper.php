@@ -1853,11 +1853,11 @@ abstract class KirbyBaseHelper
      * @param Block $block
      * @param string $fieldName
      * @param bool $required
-     * @return string
+     * @return Blocks
      * @throws KirbyRetrievalException
      * @noinspection PhpUnused
      */
-    protected function getBlockFieldAsBlocks(Block $block, string $fieldName, bool $required = false): string
+    protected function getBlockFieldAsBlocks(Block $block, string $fieldName, bool $required = false): Blocks
     {
         try {
             $blockField = $this->getBlockField($block, $fieldName);
@@ -1867,7 +1867,7 @@ abstract class KirbyBaseHelper
             if ($required) {
                 throw $e;
             }
-            return '';
+            return new Blocks();
         }
     }
 
