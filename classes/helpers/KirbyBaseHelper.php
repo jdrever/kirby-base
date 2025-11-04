@@ -1853,11 +1853,11 @@ abstract class KirbyBaseHelper
      * @param Block $block
      * @param string $fieldName
      * @param bool $required
-     * @return string
+     * @return Blocks
      * @throws KirbyRetrievalException
      * @noinspection PhpUnused
      */
-    protected function getBlockFieldAsBlocks(Block $block, string $fieldName, bool $required = false): string
+    protected function getBlockFieldAsBlocks(Block $block, string $fieldName, bool $required = false): Blocks
     {
         try {
             $blockField = $this->getBlockField($block, $fieldName);
@@ -1867,7 +1867,7 @@ abstract class KirbyBaseHelper
             if ($required) {
                 throw $e;
             }
-            return '';
+            return new Blocks();
         }
     }
 
@@ -1962,7 +1962,7 @@ abstract class KirbyBaseHelper
      * @return WebPageLinks
      * @throws KirbyRetrievalException
      */
-    protected function getSubPages(Page $page, bool $simpleLink = true, array $templates = null ): WebPageLinks
+    protected function getSubPages(Page $page, bool $simpleLink = true, array|null $templates = null ): WebPageLinks
     {
         $subPagesCollection = $templates ?
             $this->getSubPagesUsingTemplates($page, $templates) : $this->getSubPagesAsCollection($page);
@@ -2144,8 +2144,8 @@ abstract class KirbyBaseHelper
      */
     protected function getWebPageLink(Page   $page,
                                       bool   $simpleLink = true,
-                                      string $linkTitle = null,
-                                      string $linkDescription = null,
+                                      string|null $linkTitle = null,
+                                      string|null $linkDescription = null,
                                       bool $getImages = true): WebPageLink
     {
         $templateName = $page->template()->name();
@@ -2214,7 +2214,7 @@ abstract class KirbyBaseHelper
                 throw new KirbyRetrievalException("Page class must extend BaseModel.");
             }
 
-            $model = new $modelClass($kirbyPage->title()->toString(), $kirbyPage->url());
+            $model = new $modelClass($kirbyPage->title()->toString(), $kirbyPage->url(), $kirbyPage->template()->name());
 
             $setModelFunction = 'set'.$this->extractClassName($modelClass);
 
@@ -2244,7 +2244,7 @@ abstract class KirbyBaseHelper
                                           BaseFilter|null $filter = null,
                                           string|null     $collection = null,
                                           array|null      $templates = null,
-                                          Page $parentPage = null,
+                                          Page|null $parentPage = null,
                                           bool $childrenOnly = true,
                                           string $sortBy = '',
                                           string $sortDirection = ''
@@ -3933,7 +3933,7 @@ abstract class KirbyBaseHelper
             foreach ($languagesFromKirby as $lang) {
                 try {
                     $translatedPage = $this->page->translation($lang->code());
-                } catch (NotFoundException $e) {
+                } catch (\Throwable $e) {
                     throw new KirbyRetrievalException('The language could not be found: '.$e->getMessage());
                 }
 
@@ -3967,15 +3967,16 @@ abstract class KirbyBaseHelper
     public function handleCaches(Page $page) : string {
         $cacheName = option('cacheName');
         $cacheMapping = option('cacheMapping');
-
-        if (array_key_exists($page->template()->name(), $cacheMapping)) {
-            try {
-                $cache = $this->kirby->cache($cacheName);
-            } catch (InvalidArgumentException) {
-                return 'Failed to get cache';
+        if ($cacheMapping) {
+            if (array_key_exists($page->template()->name(), $cacheMapping)) {
+                try {
+                    $cache = $this->kirby->cache($cacheName);
+                } catch (InvalidArgumentException) {
+                    return 'Failed to get cache';
+                }
+                $cacheKey = $cacheMapping[$page->template()->name()];
+                $cache->remove($cacheKey);
             }
-            $cacheKey = $cacheMapping[$page->template()->name()];
-            $cache->remove($cacheKey);
         }
         return 'Success';
     }
