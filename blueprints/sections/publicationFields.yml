@@ -1,5 +1,8 @@
 type: fields
 fields:
+  subtitle:
+    type: text
+    label: Subtitle
   publicationDate:
     label: Publication Date
     type: date

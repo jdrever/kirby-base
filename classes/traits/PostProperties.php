@@ -12,6 +12,8 @@ trait PostProperties
     /** @var DateTime */
     private DateTime $publicationDate;
 
+    private string $subtitle;
+
     /**
      * @var string
      */
@@ -19,6 +21,28 @@ trait PostProperties
 
     private string $postedBy;
 
+    public function hasSubtitle(): bool
+    {
+        return !empty($this->subtitle);
+    }
+
+    /**
+     * @return string
+     */
+    public function getSubtitle(): string
+    {
+        return $this->subtitle;
+    }
+
+    /**
+     * @param string $subtitle
+     * @return $this
+     */
+    public function setSubtitle(string $subtitle): static
+    {
+        $this->subtitle = $subtitle;
+        return $this;
+    }
 
     /**
      * @return string
