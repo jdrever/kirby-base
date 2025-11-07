@@ -2939,7 +2939,7 @@ abstract class KirbyBaseHelper
             $headingNumber = 0;
             foreach ($pageBlocks as $pageBlock) {
                 if ($pageBlock instanceof Block) {
-                    $block = new WebPageBlock($pageBlock->type(), $pageBlock->toHtml());
+                    $block = new WebPageBlock($pageBlock->type(), $pageBlock->text()->toHtml()->permalinksToUrls());
                     if ($pageBlock->type() === 'heading') {
                         $block->setBlockLevel($pageBlock->content()->get('level')->toString());
                         $headingNumber++;
