@@ -756,12 +756,14 @@ abstract class KirbyBaseHelper
     {
         try {
             $pageField = $this->getPageField($page, $fieldName);
+            $blocksHTML = '';
             /** @noinspection PhpUndefinedMethodInspection */
-            $blockContent = $pageField->toBlocks()->toHtml();
-
+            foreach($pageField->toBlocks() as $block) {
+                $blocksHTML .= $this->getHTMLfromBlock($block);
+            }
             return ($excerpt === 0)
-                ? $blockContent
-                : Str::excerpt($blockContent, 200);
+                ? $blocksHTML
+                : Str::excerpt($blocksHTML, 200);
 
         } catch (KirbyRetrievalException $e) {
             if ($required) {
@@ -1926,8 +1928,12 @@ abstract class KirbyBaseHelper
     {
         try {
             $blockField = $this->getBlockField($block, $fieldName);
+            $blocksHTML = '';
             /** @noinspection PhpUndefinedMethodInspection */
-            return $blockField->toBlocks()->toHtml();
+            foreach($blockField->toBlocks() as $block) {
+                $blocksHTML .= $this->getHTMLfromBlock($block);
+            }
+            return $blocksHTML;
         } catch (KirbyRetrievalException $e) {
             if ($required) {
                 throw $e;
@@ -2940,13 +2946,7 @@ abstract class KirbyBaseHelper
             $headingNumber = 0;
             foreach ($pageBlocks as $pageBlock) {
                 if ($pageBlock instanceof Block) {
-                    if ($pageBlock->type() === 'text') {
-                        /** @noinspection PhpUndefinedMethodInspection */
-                        $blockHTML = $pageBlock->text()->toHtml()->permalinksToUrls();
-                    } else {
-                        $blockHTML = $pageBlock->toHtml();
-                    }
-                    $block = new WebPageBlock($pageBlock->type(), $blockHTML);
+                    $block = new WebPageBlock($pageBlock->type(), $this->getHTMLfromBlock($pageBlock));
                     if ($pageBlock->type() === 'heading') {
                         $block->setBlockLevel($pageBlock->content()->get('level')->toString());
                         $headingNumber++;
@@ -2965,6 +2965,22 @@ abstract class KirbyBaseHelper
                 'An error occurred while retrieving the page block'
             );
         }
+    }
+
+    /**
+     * Returns HTML, having converted @page permalinks to urls
+     * @param Block $block
+     * @return string
+     */
+    private function getHTMLfromBlock(Block $block): string
+    {
+        if (in_array($block->type(), ['text', 'list' ])) {
+            /** @noinspection PhpUndefinedMethodInspection */
+            $blockHTML = $block->text()->toHtml()->permalinksToUrls();
+        } else {
+            $blockHTML = $block->toHtml();
+        }
+        return $blockHTML;
     }
 
 
