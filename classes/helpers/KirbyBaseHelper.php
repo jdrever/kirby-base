@@ -387,6 +387,48 @@ abstract class KirbyBaseHelper
 
     #endregion
 
+    #region PAGE_CREATE_UPDATE
+
+    /**
+     * @param Page $parentPage
+     * @param array $pageData
+     * @return Page
+     * @throws KirbyRetrievalException
+     */
+    protected function createPage(Page $parentPage, array $pageData, bool $createAsListed = false): Page
+    {
+        try {
+            return $this->kirby->impersonate('kirby', function () use ($parentPage, $pageData, $createAsListed) {
+                $newPage = $parentPage->create($pageData);
+                if ($createAsListed) {
+                    $newPage = $newPage->changeStatus('listed');
+                }
+                return $newPage;
+            });
+        } catch (\Throwable $e) {
+            throw new KirbyRetrievalException($e->getMessage());
+        }
+    }
+
+    /**
+     * @param Page $page
+     * @param array $pageData
+     * @return Page
+     * @throws KirbyRetrievalException
+     */
+    protected function updatePage(Page $page, array $pageData): Page
+    {
+        try {
+            return $this->kirby->impersonate('kirby', function () use ($page, $pageData) {
+                return $page->update($pageData);
+            });
+        } catch (\Throwable $e) {
+            throw new KirbyRetrievalException($e->getMessage());
+        }
+    }
+
+    #endregion
+
     #region PAGE_FIELDS
 
     /**
