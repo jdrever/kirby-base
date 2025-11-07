@@ -2940,8 +2940,13 @@ abstract class KirbyBaseHelper
             $headingNumber = 0;
             foreach ($pageBlocks as $pageBlock) {
                 if ($pageBlock instanceof Block) {
-                    /** @noinspection PhpUndefinedMethodInspection */
-                    $block = new WebPageBlock($pageBlock->type(), $pageBlock->text()->toHtml()->permalinksToUrls());
+                    if ($pageBlock->type() === 'text') {
+                        /** @noinspection PhpUndefinedMethodInspection */
+                        $blockHTML = $pageBlock->text()->toHtml()->permalinksToUrls();
+                    } else {
+                        $blockHTML = $pageBlock->toHtml();
+                    }
+                    $block = new WebPageBlock($pageBlock->type(), $blockHTML);
                     if ($pageBlock->type() === 'heading') {
                         $block->setBlockLevel($pageBlock->content()->get('level')->toString());
                         $headingNumber++;
