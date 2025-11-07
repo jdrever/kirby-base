@@ -34,7 +34,6 @@ use Kirby\Cms\Block;
 use Kirby\Cms\Blocks;
 use Kirby\Data\Data;
 use Kirby\Data\Yaml;
-use Kirby\Exception\NotFoundException;
 use Kirby\Toolkit\Collection;
 use Kirby\Cms\File;
 use Kirby\Cms\Files;
@@ -392,6 +391,7 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $parentPage
      * @param array $pageData
+     * @param bool $createAsListed
      * @return Page
      * @throws KirbyRetrievalException
      */
@@ -405,7 +405,7 @@ abstract class KirbyBaseHelper
                 }
                 return $newPage;
             });
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             throw new KirbyRetrievalException($e->getMessage());
         }
     }
@@ -422,7 +422,7 @@ abstract class KirbyBaseHelper
             return $this->kirby->impersonate('kirby', function () use ($page, $pageData) {
                 return $page->update($pageData);
             });
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             throw new KirbyRetrievalException($e->getMessage());
         }
     }
@@ -677,6 +677,7 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $page
      * @param string $fieldName
+     * @param bool $isRequired
      * @return string
      * @throws KirbyRetrievalException
      */
@@ -2223,7 +2224,7 @@ abstract class KirbyBaseHelper
             $webPageLink = $this->$getWebPageLinkForFunction($page, $webPageLink);
         }
 
-        $webPageLink->setShowSubPageImages($this->getPageFieldAsBool($page, 'showSubPageImages', false, false));
+        $webPageLink->setShowSubPageImages($this->getPageFieldAsBool($page, 'showSubPageImages'));
 
         if ($simpleLink) {
             return $webPageLink;
@@ -2939,6 +2940,7 @@ abstract class KirbyBaseHelper
             $headingNumber = 0;
             foreach ($pageBlocks as $pageBlock) {
                 if ($pageBlock instanceof Block) {
+                    /** @noinspection PhpUndefinedMethodInspection */
                     $block = new WebPageBlock($pageBlock->type(), $pageBlock->text()->toHtml()->permalinksToUrls());
                     if ($pageBlock->type() === 'heading') {
                         $block->setBlockLevel($pageBlock->content()->get('level')->toString());
@@ -3975,7 +3977,7 @@ abstract class KirbyBaseHelper
             foreach ($languagesFromKirby as $lang) {
                 try {
                     $translatedPage = $this->page->translation($lang->code());
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     throw new KirbyRetrievalException('The language could not be found: '.$e->getMessage());
                 }
 
