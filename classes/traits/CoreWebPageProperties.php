@@ -28,6 +28,8 @@ trait CoreWebPageProperties {
 
     protected bool $isCookieConsentGiven = false;
 
+    private string $cookieConsentCSRFToken = '';
+
 
     /**
      * @return string
@@ -145,7 +147,23 @@ trait CoreWebPageProperties {
         return $this;
     }
 
+    /**
+     * @return string
+     */
+    public function getCookieConsentCSRFToken(): string
+    {
+        return $this->cookieConsentCSRFToken;
+    }
 
+    /**
+     * @param string $cookieConsentCSRFToken
+     * @return static
+     */
+    public function setCookieConsentCSRFToken(string $cookieConsentCSRFToken): static
+    {
+        $this->cookieConsentCSRFToken = $cookieConsentCSRFToken;
+        return $this;
+    }
 
 
 }
