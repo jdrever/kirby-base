@@ -167,6 +167,8 @@ abstract class KirbyBaseHelper
                 $page->template()->name()
             );
 
+            $webPage->setPageId($page->id());
+
             $webPage->setUrlWithQueryString($_SERVER['REQUEST_URI']);
 
             $user = $this->getCurrentUser();
@@ -236,8 +238,10 @@ abstract class KirbyBaseHelper
             $webPage->setColourMode($this->getColourMode());
             $webPage->setLanguages($this->getLanguages());
 
-            if ($this->hasCookie(self::COOKIE_CONSENT_NAME)) {
+            if ($cookie = $this->getCookieAsString(self::COOKIE_CONSENT_NAME)) {// {
                 $webPage->setIsCookieConsentGiven(true);
+            } else {
+                $webPage->setCookieConsentCSRFToken($this->getCSFRToken());
             }
 
             //add scripts for blocks
@@ -1990,6 +1994,57 @@ abstract class KirbyBaseHelper
         return $blockField->toFile();
     }
 
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @return WebPageBlocks
+     */
+    protected function getContentBlocks(Page $page, string $fieldName = 'mainContent'): WebPageBlocks
+    {
+        try {
+            $pageBlocks = $this->getPageFieldAsBlocks($page, $fieldName);
+            $contentBlocks = new WebPageBlocks();
+            $headingNumber = 0;
+            foreach ($pageBlocks as $pageBlock) {
+                if ($pageBlock instanceof Block) {
+                    $block = new WebPageBlock($pageBlock->type(), $this->getHTMLfromBlock($pageBlock));
+                    if ($pageBlock->type() === 'heading') {
+                        $block->setBlockLevel($pageBlock->content()->get('level')->toString());
+                        $headingNumber++;
+                        $anchor = ($this->isBlockFieldNotEmpty($pageBlock, 'anchor'))
+                            ? $this->getBlockFieldAsString($pageBlock, 'anchor')
+                            : 'heading' . $headingNumber;
+                        $block->setAnchor($anchor);
+                    }
+                    $contentBlocks->addListItem($block);
+                }
+            }
+            return $contentBlocks;
+        } catch (KirbyRetrievalException $e) {
+            return (new WebPageBlocks())->recordError(
+                $e->getMessage(),
+                'An error occurred while retrieving the page block'
+            );
+        }
+    }
+
+    /**
+     * Returns HTML, having converted @page permalinks to urls
+     * @param Block $block
+     * @return string
+     */
+    private function getHTMLfromBlock(Block $block): string
+    {
+        if (in_array($block->type(), ['text', 'list' ])) {
+            /** @noinspection PhpUndefinedMethodInspection */
+            $blockHTML = $block->text()->toHtml()->permalinksToUrls();
+        } else {
+            $blockHTML = $block->toHtml();
+        }
+        return $blockHTML;
+    }
+
+
     #endregion
 
 
@@ -2720,11 +2775,11 @@ abstract class KirbyBaseHelper
     protected function setCookie(string $key, string $value): void
     {
         //allow insecure cookies on localhost only
-        $secure = $_SERVER['HTTP_HOST'] != 'localhost:8095';
+        $secure = str_starts_with($_SERVER['HTTP_HOST'],'localhost:8095');
         Cookie::set(
             $key,
             $value,
-            ['expires' => time() + 60 * 60 * 24 * 30, 'path' => '/', 'secure' => $secure, 'httpOnly' => true]
+            ['expires' => time() + 60 * 60 * 24 * 30, 'path' => '/', 'secure' => $secure, 'httpOnly' => !($secure)]
         );
     }
 
@@ -2753,17 +2808,32 @@ abstract class KirbyBaseHelper
      */
     public function processCookieConsent(): void
     {
-        setCookie(self::COOKIE_CONSENT_NAME, true);
-        $referringPage = $this->getRequestAsString('referringPage', '');
-        if (!empty($referringPage)) {
-            go($referringPage);
+        //TODO: proper handling of CSRF expiry
+        if (csrf(get('csrf')) === true) {
+            $this->setCookie(self::COOKIE_CONSENT_NAME, 'yes');
+            $referringPage = $this->getRequestAsString('referringPage', '');
+            if (!empty($referringPage)) {
+                go($referringPage);
+                exit;
+            }
         }
         go('/');
+        exit;
     }
 
     #endregion
 
     #region ERROR HANDLING
+
+    /**
+     * writes to error log and sends error email
+     * @param Exception $e
+     * @return void
+     */
+    public function handleError(Exception $e): void {
+        $this->writeToErrorLog($e->getMessage());
+        $this->sendErrorEmail($e);
+    }
 
     public function writeToErrorLog($message): void {
         $this->writeToLog('errors', $message);
@@ -2991,55 +3061,6 @@ abstract class KirbyBaseHelper
         return $detail;
     }
 
-    /**
-     * @param Page $page
-     * @param string $fieldName
-     * @return WebPageBlocks
-     */
-    protected function getContentBlocks(Page $page, string $fieldName = 'mainContent'): WebPageBlocks
-    {
-        try {
-            $pageBlocks = $this->getPageFieldAsBlocks($page, $fieldName);
-            $contentBlocks = new WebPageBlocks();
-            $headingNumber = 0;
-            foreach ($pageBlocks as $pageBlock) {
-                if ($pageBlock instanceof Block) {
-                    $block = new WebPageBlock($pageBlock->type(), $this->getHTMLfromBlock($pageBlock));
-                    if ($pageBlock->type() === 'heading') {
-                        $block->setBlockLevel($pageBlock->content()->get('level')->toString());
-                        $headingNumber++;
-                        $anchor = ($this->isBlockFieldNotEmpty($pageBlock, 'anchor'))
-                            ? $this->getBlockFieldAsString($pageBlock, 'anchor')
-                            : 'heading' . $headingNumber;
-                        $block->setAnchor($anchor);
-                    }
-                    $contentBlocks->addListItem($block);
-                }
-            }
-            return $contentBlocks;
-        } catch (KirbyRetrievalException $e) {
-            return (new WebPageBlocks())->recordError(
-                $e->getMessage(),
-                'An error occurred while retrieving the page block'
-            );
-        }
-    }
-
-    /**
-     * Returns HTML, having converted @page permalinks to urls
-     * @param Block $block
-     * @return string
-     */
-    private function getHTMLfromBlock(Block $block): string
-    {
-        if (in_array($block->type(), ['text', 'list' ])) {
-            /** @noinspection PhpUndefinedMethodInspection */
-            $blockHTML = $block->text()->toHtml()->permalinksToUrls();
-        } else {
-            $blockHTML = $block->toHtml();
-        }
-        return $blockHTML;
-    }
 
 
 
