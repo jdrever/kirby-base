@@ -26,6 +26,8 @@ trait CoreWebPageProperties {
      */
     protected WebPageLinks $subPages;
 
+    protected bool $isCookieConsentGiven = false;
+
 
     /**
      * @return string
@@ -124,6 +126,26 @@ trait CoreWebPageProperties {
         $this->subPages->addListItem($subPage);
         return $this;
     }
+
+    /**
+     * @return bool
+     */
+    public function isCookieConsentGiven(): bool
+    {
+        return $this->isCookieConsentGiven;
+    }
+
+    /**
+     * @param bool $isCookieConsentGiven
+     * @return static
+     */
+    public function setIsCookieConsentGiven(bool $isCookieConsentGiven): static
+    {
+        $this->isCookieConsentGiven = $isCookieConsentGiven;
+        return $this;
+    }
+
+
 
 
 }

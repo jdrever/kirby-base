@@ -73,6 +73,7 @@ abstract class KirbyBaseHelper
      */
     protected ?Page $page;
 
+    const string COOKIE_CONSENT_NAME = 'cookieConsentGiven';
 
     /**
      *
@@ -234,6 +235,10 @@ abstract class KirbyBaseHelper
 
             $webPage->setColourMode($this->getColourMode());
             $webPage->setLanguages($this->getLanguages());
+
+            if ($this->hasCookie(self::COOKIE_CONSENT_NAME)) {
+                $webPage->setIsCookieConsentGiven(true);
+            }
 
             //add scripts for blocks
             if ($webPage->hasBlockofType('video')) {
@@ -2705,6 +2710,59 @@ abstract class KirbyBaseHelper
 
     #endregion
 
+    #region COOKIES
+
+    /**
+     * @param string $key
+     * @param string $value
+     * @return void
+     */
+    protected function setCookie(string $key, string $value): void
+    {
+        //allow insecure cookies on localhost only
+        $secure = $_SERVER['HTTP_HOST'] != 'localhost:8095';
+        Cookie::set(
+            $key,
+            $value,
+            ['expires' => time() + 60 * 60 * 24 * 30, 'path' => '/', 'secure' => $secure, 'httpOnly' => true]
+        );
+    }
+
+    /**
+     * @param string $key
+     * @return bool
+     */
+    protected function hasCookie(string $key): bool {
+        return Cookie::exists($key);
+    }
+
+    /**
+     * @param string $key
+     * @param string $fallback
+     * @return string
+     */
+    protected function getCookieAsString(string $key, string $fallback = ''): string {
+        return $this->asString(Cookie::get($key,$fallback));
+    }
+
+    /**
+     * sets the cookie 'cookieConsentGiven' and redirects to the
+     * page passed in the request as referringPage
+     * otherwise redirects to the home page
+     * @return void
+     */
+    public function processCookieConsent(): void
+    {
+        setCookie(self::COOKIE_CONSENT_NAME, true);
+        $referringPage = $this->getRequestAsString('referringPage', '');
+        if (!empty($referringPage)) {
+            go($referringPage);
+        }
+        go('/');
+    }
+
+    #endregion
+
     #region ERROR HANDLING
 
     public function writeToErrorLog($message): void {
@@ -4276,24 +4334,6 @@ abstract class KirbyBaseHelper
         }
         return $colourMode;
     }
-
-    /**
-     * @param string $key
-     * @param string $value
-     * @return void
-     */
-    protected function setCookie(string $key, string $value): void
-    {
-        //allow insecure cookies on localhost only
-        $secure = $_SERVER['HTTP_HOST'] != 'localhost:8095';
-        Cookie::set(
-            $key,
-            $value,
-            ['expires' => time() + 60 * 60 * 24 * 30, 'path' => '/', 'secure' => $secure, 'httpOnly' => true]
-        );
-    }
-
-
 
 
     /**

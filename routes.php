@@ -16,9 +16,16 @@ return [
     [
         'pattern' => 'scheduled-publish',
         'action'  => function () {
-            kirby()->impersonate('kirby');
             $helper = new KirbyInternalHelper();
             return $helper->publishScheduledPages();
         }
-    ]
+    ],
+    [
+        'pattern' => 'cookie-consent',
+        'method' => 'POST',
+        'action' => function () {
+            $helper = new KirbyInternalHelper();
+            $helper->processCookieConsent();
+        }
+    ],
 ];
