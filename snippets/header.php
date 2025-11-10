@@ -29,6 +29,7 @@ endif;
     <meta property="og:image" content="<?= $currentPage->getOpenGraphImage() ?>" />
     <meta property="og:url" content="<?= $currentPage->getUrl() ?>" />
     <meta property="og:type" content="website" />
+    <?php snippet('base/favicon') ?>
     <?php snippet('base/robots') ?>
     <?php snippet('colour-mode/script') ?>
     <?php snippet('base/styles') ?>
