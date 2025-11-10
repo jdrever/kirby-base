@@ -238,7 +238,7 @@ abstract class KirbyBaseHelper
             $webPage->setColourMode($this->getColourMode());
             $webPage->setLanguages($this->getLanguages());
 
-            if ($cookie = $this->getCookieAsString(self::COOKIE_CONSENT_NAME)) {// {
+            if ($this->hasCookie(self::COOKIE_CONSENT_NAME)) {// {
                 $webPage->setIsCookieConsentGiven(true);
             } else {
                 $webPage->setCookieConsentCSRFToken($this->getCSFRToken());
