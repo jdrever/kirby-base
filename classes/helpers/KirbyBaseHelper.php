@@ -407,8 +407,8 @@ abstract class KirbyBaseHelper
     protected function createPage(Page $parentPage, array $pageData, bool $createAsListed = false): Page
     {
         try {
-            return $this->kirby->impersonate('kirby', function () use ($parentPage, $pageData, $createAsListed) {
-                $newPage = $parentPage->create($pageData);
+            $createdPage = $this->kirby->impersonate('kirby', function () use ($parentPage, $pageData, $createAsListed) {
+                $newPage = $parentPage->createChild($pageData);
                 if ($createAsListed) {
                     $newPage = $newPage->changeStatus('listed');
                 }
@@ -417,6 +417,7 @@ abstract class KirbyBaseHelper
         } catch (Throwable $e) {
             throw new KirbyRetrievalException($e->getMessage());
         }
+        return $createdPage;
     }
 
     /**
