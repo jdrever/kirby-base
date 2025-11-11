@@ -2776,11 +2776,11 @@ abstract class KirbyBaseHelper
     protected function setCookie(string $key, string $value): void
     {
         //allow insecure cookies on localhost only
-        $secure = str_starts_with($_SERVER['HTTP_HOST'],'localhost:8095');
+        $secure = !(str_starts_with($_SERVER['HTTP_HOST'],'localhost'));
         Cookie::set(
             $key,
             $value,
-            ['expires' => time() + 60 * 60 * 24 * 30, 'path' => '/', 'secure' => $secure, 'httpOnly' => !($secure)]
+            ['expires' => time() + 60 * 60 * 24 * 30, 'path' => '/', 'secure' => $secure, 'httpOnly' => true]
         );
     }
 
