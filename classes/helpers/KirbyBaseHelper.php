@@ -3652,6 +3652,53 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * @param array $userData
+     * @return \Kirby\Cms\User
+     * @throws KirbyRetrievalException
+     */
+    public function createUser(array $userData): \Kirby\Cms\User {
+        try {
+            return $this->kirby->impersonate('kirby', function () use ($userData) {
+                return $this->kirby->users()->create($userData);
+            });
+        } catch (Throwable $e) {
+            throw new KirbyRetrievalException($e->getMessage());
+        }
+    }
+
+    /**
+     * @param \Kirby\Cms\User $user
+     * @param array $updateData
+     * @return \Kirby\Cms\User
+     * @throws KirbyRetrievalException
+     */
+    public function updateUser(\Kirby\Cms\User $user, array $updateData): \Kirby\Cms\User {
+        try {
+            return $this->kirby->impersonate('kirby', function () use ($user, $updateData) {
+                return $user->update($updateData);
+            });
+        } catch (Throwable $e) {
+            throw new KirbyRetrievalException($e->getMessage());
+        }
+    }
+
+    /**
+     * @param \Kirby\Cms\User $user
+     * @param string $role
+     * @return \Kirby\Cms\User
+     * @throws KirbyRetrievalException
+     */
+    public function changeUserRole(\Kirby\Cms\User $user, string $role): \Kirby\Cms\User {
+        try {
+            return $this->kirby->impersonate('kirby', function () use ($user, $role) {
+                return $user->changerole($role);
+            });
+        } catch (Throwable $e) {
+            throw new KirbyRetrievalException($e->getMessage());
+        }
+    }
+
+    /**
      * @return string
      */
     protected function getCSFRToken() : string {
@@ -3759,7 +3806,6 @@ abstract class KirbyBaseHelper
             }
             return false;
         });
-
     }
 
     /**
