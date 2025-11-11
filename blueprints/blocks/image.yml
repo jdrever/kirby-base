@@ -28,7 +28,7 @@ fields:
   bank:
     type: files
     label: Select an Image
-    query: site.children.filterBy("template", "imagebank").first.files
+    query: site.children.filterBy("template", "image_bank").first.files
     multiple: false
     layout: cards
     image:

@@ -36,17 +36,6 @@ tabs:
 
       - width: 3/4
         sections:
-          recentImages:
-            type: files
-            headline: Recent images
-            template: image
-            layout: cards
-            info: "{{ file.tags }}"
-            text: "{{ file.filename }}"
-            sortBy: modified desc
-            limit: 3
-            size: medium
-            search: false
           allImages:
             type: files
             headline: All images
