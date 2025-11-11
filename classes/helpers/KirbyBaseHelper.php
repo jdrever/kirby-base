@@ -2279,7 +2279,8 @@ abstract class KirbyBaseHelper
             $pageUrl = $file ? $file->url() : '';
         }
 
-        $linkDescription = $linkDescription ?? $this->getPageFieldAsString($page, 'panelContent');
+        $linkDescription = empty($linkDescription)
+            ? $this->getPageFieldAsString($page, 'panelContent') : $linkDescription;
         $linkTitle = $linkTitle ?? $this->getPageTitle($page);
         $webPageLink = new WebPageLink($linkTitle, $pageUrl ?? $page->url(), $page->id(), $page->template()->name());
         $webPageLink->setLinkDescription($linkDescription);
