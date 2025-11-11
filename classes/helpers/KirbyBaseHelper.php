@@ -2262,6 +2262,7 @@ abstract class KirbyBaseHelper
 
         if ($templateName === 'page_link') {
             $linkType = $this->getLinkFieldType($page, 'redirect_link');
+            $linkDescription = $this->getPageFieldAsString($page, 'panelContent');
             if ($linkType === 'page') {
                 $linkedPage = $this->getPageFieldAsPages($page, 'redirect_link', $simpleLink);
                 $linkTitle = $this->getPageTitle($page);
