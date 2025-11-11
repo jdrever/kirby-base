@@ -115,7 +115,7 @@ trait PostProperties
      * @return string
      */
     public function getFormattedPublicationDate(): string {
-        return $this->publicationDate->format('jS F Y');
+        return $this->publicationDate->format('j F Y');
     }
 
 }
