@@ -2833,7 +2833,7 @@ abstract class KirbyBaseHelper
      */
     public function handleError(Exception $e): void {
         $this->writeToErrorLog($e->getMessage());
-        $this->sendErrorEmail($e);
+        $this->sendErrorEmail(new KirbyRetrievalException($e->getMessage()));
     }
 
     public function writeToErrorLog($message): void {
@@ -2848,15 +2848,11 @@ abstract class KirbyBaseHelper
     public function writeToLog($logFile, $message): void {
         $logDir = kirby()->root('logs');
 
-        // Check if the directory doesn't exist and create it if necessary
         if (!is_dir($logDir)) {
-            // The third parameter 'true' allows the creation of nested directories
             mkdir($logDir, 0755, true);
         }
 
-        // Define the log file path
         $logFile = $logDir .'/'. $logFile.'.log';
-        // Clear the log file at the start
 
         $date = new DateTime();
         $date = $date->format("y:m:d h:i:s");

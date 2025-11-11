@@ -36,7 +36,7 @@ if ($currentPage->hasRelatedLinks()) : ?>
                     </ul>
                         <?php if (count($hiddenItems) > 0) : ?>
                     <details>
-                        <summary>See More</summary>
+                        <summary>See more</summary>
                         <ul>
                             <?php foreach ($hiddenItems as $tagLink) : ?>
                                 <li><a href="<?= $tagLink->getUrl() ?>"><?= $tagLink->getTitle()?></a></li>
