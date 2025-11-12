@@ -30,7 +30,7 @@ if (option('debug') === false) {
 // Set a global exception handler
     set_exception_handler(function (Throwable $exception) {
 
-        $pageUrl = kirby()->page() ? kirby()->page()->url() : '';
+        $pageUrl = $_SERVER['REDIRECT_URL'] ?? '';
         $exceptionAsString = "Message: " . $exception->getMessage() . "\n" .
             "File:" . $exception->getFile() . "'\n" .
             "Line:" . $exception->getLine() . "\n" .
@@ -50,7 +50,7 @@ if (option('debug') === false) {
                             "<b>Message</b>: " . $exception->getMessage() . "<br>" .
                             "<b>File:</b> " . $exception->getFile() . "<br>" .
                             "<b>Line:</b> " . $exception->getLine() . "<br>" .
-                            "<b>Trace:</b> " . $exception->getTraceAsString(),
+                            "<b>Trace:</b> " . $exception->getTraceAsString() .
                             "<b>Page:</b> " . $pageUrl,
                     ]
                 ];
