@@ -29,7 +29,7 @@ $isRequired = ($required) ? 'required' : '';
 if (isset($label)) : ?>
 <label
         for="<?=$id?>"
-        class="p-2 m-1 fw-bold"
+        class="col-form-label"
 >
         <?=$label ?>
     <?php if ($required) : ?>
