@@ -50,7 +50,7 @@ if (option('debug') === false) {
                             "<b>Message</b>: " . $exception->getMessage() . "<br>" .
                             "<b>File:</b> " . $exception->getFile() . "<br>" .
                             "<b>Line:</b> " . $exception->getLine() . "<br>" .
-                            "<b>Trace:</b> " . $exception->getTraceAsString() .
+                            "<b>Trace:</b> " . $exception->getTraceAsString() . "<br>" .
                             "<b>Page:</b> " . $pageUrl,
                     ]
                 ];
