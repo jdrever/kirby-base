@@ -53,5 +53,5 @@ if ($feedbackForm->hasFriendlyMessages()) :
           'required' => true]) ?>
   <?php snippet('form/turnstile', ['siteKey' => $feedbackForm->getTurnstileSiteKey()]) ?>
     <input type="hidden" id="page" name="page" value="<?=get('page')?>">
-    <input type="submit" name="submit" value="Submit" class="btn btn-outline-success">
+    <input type="submit" name="submit" value="Send us your feedback" class="btn btn-outline-success">
 </form>
