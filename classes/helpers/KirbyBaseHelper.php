@@ -248,8 +248,15 @@ abstract class KirbyBaseHelper
             if ($webPage->hasBlockofType('video')) {
                 $webPage->addScript('lite-youtube');
             }
+            $session = $this->kirby->session();
 
-            if ($actionStatus = get('actionStatus')) {
+
+            if ($actionStatus = $session->pull('actionStatus'))
+            {
+                /** @var ActionStatus $actionStatus */
+                $webPage->setStatus($actionStatus->getStatus());
+                $webPage->addFriendlyMessage($actionStatus->getFirstFriendlyMessage());
+            } else if ($actionStatus = get('actionStatus')) {
                 $webPage->setStatus($actionStatus);
                 $webPage->addFriendlyMessage(get('friendlyMessage', 'Unknown status'));
             }
@@ -2719,6 +2726,24 @@ abstract class KirbyBaseHelper
 
 
     #endregion
+
+    #region SESSIONS
+
+    /**
+     * @param string $key
+     * @param Object $value
+     * @return void
+     */
+    public function setSessionObject(string $key, Object $value): void
+    {
+        $this->kirby->session()->set($key, $value);
+    }
+
+    public function pullSessionObject(string $key): object
+    {
+        return $this->kirby->session()->pull($key);
+    }
+
 
     #region REQUESTS
 
