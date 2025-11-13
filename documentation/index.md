@@ -79,12 +79,13 @@ redirectToFile function, e.g:
 
 ## Sitemap
 
-There is a route set for sitemap.xml to generate a sitemap.  It will ignore all templates in the config field sitemapExclude
+There is a route set for sitemap.xml to generate a sitemap.  It will ignore all templates in the config field 
+sitemapExclude
 
 ## robots.txt
 
-There is a route set up for robots.txt excluding the kirby folders and search/login folder, plus AI bots.  To add additional
-elements to the robots.txt, create a snippet called robots-txt-additional
+There is a route set up for robots.txt excluding the kirby folders and search/login folder, plus AI bots.  To add 
+additional elements to the robots.txt, create a snippet called robots-txt-additional
 
 # Updates
 
