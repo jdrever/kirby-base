@@ -2744,6 +2744,7 @@ abstract class KirbyBaseHelper
         return $this->kirby->session()->pull($key);
     }
 
+    #endregion
 
     #region REQUESTS
 
@@ -3161,7 +3162,7 @@ abstract class KirbyBaseHelper
         if (!is_string($query) || empty($query)) {
             $query = '';
         }
-        return $query;
+        return strip_tags($query);
     }
 
     /**
