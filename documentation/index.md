@@ -77,6 +77,10 @@ redirectToFile function, e.g:
     $helper->redirectToFile($page);
 ```
 
+## Sitemap
+
+There is a route set for sitemap.xml to generate a sitemap.  It will ignore all templates in the config field sitemapExclude
+
 # Updates
 
 ## Changing the KirbyBase version number

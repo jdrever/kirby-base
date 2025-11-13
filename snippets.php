@@ -1,6 +1,7 @@
 <?php
 return [
     'scripts' => __DIR__ . '/snippets/scripts.php',
+    'sitemap' => __DIR__ . '/snippets/sitemap.php',
     'base/on-this-page' => __DIR__ . '/snippets/on-this-page.php',
     'base/fathom-analytics' => __DIR__ . '/snippets/fathom-analytics.php',
     'base/related-content' => __DIR__ . '/snippets/related-content.php',

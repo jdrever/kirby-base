@@ -28,4 +28,17 @@ return [
             $helper->processCookieConsent();
         }
     ],
+    [
+        'pattern' => 'sitemap.xml',
+        'action' => function() {
+            $pages = site()->pages()->index()->filter(function($p) {
+                return $p->isListed() || $p->isInvisible();
+            });
+            $ignore = kirby()->option('sitemapExclude', ['error']);
+            $content = snippet('sitemap', compact('pages', 'ignore'), true);
+
+            return new Kirby\Cms\Response($content, 'application/xml');
+        }
+    ],
+
 ];
