@@ -2265,7 +2265,7 @@ abstract class KirbyBaseHelper
             if ($linkType === 'page') {
                 $linkedPage = $this->getPageFieldAsPages($page, 'redirect_link', $simpleLink);
                 $linkTitle = $this->getPageTitle($page);
-                $linkDescription = $this->getPageFieldAsString($page, 'panelContent');
+                $linkDescription = $this->getPageFieldAsKirbyText($page, 'panelContent');
                 if ($linkedPage->first()) {
                     $page = $linkedPage->first();
                 }
@@ -2285,7 +2285,7 @@ abstract class KirbyBaseHelper
         $webPageLink = new WebPageLink($linkTitle, $pageUrl ?? $page->url(), $page->id(), $page->template()->name());
         $webPageLink->setLinkDescription($linkDescription);
         if ($this->isPageFieldNotEmpty($page, 'requirements')) {
-            $webPageLink->setRequirements($this->getPageFieldAsString($page, 'requirements'));
+            $webPageLink->setRequirements($this->getPageFieldAsKirbyText($page, 'requirements'));
         }
 
         $getWebPageLinkForFunction = 'getWebPageLinkFor'.ucfirst($templateName);
