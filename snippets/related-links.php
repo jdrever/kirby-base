@@ -63,7 +63,7 @@ if ($currentPage->hasRelatedLinks()) : ?>
                                 <?php endif ?>
                                 <div class="card-body p-4">
                                     <h3 class="card-title"><?=$link->getTitle()?></h3>
-                                    <p class="card-text"><?=$link->getLinkDescription()?></p>
+                                    <?=$link->getLinkDescription()?>
                                 </div>
                             </a>
                         </div>

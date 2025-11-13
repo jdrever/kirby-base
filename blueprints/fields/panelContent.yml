@@ -3,3 +3,6 @@ type: writer
 size: large
 buttons: false
 help: displayed on parent page
+marks:
+  - bold
+  - italic
