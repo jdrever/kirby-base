@@ -40,5 +40,12 @@ return [
             return new Kirby\Cms\Response($content, 'application/xml');
         }
     ],
+    [
+        'pattern' => 'robots.txt',
+        'action' => function() {
+            $content = snippet('robots',[], true);
+            return new Kirby\Cms\Response($content, 'text/plain');
+        }
+    ],
 
 ];
