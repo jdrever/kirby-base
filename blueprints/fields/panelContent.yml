@@ -6,3 +6,4 @@ help: displayed on parent page
 marks:
   - bold
   - italic
+  - clear
