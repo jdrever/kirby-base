@@ -30,7 +30,7 @@ endif;
     <meta property="og:url" content="<?= $currentPage->getUrl() ?>" />
     <meta property="og:type" content="website" />
     <?php snippet('base/favicon') ?>
-    <?php snippet('base/robots') ?>
+    <?php snippet('base/robots-meta-tag') ?>
     <?php snippet('colour-mode/script') ?>
     <?php snippet('base/styles') ?>
 <?php /** @noinspection PhpUndefinedMethodInspection */
