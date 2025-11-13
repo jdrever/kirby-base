@@ -2,6 +2,9 @@
 return [
     'scripts' => __DIR__ . '/snippets/scripts.php',
     'sitemap' => __DIR__ . '/snippets/sitemap.php',
+    'robots-txt' => __DIR__ . '/snippets/robots-txt.php',
+
+    'base/robots-meta-tag' => __DIR__ . '/snippets/robots-meta-tag.php',
     'base/on-this-page' => __DIR__ . '/snippets/on-this-page.php',
     'base/fathom-analytics' => __DIR__ . '/snippets/fathom-analytics.php',
     'base/related-content' => __DIR__ . '/snippets/related-content.php',
@@ -18,8 +21,7 @@ return [
     'base/show-user' => __DIR__ . '/snippets/show-user.php',
     'base/status' => __DIR__ . '/snippets/status.php',
     'base/styles' => __DIR__ . '/snippets/styles.php',
-    'base/robots-txt' => __DIR__ . '/snippets/robots-txt.php',
-    'base/robots-meta-tag' => __DIR__ . '/snippets/robots-meta-tag.php',
+
     'base/full-width-block-starts' => __DIR__ . '/snippets/full-width-block-starts.php',
     'base/full-width-block-ends' => __DIR__ . '/snippets/full-width-block-ends.php',
     'base/pagination' => __DIR__ . '/snippets/pagination.php',

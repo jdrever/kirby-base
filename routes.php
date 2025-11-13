@@ -43,7 +43,7 @@ return [
     [
         'pattern' => 'robots.txt',
         'action' => function() {
-            $content = snippet('robots',[], true);
+            $content = snippet('robots-txt',[], true);
             return new Kirby\Cms\Response($content, 'text/plain');
         }
     ],
