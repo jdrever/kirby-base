@@ -3481,7 +3481,7 @@ abstract class KirbyBaseHelper
                     'feedbackPage' => esc($data['feedbackPage'])
                 ];
 
-                $this->sendEmail('email',
+                $this->sendEmail('feedback',
                     option('defaultEmail'),
                     $data['email'],
                     option('feedbackEmail') ?? option('defaultEmail'),
