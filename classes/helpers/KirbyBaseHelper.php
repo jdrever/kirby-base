@@ -3492,10 +3492,10 @@ abstract class KirbyBaseHelper
                 ];
 
                 if ($feedbackEmail = option('feedbackEmail')) {
-                    $recipients = $feedbackEmail . ',' . option('defaultEmail');
+                    $recipients = $feedbackEmail . ',' . option('adminEmail');
                 } else
                 {
-                    $recipients = option('defaultEmail');
+                    $recipients = option('adminEmail');
                 }
 
                 $this->sendEmail('feedback',
