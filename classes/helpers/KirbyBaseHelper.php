@@ -155,8 +155,6 @@ abstract class KirbyBaseHelper
                                bool   $checkUserRoles = true): BaseWebPage
     {
         try {
-
-            // Ensure $pageClass is a subclass of WebPage
             if (!(is_a($pageClass, BaseWebPage::class, true))) {
                 throw new KirbyRetrievalException("Page class must extend BaseWebPage.");
             }
@@ -3488,6 +3486,7 @@ abstract class KirbyBaseHelper
                 $emailData = [
                     'text' => esc($data['feedback']),
                     'sender' => esc($data['name']),
+                    'email' => esc($data['email']),
                     'feedbackPage' => esc($data['feedbackPage'])
                 ];
 
