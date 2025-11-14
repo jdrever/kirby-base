@@ -3482,9 +3482,9 @@ abstract class KirbyBaseHelper
                 ];
 
                 $this->sendEmail('email',
-                    'james.drever@bsbi-web.org',
+                    option('defaultEmail'),
                     $data['email'],
-                    'james.drever@bsbi-web.org',
+                    option('feedbackEmail') ?? option('defaultEmail'),
                     esc($data['name']) . ' sent you feedback from the BSBI website',
                     $emailData
                 );
