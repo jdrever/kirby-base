@@ -4496,22 +4496,25 @@ abstract class KirbyBaseHelper
 
         $fieldNamesInSection = [];
 
-        $sections = $blueprint->sections();
+        try {
+            $sections = $blueprint->sections();
 
-        if (isset($sections[$sectionName])) {
-            $section = $sections[$sectionName];
-        } else if (isset($sections[$sectionName.'-fields'])) {
-            $section = $sections[$sectionName.'-fields'];
-        }
-        if (isset($section) && $section->fields()) {
+            if (isset($sections[$sectionName])) {
+                $section = $sections[$sectionName];
+            } else if (isset($sections[$sectionName . '-fields'])) {
+                $section = $sections[$sectionName . '-fields'];
+            }
+            if (isset($section) && $section->fields()) {
 
-            foreach ($section->fields() as $fieldName => $fieldDefinition) {
-                if ($fieldDefinition['type'] !== 'info') {
-                    $fieldNamesInSection[] = ['name' => $fieldName, 'label' => $fieldDefinition['label']];
+                foreach ($section->fields() as $fieldName => $fieldDefinition) {
+                    if ($fieldDefinition['type'] !== 'info') {
+                        $fieldNamesInSection[] = ['name' => $fieldName, 'label' => $fieldDefinition['label']];
+                    }
                 }
             }
+        } catch (Throwable) {
+            // carry on if issue with blueprint
         }
-
         return $fieldNamesInSection;
 
     }
