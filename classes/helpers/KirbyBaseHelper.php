@@ -249,6 +249,7 @@ abstract class KirbyBaseHelper
             $session = $this->kirby->session();
 
 
+            /** @noinspection PhpUndefinedMethodInspection */
             if ($actionStatus = $session->pull('actionStatus'))
             {
                 /** @var ActionStatus $actionStatus */
@@ -2763,11 +2764,13 @@ abstract class KirbyBaseHelper
      */
     public function setSessionObject(string $key, Object $value): void
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         $this->kirby->session()->set($key, $value);
     }
 
     public function pullSessionObject(string $key): object
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return $this->kirby->session()->pull($key);
     }
 
@@ -2867,14 +2870,12 @@ abstract class KirbyBaseHelper
         //TODO: proper handling of CSRF expiry
         if (csrf(get('csrf')) === true) {
             $this->setCookie(self::COOKIE_CONSENT_NAME, 'yes');
-            $referringPage = $this->getRequestAsString('referringPage', '');
+            $referringPage = $this->getRequestAsString('referringPage');
             if (!empty($referringPage)) {
                 go($referringPage);
-                exit;
             }
         }
-        go('/');
-        exit;
+        go();
     }
 
     #endregion
@@ -3020,7 +3021,7 @@ abstract class KirbyBaseHelper
                                string $to,
                                string $subject,
                                array  $data) : void {
-        $recipients = str_contains($to, ',') ? Str::split($to, ',') : $to;
+        $recipients = str_contains($to, ',') ? Str::split($to) : $to;
         try {
             if (!str_starts_with($_SERVER['HTTP_HOST'], 'localhost')) {
                 $this->kirby->email([

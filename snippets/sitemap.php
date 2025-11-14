@@ -1,6 +1,7 @@
 <?php
 
 use BSBI\WebBase\helpers\KirbyRetrievalException;
+use Kirby\Toolkit\Str;
 
 ?>
 <?= '<?xml version="1.0" encoding="utf-8"?>'; ?>
@@ -17,7 +18,7 @@ endif;
         <?php
         // Skip pages explicitly ignored in config
         if (in_array($p->uri(), $ignore)) continue;
-        if (\Kirby\Toolkit\Str::startsWith($p->uri(), 'members/')) continue;
+        if (Str::startsWith($p->uri(), 'members/')) continue;
         // Skip pages with a custom field flagging them as 'noindex'
         if ($p->meta_robots()->exists() && $p->meta_robots()->value() === 'noindex') continue;
         ?>
