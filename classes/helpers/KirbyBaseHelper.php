@@ -137,8 +137,9 @@ abstract class KirbyBaseHelper
                 $page = $this->$setPageFunction($kirbyPage, $page);
             }
 
+
         } catch (KirbyRetrievalException $e) {
-            $page = $this->recordPageError($e, $pageClass);
+            $page = $this->handlePageError($e);
         }
         return $page;
     }
@@ -267,7 +268,7 @@ abstract class KirbyBaseHelper
                 $webPage = $this->highlightSearchQuery($webPage, $query);
             }
         } catch (KirbyRetrievalException $e) {
-            $webPage = $this->recordPageError($e, $pageClass);
+            $webPage = $this->handlePageError($e);
         }
 
         return $webPage;
@@ -2351,6 +2352,8 @@ abstract class KirbyBaseHelper
                 throw new KirbyRetrievalException("Page class must extend BaseModel.");
             }
 
+
+
             $model = new $modelClass($kirbyPage->title()->toString(), $kirbyPage->url(), $kirbyPage->template()->name());
 
             $setModelFunction = 'set'.$this->extractClassName($modelClass);
@@ -2768,7 +2771,32 @@ abstract class KirbyBaseHelper
         $this->kirby->session()->set($key, $value);
     }
 
+    /**
+     * @param string $key
+     * @param string $value
+     * @return void
+     */
+    public function setSessionString(string $key, string $value): void
+    {
+        /** @noinspection PhpUndefinedMethodInspection */
+        $this->kirby->session()->set($key, $value);
+    }
+
+    /**
+     * @param string $key
+     * @return object
+     */
     public function pullSessionObject(string $key): object
+    {
+        /** @noinspection PhpUndefinedMethodInspection */
+        return $this->kirby->session()->pull($key);
+    }
+
+    /**
+     * @param string $key
+     * @return string
+     */
+    public function pullSessionString(string $key): string
     {
         /** @noinspection PhpUndefinedMethodInspection */
         return $this->kirby->session()->pull($key);
@@ -2841,7 +2869,7 @@ abstract class KirbyBaseHelper
                                  string $to,
                                  string $subject,
                                  array  $data) : void {
-        $recipients = str_contains($to, ',') ? Str::split($to, ',') : $to;
+        $recipients = str_contains($to, ',') ? Str::split($to) : $to;
         try {
             if (!str_starts_with($_SERVER['HTTP_HOST'], 'localhost')) {
                 $this->kirby->email([
@@ -2975,19 +3003,13 @@ abstract class KirbyBaseHelper
 
     /**
      * @param KirbyRetrievalException $e
-     * @param class-string<BaseWebPage> $pageClass
      * @return BaseWebPage
      */
-    protected function recordPageError(KirbyRetrievalException $e, string $pageClass = BaseWebPage::class): BaseWebPage
+    protected function handlePageError(KirbyRetrievalException $e): BaseWebPage
     {
-        $webPage = $this->getEmptyWebPage($this->page, $pageClass);
-        $webPage
-            ->recordError(
-                $e->getMessage(),
-                'An error occurred while retrieving the ' . $webPage->getTitle() . ' page.',
-            );
         $this->handleKirbyRetrievalException($e);
-        return $webPage;
+        $this->setSessionString('exceptionAsString', $this->getExceptionDetails($e));
+        go('500');
     }
 
     /**

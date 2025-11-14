@@ -1,4 +1,4 @@
-<?php
+?<?php
 /** @var string $userRole */
 /** @var string $exception */
 snippet('base/styles');

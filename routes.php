@@ -1,6 +1,8 @@
 <?php
 
 use BSBI\WebBase\helpers\KirbyInternalHelper;
+use Kirby\Cms\Page;
+use Kirby\Toolkit\Tpl;
 
 return [
     [
@@ -47,5 +49,17 @@ return [
             return new Kirby\Cms\Response($content, 'text/plain');
         }
     ],
+    [
+        'pattern' => '500',
+        'action' => function () {
+            $exceptionAsString = kirby()->session()->pull('exceptionAsString');
+
+            echo Tpl::load(__DIR__ . '/templates/error-500.php', [
+                'userRole' => kirby()->user() ? kirby()->user()->role()->name() : '',
+                'exception' => $exceptionAsString,
+            ]);
+            exit();
+        }
+    ]
 
 ];
