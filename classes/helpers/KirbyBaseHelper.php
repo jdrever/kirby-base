@@ -558,6 +558,25 @@ abstract class KirbyBaseHelper
         }
     }
 
+    /**
+     * intended for use where the field will be output within Javascript, e.g. within a Leaflet map Javascript
+     * section
+     * @param Page $page
+     * @param string $fieldName
+     * @param bool $required
+     * @param string $defaultValue
+     * @return string
+     * @throws KirbyRetrievalException
+     */
+    protected function getPageFieldAsStringForJavascriptUse(Page   $page,
+                                                         string $fieldName,
+                                                         bool   $required = false,
+                                                         string $defaultValue = ''): string
+    {
+        $pageFieldAsString = $this->getPageFieldAsString($page, $fieldName, $required, $defaultValue);
+        return esc($pageFieldAsString, 'js');
+    }
+
 
 
     /**
