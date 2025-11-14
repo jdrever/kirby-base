@@ -3020,13 +3020,14 @@ abstract class KirbyBaseHelper
                                string $to,
                                string $subject,
                                array  $data) : void {
+        $recipients = str_contains($to, ',') ? Str::split($to, ',') : $to;
         try {
             if (!str_starts_with($_SERVER['HTTP_HOST'], 'localhost')) {
                 $this->kirby->email([
                     'template' => $template,
                     'from' => $from,
                     'replyTo' => $replyTo,
-                    'to' => $to,
+                    'to' => $recipients,
                     'subject' => $subject,
                     'data' => $data
                 ]);
@@ -3490,10 +3491,17 @@ abstract class KirbyBaseHelper
                     'feedbackPage' => esc($data['feedbackPage'])
                 ];
 
+                if ($feedbackEmail = option('feedbackEmail')) {
+                    $recipients = $feedbackEmail . ',' . option('defaultEmail');
+                } else
+                {
+                    $recipients = option('defaultEmail');
+                }
+
                 $this->sendEmail('feedback',
                     option('defaultEmail'),
                     $data['email'],
-                    option('feedbackEmail') ?? option('defaultEmail'),
+                    $recipients,
                     esc($data['name']) . ' sent you feedback from the BSBI website',
                     $emailData
                 );
