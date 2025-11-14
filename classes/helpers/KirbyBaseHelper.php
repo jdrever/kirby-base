@@ -2423,7 +2423,17 @@ abstract class KirbyBaseHelper
         }
 
         if (!empty($sortBy)) {
-            $collectionPages = $collectionPages->sortBy($sortBy, $sortDirection);
+            if (str_contains($sortBy, ',')) {
+                $fields = array_map('trim', explode(',', $sortBy));
+                $sortArguments = [];
+                foreach ($fields as $field) {
+                    $sortArguments[] = $field;
+                    $sortArguments[] = $sortDirection;
+                }
+                $collectionPages = $collectionPages->sortBy(...$sortArguments);
+            } else {
+                $collectionPages = $collectionPages->sortBy($sortBy, $sortDirection);
+            }
         }
 
         if ($filter === null) {
