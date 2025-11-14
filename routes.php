@@ -17,9 +17,15 @@ return [
     ],
     [
         'pattern' => 'scheduled-publish',
+        'method'  => 'GET|POST',
         'action'  => function () {
             $helper = new KirbyInternalHelper();
-            return $helper->publishScheduledPages();
+            $output = $helper->publishScheduledPages();
+            return new Kirby\Cms\Response(
+                $output,
+                'text/plain',
+                200
+            );
         }
     ],
     [

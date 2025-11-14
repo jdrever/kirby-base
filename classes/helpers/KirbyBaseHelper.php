@@ -4618,79 +4618,84 @@ abstract class KirbyBaseHelper
     public function publishScheduledPages(): string
     {
 
-        if ($this->isSiteFieldNotEmpty('scheduled')) {
-            $scheduledEntries = $this->getSiteFieldAsStructure('scheduled');
-            $updatedList = [];
-            $publishedCount = 0;
+        try {
 
-            $this->kirby->impersonate('kirby');
+            if ($this->isSiteFieldNotEmpty('scheduled')) {
+                $scheduledEntries = $this->getSiteFieldAsStructure('scheduled');
+                $updatedList = [];
+                $publishedCount = 0;
 
-            foreach ($scheduledEntries as $entry) {
-                // Get the collection of Page objects from the field
-                /** @noinspection PhpUndefinedMethodInspection */
-                $pages = $entry->page()->toPages();
+                $this->kirby->impersonate('kirby');
 
-                // If there's at least one page selected
-                if ($pages->isNotEmpty()) {
+                foreach ($scheduledEntries as $entry) {
+                    // Get the collection of Page objects from the field
                     /** @noinspection PhpUndefinedMethodInspection */
-                    $scheduledDate = $entry->scheduledPublishDate()->value();
-                    /** @noinspection PhpUndefinedMethodInspection */
-                    $scheduledTime = $entry->scheduledPublishTime()->value();
+                    $pages = $entry->page()->toPages();
 
-                    // If a date and time exist for the entry
-                    if ($scheduledDate && $scheduledTime) {
-                        $timezone = new DateTimeZone('Europe/London');
-                        $scheduledDateTime = new DateTime(
-                            $scheduledDate . ' ' . $scheduledTime,
-                            $timezone
-                        );
-                        $currentDateTime = new DateTime('now', $timezone);
+                    // If there's at least one page selected
+                    if ($pages->isNotEmpty()) {
+                        /** @noinspection PhpUndefinedMethodInspection */
+                        $scheduledDate = $entry->scheduledPublishDate()->value();
+                        /** @noinspection PhpUndefinedMethodInspection */
+                        $scheduledTime = $entry->scheduledPublishTime()->value();
 
-                        // The comparison should now work reliably
-                        if ($currentDateTime >= $scheduledDateTime) {
-                            // Loop through each selected page
-                            foreach ($pages as $page) {
-                                try {
-                                    if ($page) {
-                                        if ($page->isListed()) {
-                                            $this->writeToLog(
-                                                'scheduledPublish',
-                                                'Page already published: ' . $page->title()
+                        // If a date and time exist for the entry
+                        if ($scheduledDate && $scheduledTime) {
+                            $timezone = new DateTimeZone('Europe/London');
+                            $scheduledDateTime = new DateTime(
+                                $scheduledDate . ' ' . $scheduledTime,
+                                $timezone
+                            );
+                            $currentDateTime = new DateTime('now', $timezone);
+
+                            // The comparison should now work reliably
+                            if ($currentDateTime >= $scheduledDateTime) {
+                                // Loop through each selected page
+                                foreach ($pages as $page) {
+                                    try {
+                                        if ($page) {
+                                            if ($page->isListed()) {
+                                                $this->writeToLog(
+                                                    'scheduledPublish',
+                                                    'Page already published: ' . $page->title()
                                                     . ' at ' . $currentDateTime->format('Y-m-d H:i:s') . PHP_EOL
+                                                );
+                                                // Continue to the next page in the loop
+                                                continue;
+                                            }
+                                            // If not already listed, change the status
+                                            $page->changeStatus('listed');
+                                            $this->writeToLog('scheduledPublish',
+                                                'Published ' . $page->title() . ' at '
+                                                . $currentDateTime->format('Y-m-d H:i:s') . PHP_EOL
                                             );
-                                            // Continue to the next page in the loop
-                                            continue;
+                                            $publishedCount++;
                                         }
-                                        // If not already listed, change the status
-                                        $page->changeStatus('listed');
+                                    } catch (\Exception $e) {
                                         $this->writeToLog('scheduledPublish',
-                                            'Published ' . $page->title() . ' at '
-                                            . $currentDateTime->format('Y-m-d H:i:s') . PHP_EOL
-                                        );
-                                        $publishedCount++;
+                                            'Error: ' . $e->getMessage() . ' - ' . $e->getTraceAsString() . PHP_EOL);
+                                        return 'Error:' . $e->getMessage() . ' - ' . $e->getTraceAsString() . PHP_EOL;
                                     }
-                                } catch (\Exception $e) {
-                                    $this->writeToLog('scheduledPublish',
-                                        'Error: ' . $e->getMessage() . ' - ' . $e->getTraceAsString() . PHP_EOL);
-                                    return 'Error:' . $e->getMessage() . ' - ' . $e->getTraceAsString() . PHP_EOL;
                                 }
+                            } else {
+                                // Keep the entry in the list if it's not ready to be published
+                                $updatedList[] = $entry->content()->toArray();
                             }
-                        } else {
-                            // Keep the entry in the list if it's not ready to be published
-                            $updatedList[] = $entry->content()->toArray();
                         }
                     }
                 }
+
+                // Encode and save the new, updated list back to the site file
+                $this->site->update([
+                    'scheduled' => Yaml::encode($updatedList),
+                ]);
+
+                return 'Scheduled pages processed. Published ' . $publishedCount . ' pages.';
             }
-
-            // Encode and save the new, updated list back to the site file
-            $this->site->update([
-                'scheduled' => Yaml::encode($updatedList),
-            ]);
-
-            return 'Scheduled pages processed. Published ' . $publishedCount . ' pages.';
+            return '';
+        } catch (Throwable $e) {
+            return 'Error: ' . $e->getMessage() . ' - ' . $e->getTraceAsString() . PHP_EOL;
         }
-        return '';
     }
 
     #endregion
