@@ -2893,6 +2893,16 @@ abstract class KirbyBaseHelper
         $this->sendErrorEmail(new KirbyRetrievalException($e->getMessage()));
     }
 
+    /**
+     * writes to error log and sends error email
+     * @param KirbyRetrievalException $e
+     * @return void
+     */
+    public function handleKirbyRetrievalException(KirbyRetrievalException $e): void {
+        $this->writeToErrorLog($e->getMessage());
+        $this->sendErrorEmail($e);
+    }
+
     public function writeToErrorLog($message): void {
         $this->writeToLog('errors', $message);
     }
@@ -2941,7 +2951,7 @@ abstract class KirbyBaseHelper
                 $e->getMessage(),
                 'An error occurred while retrieving the ' . $webPage->getTitle() . ' page.',
             );
-        $this->sendErrorEmail($e);
+        $this->handleKirbyRetrievalException($e);
         return $webPage;
     }
 
