@@ -2824,6 +2824,42 @@ abstract class KirbyBaseHelper
 
     #endregion
 
+    #region EMAIL
+
+    /**
+     * @param string $template
+     * @param string $from
+     * @param string $replyTo
+     * @param string $to
+     * @param string $subject
+     * @param array $data
+     * @return void
+     */
+    protected function sendEmail(string $template,
+                                 string $from,
+                                 string $replyTo,
+                                 string $to,
+                                 string $subject,
+                                 array  $data) : void {
+        $recipients = str_contains($to, ',') ? Str::split($to, ',') : $to;
+        try {
+            if (!str_starts_with($_SERVER['HTTP_HOST'], 'localhost')) {
+                $this->kirby->email([
+                    'template' => $template,
+                    'from' => $from,
+                    'replyTo' => $replyTo,
+                    'to' => $recipients,
+                    'subject' => $subject,
+                    'data' => $data
+                ]);
+            }
+        } catch (Throwable $error) {
+            $this->writeToLog('errors', $error->getMessage());
+        }
+    }
+
+    #endregion
+
     #region COOKIES
 
     /**
@@ -3006,37 +3042,7 @@ abstract class KirbyBaseHelper
         return $model;
     }
 
-    /**
-     * @param string $template
-     * @param string $from
-     * @param string $replyTo
-     * @param string $to
-     * @param string $subject
-     * @param array $data
-     * @return void
-     */
-    protected function sendEmail(string $template,
-                               string $from,
-                               string $replyTo,
-                               string $to,
-                               string $subject,
-                               array  $data) : void {
-        $recipients = str_contains($to, ',') ? Str::split($to) : $to;
-        try {
-            if (!str_starts_with($_SERVER['HTTP_HOST'], 'localhost')) {
-                $this->kirby->email([
-                    'template' => $template,
-                    'from' => $from,
-                    'replyTo' => $replyTo,
-                    'to' => $recipients,
-                    'subject' => $subject,
-                    'data' => $data
-                ]);
-            }
-        } catch (Throwable $error) {
-            $this->writeToLog('errors', $error->getMessage());
-        }
-    }
+
 
     /**
      * @param KirbyRetrievalException $e
