@@ -4617,7 +4617,6 @@ abstract class KirbyBaseHelper
      */
     public function publishScheduledPages(): string
     {
-
         try {
 
             if ($this->isSiteFieldNotEmpty('scheduled')) {
