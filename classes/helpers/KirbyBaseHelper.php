@@ -4281,7 +4281,11 @@ abstract class KirbyBaseHelper
      */
     public function redirectToFile(Page $page, string $fieldName = 'file'):void {
         $file = $this->getPageFieldAsDocument($page, $fieldName);
-        go($file->getUrl());
+        if ($file->hasUrl()) {
+            go($file->getUrl());
+        } else {
+            go('error');
+        }
     }
 
     /**
