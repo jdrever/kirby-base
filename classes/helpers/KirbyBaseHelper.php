@@ -19,6 +19,7 @@ use BSBI\WebBase\models\Languages;
 use BSBI\WebBase\models\LoginDetails;
 use BSBI\WebBase\models\Pagination;
 use BSBI\WebBase\models\PrevNextPageNavigation;
+use BSBI\WebBase\models\SimpleFilter;
 use BSBI\WebBase\models\WebPageBlock;
 use BSBI\WebBase\models\WebPageBlocks;
 use BSBI\WebBase\models\WebPageLink;
@@ -2458,6 +2459,8 @@ abstract class KirbyBaseHelper
             $setFilterFunction = 'set' . $this->extractClassName($filterClass);
             if (method_exists($this, $setFilterFunction)) {
                 $filter = $this->$setFilterFunction();
+            } else {
+                $filter = new SimpleFilter();
             }
         }
         if ($filter) {
