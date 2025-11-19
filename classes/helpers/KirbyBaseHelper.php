@@ -444,6 +444,22 @@ abstract class KirbyBaseHelper
         }
     }
 
+    /**
+     * @param Page $page
+     * @return Page
+     * @throws KirbyRetrievalException
+     */
+    protected function deletePage(Page $page): Page
+    {
+        try {
+            return $this->kirby->impersonate('kirby', function () use ($page) {
+                return $page->delete();
+            });
+        } catch (Throwable $e) {
+            throw new KirbyRetrievalException($e->getMessage());
+        }
+    }
+
     #endregion
 
     #region PAGE_FIELDS
@@ -4344,23 +4360,18 @@ abstract class KirbyBaseHelper
     {
         if ($this->kirby->request()->is('POST')) {
             if (csrf(get('csrf')) === true) {
-                // 1. Define fields to exclude (like the submission trigger)
                 $excludeFields = ['submit', 'csrf'];
-
-                // 2. Transform the data into the structure object format
                 $formSubmission = [];
-                $formData = $this->kirby->request()->data(); // Get all POST data
+                $formData = $this->kirby->request()->data();
 
                 foreach ($formData as $inputName => $inputValue) {
 
-                    // Skip fields not intended for saving
                     if (in_array($inputName, $excludeFields) || empty($inputName)) {
                         continue;
                     }
                     $spacedString = str_replace(['-', '_'], ' ', $inputName);
                     $questionTitle = ucwords($spacedString);
 
-                    // Add the Q&A pair to the new submission entry array
                     $formSubmission[] = [
                         'question' => $questionTitle,
                         'answer' => $inputValue,
@@ -4388,7 +4399,6 @@ abstract class KirbyBaseHelper
 ';
 
                         foreach ($formSubmission as $item) {
-                            // Use strong tags for the question for better readability
                             $htmlBody .= '
         <li style="margin-bottom: 15px;">
             <strong style="display: block; font-size: 14px; color: #333;">' . htmlspecialchars(trim($item['question'])) . '</strong>
