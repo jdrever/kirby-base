@@ -402,7 +402,7 @@ abstract class KirbyBaseHelper
 
     #endregion
 
-    #region PAGE_CREATE_UPDATE
+    #region PAGE_CREATE_AND_UPDATE
 
     /**
      * @param Page $parentPage
@@ -4380,7 +4380,6 @@ abstract class KirbyBaseHelper
                     true
                 ]);
 
-
                 if ($this->isPageFieldNotEmpty($parentPage, 'emailRecepient')) {
                     try {
                         $htmlBody = '
@@ -4423,7 +4422,7 @@ abstract class KirbyBaseHelper
             return (new ActionStatus(
                 true,
                 '',
-                'Thank you, your submission has been receieved.')
+                'Thank you, your submission has been received.')
             );
         }
         return (new ActionStatus(true));
