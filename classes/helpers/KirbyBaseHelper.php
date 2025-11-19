@@ -2488,6 +2488,40 @@ abstract class KirbyBaseHelper
 
         return $modelList;
     }
+
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @param string $modelListClass
+     * @return BaseList
+     * @throws KirbyRetrievalException
+     */
+    protected function getSpecificModelListFromPageField(Page   $page,
+                                                         string $fieldName,
+                                                         string $modelListClass = BaseList::class) : BaseList
+    {
+
+        if (!(is_a($modelListClass, BaseList::class, true))) {
+            throw new KirbyRetrievalException("Model list class must extend BaseList.");
+        }
+
+        $modelList = new $modelListClass();
+
+        $modelClassName = $modelList->getItemType();
+        $modelClass = $modelClassName;
+
+        if (!(is_a($modelClass, BaseModel::class, true))) {
+            throw new KirbyRetrievalException("Model class must extend BaseModel.");
+        }
+
+        $pages = $this->getPageFieldAsPages($page, $fieldName);
+        foreach ($pages as $page) {
+            $model = $this->getSpecificModel($page, $modelClass);
+            $modelList->addListItem($model);
+        }
+        return $modelList;
+    }
+
     #endregion
 
     #region IMAGES
