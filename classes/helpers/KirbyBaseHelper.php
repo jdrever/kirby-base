@@ -2459,8 +2459,6 @@ abstract class KirbyBaseHelper
             $setFilterFunction = 'set' . $this->extractClassName($filterClass);
             if (method_exists($this, $setFilterFunction)) {
                 $filter = $this->$setFilterFunction();
-            } else {
-                $filter = new SimpleFilter();
             }
         }
         if ($filter) {
