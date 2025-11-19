@@ -4338,6 +4338,7 @@ abstract class KirbyBaseHelper
      * Email Recipient field for the page
      * @param Page $parentPage
      * @return ActionStatus
+     * @throws KirbyRetrievalException
      */
     protected function createFormSubmission(Page $parentPage): ActionStatus
     {
@@ -4368,22 +4369,17 @@ abstract class KirbyBaseHelper
 
                 $slug = date('M-j-H.i');
 
-
-                $submissionPage = $parentPage->createChild([
-                    'slug' => $slug,
-                    'template' => 'form_submission',
-                    'content' => [
-                        'title' => 'Submission: ' . $slug,
-                        'submission' => Data::encode($formSubmission, 'yaml')
-                    ]
+                $this->createPage($parentPage,
+                    [
+                        'slug' => $slug,
+                        'template' => 'form_submission',
+                        'content' => [
+                            'title' => 'Submission: ' . $slug,
+                            'submission' => Data::encode($formSubmission, 'yaml')
+                    ],
+                    true
                 ]);
 
-
-                try {
-                    $submissionPage->changeStatus('unlisted');
-                } catch (InvalidArgumentException) {
-                    return (new ActionStatus(false,'', 'An error occurred while saving your submission.'));
-                }
 
                 if ($this->isPageFieldNotEmpty($parentPage, 'emailRecepient')) {
                     try {
