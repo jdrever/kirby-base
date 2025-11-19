@@ -4256,16 +4256,22 @@ abstract class KirbyBaseHelper
      */
     public function handleCaches(Page $page) : string {
         $cacheName = option('cacheName');
+        try {
+            $cache = $this->kirby->cache($cacheName);
+        } catch (InvalidArgumentException) {
+            return 'Failed to get cache';
+        }
         $cacheMapping = option('cacheMapping');
         if ($cacheMapping) {
             if (array_key_exists($page->template()->name(), $cacheMapping)) {
-                try {
-                    $cache = $this->kirby->cache($cacheName);
-                } catch (InvalidArgumentException) {
-                    return 'Failed to get cache';
-                }
                 $cacheKey = $cacheMapping[$page->template()->name()];
                 $cache->remove($cacheKey);
+            }
+        }
+        if ($searchCacheKeys = option('searchCacheKeys')) {
+            $searchCacheKeysAsArray = Str::split($searchCacheKeys);
+            foreach ($searchCacheKeysAsArray as $searchCacheKey) {
+                $cache->remove($searchCacheKey);
             }
         }
         return 'Success';
