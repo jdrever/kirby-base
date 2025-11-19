@@ -3081,8 +3081,8 @@ abstract class KirbyBaseHelper
         $this->sendEmail('error-notification',
             option('defaultEmail'),
             option('defaultEmail'),
-            option('defaultEmail'),
-            'Website Error',
+            option('adminEmail'),
+            'Website Exception: ' .$e->getMessage(),
             [
                 'errorMessage' => $this->getExceptionDetails($e),
             ]
