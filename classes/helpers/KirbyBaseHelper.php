@@ -4376,9 +4376,10 @@ abstract class KirbyBaseHelper
                         'content' => [
                             'title' => 'Submission: ' . $slug,
                             'submission' => Data::encode($formSubmission, 'yaml')
+                        ]
                     ],
                     true
-                ]);
+                );
 
                 if ($this->isPageFieldNotEmpty($parentPage, 'emailRecepient')) {
                     try {
