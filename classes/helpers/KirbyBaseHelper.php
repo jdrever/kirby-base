@@ -232,7 +232,7 @@ abstract class KirbyBaseHelper
                 $ogImage = $this->getPageFieldAsFile($page, 'og_image');
                 $webPage->setOpenGraphImage($ogImage->url());
             } else {
-                $webPage->setOpenGraphDescription($this->site->url() . '/assets/images/BSBI-long-colour.svg');
+                $webPage->setOpenGraphImage($this->site->url() . '/assets/images/BSBI-long-colour.svg');
             }
 
             $webPage->setColourMode($this->getColourMode());
