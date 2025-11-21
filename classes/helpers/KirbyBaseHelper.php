@@ -1872,6 +1872,41 @@ abstract class KirbyBaseHelper
      * @param Block $block
      * @param string $fieldName
      * @param bool $required
+     * @param array $default
+     * @return array
+     * @throws KirbyRetrievalException
+     */
+    protected function getBlockFieldAsYaml(Block $block, string $fieldName, bool $required = false, array $default = []): array
+    {
+        try {
+            $blockField = $this->getBlockField($block, $fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $blockField->yaml();
+        } catch (KirbyRetrievalException $e) {
+            if ($required) {
+                throw $e;
+            }
+            return [];
+        }
+    }
+
+    /**
+     * @param Block $block
+     * @param string $fieldName
+     * @return Structure
+     * @throws KirbyRetrievalException
+     */
+    protected function getBlockFieldAsStructure(Block $block, string $fieldName): Structure
+    {
+        $blockField = $this->getBlockField($block, $fieldName);
+        /** @noinspection PhpUndefinedMethodInspection */
+        return $blockField->toStructure();
+    }
+
+    /**
+     * @param Block $block
+     * @param string $fieldName
+     * @param bool $required
      * @return int
      * @throws KirbyRetrievalException
      * @noinspection PhpUnused
@@ -1899,7 +1934,6 @@ abstract class KirbyBaseHelper
      * @param ImageType $imageType
      * @param bool $fixedWidth
      * @return Image
-     * @throws InvalidArgumentException
      * @noinspection PhpUnused
      */
     protected function getBlockFieldAsImage(Block     $block,
@@ -1942,7 +1976,7 @@ abstract class KirbyBaseHelper
                 }
             }
             return (new Image())->recordError('Image not found');
-        } catch (KirbyRetrievalException) {
+        } catch (Throwable) {
             return (new Image())->recordError('Image not found');
         }
     }
