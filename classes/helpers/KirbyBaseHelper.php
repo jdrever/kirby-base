@@ -2091,6 +2091,260 @@ abstract class KirbyBaseHelper
 
     #endregion
 
+    #region USER_FIELDS
+
+    /**
+     * @param \Kirby\Cms\User $user
+     * @param string $fieldName
+     * @param string $default
+     * @return string
+     */
+    protected function getUserFieldAsString(\Kirby\Cms\User $user, string $fieldName, string $default =''): string {
+        return $user->{$fieldName}()->value() ?? $default;
+    }
+
+    protected function getCurrentUserFieldAsUser(string $fieldName): User {
+        $user = kirby()->user();
+        $kirbyUser = $user->{$fieldName}()->toUser();
+        if ($kirbyUser) {
+            return $this->getUser($kirbyUser);
+        }
+        return (new User('not found'))->recordError('User not found');
+    }
+
+    protected function getUserFieldAsUser(\Kirby\Cms\User $user, string $fieldName): User {
+        $kirbyUser = $user->{$fieldName}()->toUser();
+        if ($kirbyUser) {
+            return $this->getUser($kirbyUser);
+        }
+        return (new User('not found'))->recordError('User not found');
+    }
+
+#endregion
+
+#region USERS
+
+    /**
+     * @param string $userId
+     * @param string $fallback
+     * @noinspection PhpUnused
+     * @return string
+     */
+    protected function getUserName(string $userId, string $fallback = 'User not found') : string {
+        // Extract the actual user ID from the string
+        if (preg_match('/user:\/\/([a-zA-Z0-9]+)/', $userId, $matches)) {
+            $userId = $matches[1]; // Get the ID (e.g., 'dvw7nX3C')
+
+            // Check if the user exists
+            $user = kirby()->user($userId);
+            if ($user) {
+                return $user->username();
+            } else {
+                return $fallback;
+            }
+        } else {
+            return "User id is malformed";
+        }
+    }
+
+    /**
+     * @return User
+     */
+    protected function getCurrentUser(): User {
+        $user = new User('user');
+
+        $userLoggedIn = $this->kirby->user();
+        $userId = ($userLoggedIn) ? $userLoggedIn->id() : '';
+        $userName = ($userLoggedIn) ? $userLoggedIn->userName() : '';
+        $role = ($userLoggedIn) ? $userLoggedIn->role()->name() : '';
+        $user
+            ->setUserId($userId)
+            ->setUserName($userName)
+            ->setRole($role);
+        return $user;
+    }
+
+    /**
+     * @param \Kirby\Cms\User $kirbyUser
+     * @return User
+     */
+    protected function getUser(\Kirby\Cms\User $kirbyUser) : User
+    {
+        $user = new User('user');
+        $user->setUserId($kirbyUser->id())
+            ->setUserName($kirbyUser->username())
+            ->setRole($kirbyUser->role()->name());
+        return $user;
+    }
+
+    /**
+     * @param string $fieldName
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function getCurrentUserFieldAsString(string $fieldName): string {
+        return $this->kirby->user()->{$fieldName}()->toString() ?? '';
+    }
+
+    /**
+     * gets the current Kirby username - returns blank string if no user
+     * @return string
+     * @noinspection PhpUnused
+     */
+    protected function getCurrentUserName(): string {
+        return $this->kirby->user() ? $this->kirby->user()->name() : '';
+    }
+
+    /**
+     * gets the current Kirby username - returns blank string if no user
+     * @return string
+     * @noinspection PhpUnused
+     */
+    protected function getCurrentUserRole(): string {
+        return $this->kirby->user() ? $this->kirby->user()->role()->name() : '';
+    }
+
+
+
+    /**
+     * Checks whether the current user has the necessary permissions to access the given page.
+     *
+     * This function evaluates the user's role against the required roles defined in
+     * the current page or inherited from its parent pages. It grants access to users
+     * with 'admin' or 'editor' roles by default. If no roles are explicitly defined,
+     * access is allowed.
+     *
+     * @param Page $currentPage The page for which permission is being checked
+     * @return bool Returns true if the user has permission to access the page, false otherwise
+     * @throws KirbyRetrievalException
+     */
+    protected function checkPagePermissions(Page $currentPage) : bool {
+
+        if (in_array($currentPage->template()->name(), ['login', 'reset_password', 'reset_password_verification'])) { return true; }
+
+        $user = $this->kirby->user();
+
+        if ($this->isCurrentUserAdminOrEditor()) {
+            return true;
+        }
+        $siteRoles = $this->getSiteFieldAsString('requiredRoles');
+
+        if (!empty($siteRoles)) {
+            $requiredRolesWithSpaces = explode(",",$siteRoles);
+            $requiredRoles = array_map('trim', $requiredRolesWithSpaces);
+            //if the site has roles, and the user isn't logged in or isn't using one of the roles
+            if ((!$user || $user->isNobody()) || (!(in_array($user->role()->name(), $requiredRoles)))) {
+                return false;
+            }
+        }
+
+        // If no user is logged in (or it's the kirby user), we will check for required roles later.
+        // If roles are required and no eligible user is logged in, access will be denied.
+        $applicableRoles = [];
+
+        // Traverse up the page hierarchy to find the first non-empty requiredRoles field
+        $page = $currentPage;
+        while ($page) {
+            $currentRoles = $this->getPageFieldAsArray($page,'requiredRoles'); // Access the field
+            // If this page has required roles set, these are the applicable roles due to inheritance
+            if (!empty($currentRoles)) {
+                $applicableRoles = $currentRoles;
+                break; // Found the most specific required roles in the hierarchy
+            }
+
+            // Move up to the parent page
+            $page = $page->parent();
+        }
+
+        // Now check if the user has permission based on the applicable roles found
+
+        // If no applicable roles were found throughout the hierarchy, access is allowed
+        if (empty($applicableRoles)) {
+            return true;
+        }
+
+        // If applicable roles exist, check if a *non-kirby* user is logged in
+        // and if their role is in the list
+        if ($user && !$user->isKirby() && in_array($user->role()->name(), $applicableRoles)) {
+            return true;
+        }
+
+        // If none of the above conditions are met, the user does not have permission
+        return false;
+    }
+
+    public function isCurrentUserAdminOrEditor() : bool
+    {
+        $user = $this->kirby->user();
+        return $this->isUserAdminOrEditor($user);
+    }
+
+    public function isUserAdminOrEditor(\Kirby\Cms\User|null $user) : bool
+    {
+        if ($user && !$user->isKirby() && ($user->role()->name() === 'admin' || $user->role()->name() === 'editor')) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @return bool
+     * @noinspection PhpUnused
+     */
+    protected function isUserLoggedIn(): bool {
+        return $this->kirby->user() != null;
+    }
+
+    /**
+     * @return LoginDetails
+     * @noinspection PhpUnused
+     */
+    protected function getLoginDetails() : LoginDetails {
+        $loginDetails = new LoginDetails();
+        $loginDetails->setRedirectPage(get('redirectPage', ''));
+        // handle the form submission
+        if ($this->kirby->request()->is('POST') && get('userName')) {
+            $loginDetails->setHasBeenProcessed(true);
+            // try to log the user in with the provided credentials
+            try {
+                // validate CSRF token
+                if (csrf(get('csrf')) === true) {
+                    $userName = trim(get('userName'));
+                    $userName = str_replace(' ', '-', $userName);
+                    if (!str_contains($userName, '@') && $loginDomain = option('useLoginDomain')) {
+                        $userName .= '@' . $loginDomain;
+                    }
+                    $loginDetails->setUserName($userName);
+                    $this->kirby->auth()->login($userName, trim(get('password')), true);
+                    $loginDetails->setLoginStatus(true);
+                    $loginDetails->setLoginMessage('You have successfully logged in');
+                    if ($loginDetails->hasRedirectPage()) {
+                        go($loginDetails->getRedirectPage());
+                    }
+                    $this->redirectToHome();
+                } else {
+                    $loginDetails->setLoginStatus(false);
+                    $loginDetails->setLoginMessage('Your security token has expired - please login again.');
+                }
+            } catch (Exception) {
+                $loginDetails->setLoginStatus(false);
+                $loginDetails->setLoginMessage('Login failed. Please check your username and password.');
+            }
+        }
+
+        $loginDetails->setCSRFToken($this->getCSFRToken());
+
+        return $loginDetails;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getCSFRToken() : string {
+        return csrf();
+    }
+
+    #endregion
 
 
     #region MENU PAGES/NAVIGATION
@@ -3507,7 +3761,6 @@ abstract class KirbyBaseHelper
         return $page;
     }
 
-
     #endregion
 
 
@@ -3594,267 +3847,6 @@ abstract class KirbyBaseHelper
         }
         return $feedbackForm;
     }
-    #endregion
-
-    #region USERS
-
-    /**
-     * @param string $userId
-     * @param string $fallback
-     * @noinspection PhpUnused
-     * @return string
-     */
-    protected function getUserName(string $userId, string $fallback = 'User not found') : string {
-        // Extract the actual user ID from the string
-        if (preg_match('/user:\/\/([a-zA-Z0-9]+)/', $userId, $matches)) {
-            $userId = $matches[1]; // Get the ID (e.g., 'dvw7nX3C')
-
-            // Check if the user exists
-            $user = kirby()->user($userId);
-            if ($user) {
-                return $user->username();
-            } else {
-                return $fallback;
-            }
-        } else {
-            return "User id is malformed";
-        }
-    }
-
-    /**
-     * @return User
-     */
-    protected function getCurrentUser(): User {
-        $user = new User('user');
-
-        $userLoggedIn = $this->kirby->user();
-        $userId = ($userLoggedIn) ? $userLoggedIn->id() : '';
-        $userName = ($userLoggedIn) ? $userLoggedIn->userName() : '';
-        $role = ($userLoggedIn) ? $userLoggedIn->role()->name() : '';
-        $user
-            ->setUserId($userId)
-            ->setUserName($userName)
-            ->setRole($role);
-        return $user;
-    }
-
-    /**
-     * @param string $fieldName
-     * @return string
-     * @noinspection PhpUnused
-     */
-    public function getCurrentUserFieldAsString(string $fieldName): string {
-        return $this->kirby->user()->{$fieldName}()->toString() ?? '';
-    }
-
-    /**
-     * gets the current Kirby username - returns blank string if no user
-     * @return string
-     * @noinspection PhpUnused
-     */
-    protected function getCurrentUserName(): string {
-        return $this->kirby->user() ? $this->kirby->user()->name() : '';
-    }
-
-    /**
-     * gets the current Kirby username - returns blank string if no user
-     * @return string
-     * @noinspection PhpUnused
-     */
-    protected function getCurrentUserRole(): string {
-        return $this->kirby->user() ? $this->kirby->user()->role()->name() : '';
-    }
-
-    protected function getUserFieldAsString(\Kirby\Cms\User $user, string $fieldName, string $default =''): string {
-        return $user->{$fieldName}()->value() ?? $default;
-    }
-
-
-    /**
-     * Checks whether the current user has the necessary permissions to access the given page.
-     *
-     * This function evaluates the user's role against the required roles defined in
-     * the current page or inherited from its parent pages. It grants access to users
-     * with 'admin' or 'editor' roles by default. If no roles are explicitly defined,
-     * access is allowed.
-     *
-     * @param Page $currentPage The page for which permission is being checked
-     * @return bool Returns true if the user has permission to access the page, false otherwise
-     * @throws KirbyRetrievalException
-     */
-    protected function checkPagePermissions(Page $currentPage) : bool {
-
-        if (in_array($currentPage->template()->name(), ['login', 'reset_password', 'reset_password_verification'])) { return true; }
-
-        $user = $this->kirby->user();
-
-        if ($this->isCurrentUserAdminOrEditor()) {
-            return true;
-        }
-        $siteRoles = $this->getSiteFieldAsString('requiredRoles');
-
-        if (!empty($siteRoles)) {
-            $requiredRolesWithSpaces = explode(",",$siteRoles);
-            $requiredRoles = array_map('trim', $requiredRolesWithSpaces);
-            //if the site has roles, and the user isn't logged in or isn't using one of the roles
-            if ((!$user || $user->isNobody()) || (!(in_array($user->role()->name(), $requiredRoles)))) {
-                return false;
-            }
-        }
-
-        // If no user is logged in (or it's the kirby user), we will check for required roles later.
-        // If roles are required and no eligible user is logged in, access will be denied.
-        $applicableRoles = [];
-
-        // Traverse up the page hierarchy to find the first non-empty requiredRoles field
-        $page = $currentPage;
-        while ($page) {
-            $currentRoles = $this->getPageFieldAsArray($page,'requiredRoles'); // Access the field
-            // If this page has required roles set, these are the applicable roles due to inheritance
-            if (!empty($currentRoles)) {
-                $applicableRoles = $currentRoles;
-                break; // Found the most specific required roles in the hierarchy
-            }
-
-            // Move up to the parent page
-            $page = $page->parent();
-        }
-
-        // Now check if the user has permission based on the applicable roles found
-
-        // If no applicable roles were found throughout the hierarchy, access is allowed
-        if (empty($applicableRoles)) {
-            return true;
-        }
-
-        // If applicable roles exist, check if a *non-kirby* user is logged in
-        // and if their role is in the list
-        if ($user && !$user->isKirby() && in_array($user->role()->name(), $applicableRoles)) {
-            return true;
-        }
-
-        // If none of the above conditions are met, the user does not have permission
-        return false;
-    }
-
-    public function isCurrentUserAdminOrEditor() : bool
-    {
-        $user = $this->kirby->user();
-        return $this->isUserAdminOrEditor($user);
-    }
-
-    public function isUserAdminOrEditor(\Kirby\Cms\User|null $user) : bool
-    {
-        if ($user && !$user->isKirby() && ($user->role()->name() === 'admin' || $user->role()->name() === 'editor')) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @return bool
-     * @noinspection PhpUnused
-     */
-    protected function isUserLoggedIn(): bool {
-        return $this->kirby->user() != null;
-    }
-
-    /**
-     * @return LoginDetails
-     * @noinspection PhpUnused
-     */
-    protected function getLoginDetails() : LoginDetails {
-        $loginDetails = new LoginDetails();
-        $loginDetails->setRedirectPage(get('redirectPage', ''));
-        // handle the form submission
-        if ($this->kirby->request()->is('POST') && get('userName')) {
-            $loginDetails->setHasBeenProcessed(true);
-            // try to log the user in with the provided credentials
-            try {
-                // validate CSRF token
-                if (csrf(get('csrf')) === true) {
-                    $userName = trim(get('userName'));
-                    $userName = str_replace(' ', '-', $userName);
-                    if (!str_contains($userName, '@') && $loginDomain = option('useLoginDomain')) {
-                        $userName .= '@' . $loginDomain;
-                    }
-                    $loginDetails->setUserName($userName);
-                    $this->kirby->auth()->login($userName, trim(get('password')), true);
-                    $loginDetails->setLoginStatus(true);
-                    $loginDetails->setLoginMessage('You have successfully logged in');
-                    if ($loginDetails->hasRedirectPage()) {
-                        go($loginDetails->getRedirectPage());
-                    }
-                    $this->redirectToHome();
-                } else {
-                    $loginDetails->setLoginStatus(false);
-                    $loginDetails->setLoginMessage('Your security token has expired - please login again.');
-                }
-            } catch (Exception) {
-                $loginDetails->setLoginStatus(false);
-                $loginDetails->setLoginMessage('Login failed. Please check your username and password.');
-            }
-        }
-
-        $loginDetails->setCSRFToken($this->getCSFRToken());
-
-        return $loginDetails;
-    }
-
-    /**
-     * @param array $userData
-     * @return \Kirby\Cms\User
-     * @throws KirbyRetrievalException
-     */
-    public function createUser(array $userData): \Kirby\Cms\User {
-        try {
-            return $this->kirby->impersonate('kirby', function () use ($userData) {
-                return $this->kirby->users()->create($userData);
-            });
-        } catch (Throwable $e) {
-            throw new KirbyRetrievalException($e->getMessage());
-        }
-    }
-
-    /**
-     * @param \Kirby\Cms\User $user
-     * @param array $updateData
-     * @return \Kirby\Cms\User
-     * @throws KirbyRetrievalException
-     */
-    public function updateUser(\Kirby\Cms\User $user, array $updateData): \Kirby\Cms\User {
-        try {
-            return $this->kirby->impersonate('kirby', function () use ($user, $updateData) {
-                return $user->update($updateData);
-            });
-        } catch (Throwable $e) {
-            throw new KirbyRetrievalException($e->getMessage());
-        }
-    }
-
-    /**
-     * @param \Kirby\Cms\User $user
-     * @param string $role
-     * @return \Kirby\Cms\User
-     * @throws KirbyRetrievalException
-     */
-    public function changeUserRole(\Kirby\Cms\User $user, string $role): \Kirby\Cms\User {
-        try {
-            return $this->kirby->impersonate('kirby', function () use ($user, $role) {
-                return $user->changerole($role);
-            });
-        } catch (Throwable $e) {
-            throw new KirbyRetrievalException($e->getMessage());
-        }
-    }
-
-    /**
-     * @return string
-     */
-    protected function getCSFRToken() : string {
-        return csrf();
-    }
-
     #endregion
 
     #region TAGS_AND_FILTERS

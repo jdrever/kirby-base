@@ -81,6 +81,11 @@ class User extends BaseModel
         $this->role = $role;
     }
 
+    public function hasEmail() : bool
+    {
+        return !empty($this->email);
+    }
+
     /**
      * @return string
      */
