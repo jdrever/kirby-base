@@ -2139,6 +2139,14 @@ abstract class KirbyBaseHelper
         return $user->{$fieldName}()->value() ?? $default;
     }
 
+    /**
+     * @param string $fieldName
+     * @return string
+     */
+    public function getCurrentUserFieldAsString(string $fieldName): string {
+        return $this->getUserFieldAsString(kirby()->user(),$fieldName);
+    }
+
     protected function getCurrentUserFieldAsUser(string $fieldName): User {
         $user = kirby()->user();
         $kirbyUser = $user->{$fieldName}()->toUser();
@@ -2154,6 +2162,25 @@ abstract class KirbyBaseHelper
             return $this->getUser($kirbyUser);
         }
         return (new User('not found'))->recordError('User not found');
+    }
+
+    /**
+     * @param \Kirby\Cms\User $user
+     * @param string $fieldName
+     * @param string $default
+     * @return string
+     */
+    protected function getUserFieldAsSlug(\Kirby\Cms\User $user, string $fieldName, string $default =''): string {
+        return $user->{$fieldName}()->toPage()->slug() ?? $default;
+    }
+
+    /**
+     * @param string $fieldName
+     * @param string $default
+     * @return string
+     */
+    protected function getCurrentUserFieldAsSlug(string $fieldName, string $default =''): string {
+        return $this->getUserFieldAsSlug(kirby()->user(), $fieldName, $default);
     }
 
 #endregion
@@ -2211,15 +2238,6 @@ abstract class KirbyBaseHelper
             ->setUserName($kirbyUser->username())
             ->setRole($kirbyUser->role()->name());
         return $user;
-    }
-
-    /**
-     * @param string $fieldName
-     * @return string
-     * @noinspection PhpUnused
-     */
-    public function getCurrentUserFieldAsString(string $fieldName): string {
-        return $this->kirby->user()->{$fieldName}()->toString() ?? '';
     }
 
     /**
@@ -2318,6 +2336,19 @@ abstract class KirbyBaseHelper
     public function isUserAdminOrEditor(\Kirby\Cms\User|null $user) : bool
     {
         if ($user && !$user->isKirby() && ($user->role()->name() === 'admin' || $user->role()->name() === 'editor')) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param string $role
+     * @return bool
+     */
+    public function doesCurrentUserHaveRole(string $role) : bool
+    {
+        $user = $this->kirby->user();
+        if ($user && $user->role()->name() === $role) {
             return true;
         }
         return false;
