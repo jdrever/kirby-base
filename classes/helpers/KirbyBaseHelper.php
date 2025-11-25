@@ -1024,6 +1024,27 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $page
      * @param string $fieldName
+     * @param bool $isRequired
+     * @return Page|null
+     * @throws KirbyRetrievalException
+     */
+    protected function getPageFieldAsFirstPage(Page $page, string $fieldName, bool $isRequired = false): Page|null
+    {
+        try {
+            $pageField = $this->getPageField($page, $fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $pageField->toPages()->first();
+        } catch (KirbyRetrievalException) {
+            if ($isRequired) {
+                throw new KirbyRetrievalException('The field ' . $fieldName . ' does not exist');
+            }
+            return null;
+        }
+    }
+
+    /**
+     * @param Page $page
+     * @param string $fieldName
      * @return string
      * @throws KirbyRetrievalException
      * @noinspection PhpUnused
@@ -1064,6 +1085,21 @@ abstract class KirbyBaseHelper
         $page = $pages->first();
         if ($page) {
             return $page->url();
+        }
+        return '';
+    }
+
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @return string
+     * @throws KirbyRetrievalException
+     */
+    protected function getPageFieldAsPageSlug(Page $page, string $fieldName): string {
+        $pages = $this->getPageFieldAsPages($page, $fieldName);
+        $page = $pages->first();
+        if ($page) {
+            return $page->slug();
         }
         return '';
     }
