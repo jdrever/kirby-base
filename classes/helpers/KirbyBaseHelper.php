@@ -812,8 +812,12 @@ abstract class KirbyBaseHelper
             $blocksHTML = '';
             /** @noinspection PhpUndefinedMethodInspection */
             foreach($pageField->toBlocks() as $block) {
-                if ($block->type() === 'text') {
+                if ($excerpt === 0) {
                     $blocksHTML .= $this->getHTMLfromBlock($block);
+                } else {
+                    if ($block->type() === 'text') {
+                        $blocksHTML .= $this->getHTMLfromBlock($block);
+                    }
                 }
             }
             return ($excerpt === 0)
