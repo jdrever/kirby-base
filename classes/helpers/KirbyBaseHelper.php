@@ -3402,16 +3402,24 @@ abstract class KirbyBaseHelper
     /**
      * @param string $key
      * @param string $value
+     * @param int $days
      * @return void
      */
-    protected function setCookie(string $key, string $value): void
+    protected function setCookie(string $key, string $value, int $days = 90): void
     {
         //allow insecure cookies on localhost only
         $secure = !(str_starts_with($_SERVER['HTTP_HOST'],'localhost'));
+        $expiresInMinutes = 60 * 24 * $days;
+
         Cookie::set(
             $key,
             $value,
-            ['expires' => time() + 60 * 60 * 24 * 30, 'path' => '/', 'secure' => $secure, 'httpOnly' => true]
+            [
+                'lifetime' => $expiresInMinutes,
+                'path'     => '/',
+                'secure'   => $secure,
+                'httpOnly' => true
+            ]
         );
     }
 
@@ -3442,7 +3450,7 @@ abstract class KirbyBaseHelper
     {
         //TODO: proper handling of CSRF expiry
         if (csrf(get('csrf')) === true) {
-            $this->setCookie(self::COOKIE_CONSENT_NAME, 'yes');
+            $this->setCookie(self::COOKIE_CONSENT_NAME, 'yes', 365);
             $referringPage = $this->getRequestAsString('referringPage');
             if (!empty($referringPage)) {
                 go($referringPage);
