@@ -7,7 +7,7 @@ $label = $label ?? 'How satisfied are you with the service?';
 $scaleMin     = $scaleMin ?? 1;
 $scaleMax     = $scaleMax ?? 5;
 $leftLabel    = $leftLabel ?? 'Strongly disagree';
-$middleLabel = $middleLabel ?? 'Netural';
+$middleLabel = $middleLabel ?? 'Neutral';
 $rightLabel   = $rightLabel ?? 'Strongly agree';
 ?>
 

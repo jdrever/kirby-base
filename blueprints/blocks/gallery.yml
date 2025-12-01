@@ -17,6 +17,9 @@ fields:
       template: blocks/image-clip
     image:
       ratio: 1/1
+    help: |
+      If you would like to a photographer credit, or change the focal point of the image, click into the
+      image, make your changes and save, then go back in your browser to return to this page.
   caption:
     label: field.blocks.image.caption
     type: writer

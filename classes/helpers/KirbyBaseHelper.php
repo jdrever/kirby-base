@@ -812,7 +812,13 @@ abstract class KirbyBaseHelper
             $blocksHTML = '';
             /** @noinspection PhpUndefinedMethodInspection */
             foreach($pageField->toBlocks() as $block) {
-                $blocksHTML .= $this->getHTMLfromBlock($block);
+                if ($excerpt === 0) {
+                    $blocksHTML .= $this->getHTMLfromBlock($block);
+                } else {
+                    if ($block->type() === 'text') {
+                        $blocksHTML .= $this->getHTMLfromBlock($block);
+                    }
+                }
             }
             return ($excerpt === 0)
                 ? $blocksHTML
@@ -1022,6 +1028,27 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $page
      * @param string $fieldName
+     * @param bool $isRequired
+     * @return Page|null
+     * @throws KirbyRetrievalException
+     */
+    protected function getPageFieldAsFirstPage(Page $page, string $fieldName, bool $isRequired = false): Page|null
+    {
+        try {
+            $pageField = $this->getPageField($page, $fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $pageField->toPages()->first();
+        } catch (KirbyRetrievalException) {
+            if ($isRequired) {
+                throw new KirbyRetrievalException('The field ' . $fieldName . ' does not exist');
+            }
+            return null;
+        }
+    }
+
+    /**
+     * @param Page $page
+     * @param string $fieldName
      * @return string
      * @throws KirbyRetrievalException
      * @noinspection PhpUnused
@@ -1062,6 +1089,36 @@ abstract class KirbyBaseHelper
         $page = $pages->first();
         if ($page) {
             return $page->url();
+        }
+        return '';
+    }
+
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @return string
+     * @throws KirbyRetrievalException
+     */
+    protected function getPageFieldAsPageId(Page $page, string $fieldName): string {
+        $pages = $this->getPageFieldAsPages($page, $fieldName);
+        $page = $pages->first();
+        if ($page) {
+            return $page->id();
+        }
+        return '';
+    }
+
+    /**
+     * @param Page $page
+     * @param string $fieldName
+     * @return string
+     * @throws KirbyRetrievalException
+     */
+    protected function getPageFieldAsPageSlug(Page $page, string $fieldName): string {
+        $pages = $this->getPageFieldAsPages($page, $fieldName);
+        $page = $pages->first();
+        if ($page) {
+            return $page->slug();
         }
         return '';
     }
@@ -2127,6 +2184,7 @@ abstract class KirbyBaseHelper
 
     #region USER_FIELDS
 
+
     /**
      * @param \Kirby\Cms\User $user
      * @param string $fieldName
@@ -2135,6 +2193,14 @@ abstract class KirbyBaseHelper
      */
     protected function getUserFieldAsString(\Kirby\Cms\User $user, string $fieldName, string $default =''): string {
         return $user->{$fieldName}()->value() ?? $default;
+    }
+
+    /**
+     * @param string $fieldName
+     * @return string
+     */
+    public function getCurrentUserFieldAsString(string $fieldName): string {
+        return $this->getUserFieldAsString(kirby()->user(),$fieldName);
     }
 
     protected function getCurrentUserFieldAsUser(string $fieldName): User {
@@ -2152,6 +2218,59 @@ abstract class KirbyBaseHelper
             return $this->getUser($kirbyUser);
         }
         return (new User('not found'))->recordError('User not found');
+    }
+
+    /**
+     * @param \Kirby\Cms\User $user
+     * @param string $fieldName
+     * @param string $default
+     * @return string
+     */
+    protected function getUserFieldAsSlug(\Kirby\Cms\User $user, string $fieldName, string $default =''): string {
+        return $user->{$fieldName}()->toPage()->slug() ?? $default;
+    }
+
+    /**
+     * @param string $fieldName
+     * @param string $default
+     * @return string
+     */
+    protected function getCurrentUserFieldAsSlug(string $fieldName, string $default =''): string {
+        return $this->getUserFieldAsSlug(kirby()->user(), $fieldName, $default);
+    }
+
+    /**
+     * @param User $user
+     * @param string $fieldName
+     * @param bool $simpleLinks
+     * @param bool $required
+     * @return WebPageLinks
+     * @throws KirbyRetrievalException
+     */
+    protected function getUserFieldAsWebPageLinks(\Kirby\Cms\User $user, string $fieldName, bool $simpleLinks = true, bool $required = false): WebPageLinks
+    {
+        try {
+            /** @noinspection PhpUndefinedMethodInspection */
+            $pages = $user->{$fieldName}()->toPages();
+            return $this->getWebPageLinks($pages, $simpleLinks);
+        } catch (KirbyRetrievalException $e) {
+            if ($required) {
+                throw $e;
+            }
+            return new WebPageLinks();
+        }
+    }
+
+    /**
+     * @param string $fieldName
+     * @param bool $simpleLinks
+     * @param bool $required
+     * @return WebPageLinks
+     * @throws KirbyRetrievalException
+     */
+    protected function getCurrentUserFieldAsWebPageLinks(string $fieldName, bool $simpleLinks = true, bool $required = false): WebPageLinks
+    {
+        return $this->getUserFieldAsWebPageLinks(kirby()->user(), $fieldName, $simpleLinks, $required);
     }
 
 #endregion
@@ -2209,15 +2328,6 @@ abstract class KirbyBaseHelper
             ->setUserName($kirbyUser->username())
             ->setRole($kirbyUser->role()->name());
         return $user;
-    }
-
-    /**
-     * @param string $fieldName
-     * @return string
-     * @noinspection PhpUnused
-     */
-    public function getCurrentUserFieldAsString(string $fieldName): string {
-        return $this->kirby->user()->{$fieldName}()->toString() ?? '';
     }
 
     /**
@@ -2322,6 +2432,19 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * @param string $role
+     * @return bool
+     */
+    public function doesCurrentUserHaveRole(string $role) : bool
+    {
+        $user = $this->kirby->user();
+        if ($user && $user->role()->name() === $role) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @return bool
      * @noinspection PhpUnused
      */
@@ -2372,6 +2495,54 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * @param array $userData
+     * @return \Kirby\Cms\User
+     * @throws KirbyRetrievalException
+     */
+    public function createUser(array $userData): \Kirby\Cms\User {
+        try {
+            return $this->kirby->impersonate('kirby', function () use ($userData) {
+                return $this->kirby->users()->create($userData);
+            });
+        } catch (Throwable $e) {
+            throw new KirbyRetrievalException($e->getMessage());
+        }
+    }
+
+    /**
+     * @param \Kirby\Cms\User $user
+     * @param array $updateData
+     * @return \Kirby\Cms\User
+     * @throws KirbyRetrievalException
+     */
+    public function updateUser(\Kirby\Cms\User $user, array $updateData): \Kirby\Cms\User {
+        try {
+            return $this->kirby->impersonate('kirby', function () use ($user, $updateData) {
+                return $user->update($updateData);
+            });
+        } catch (Throwable $e) {
+            throw new KirbyRetrievalException($e->getMessage());
+        }
+    }
+
+    /**
+     * @param \Kirby\Cms\User $user
+     * @param string $role
+     * @return \Kirby\Cms\User
+     * @throws KirbyRetrievalException
+     */
+    public function changeUserRole(\Kirby\Cms\User $user, string $role): \Kirby\Cms\User {
+        try {
+            return $this->kirby->impersonate('kirby', function () use ($user, $role) {
+                return $user->changerole($role);
+            });
+        } catch (Throwable $e) {
+            throw new KirbyRetrievalException($e->getMessage());
+        }
+    }
+
+
+    /**
      * @return string
      */
     protected function getCSFRToken() : string {
@@ -2391,7 +2562,6 @@ abstract class KirbyBaseHelper
     protected function getMenuPages(): WebPageLinks
     {
         /** @var Collection|null $menuPagesCollection */
-        //return (new WebPageLinks())->recordError('No menu pages found');
         $menuPagesCollection = $this->kirby->collection('menuPages');
         return $this->getWebPageLinks($menuPagesCollection, true, true);
     }
@@ -3232,16 +3402,24 @@ abstract class KirbyBaseHelper
     /**
      * @param string $key
      * @param string $value
+     * @param int $days
      * @return void
      */
-    protected function setCookie(string $key, string $value): void
+    protected function setCookie(string $key, string $value, int $days = 90): void
     {
         //allow insecure cookies on localhost only
         $secure = !(str_starts_with($_SERVER['HTTP_HOST'],'localhost'));
+        $expiresInMinutes = 60 * 24 * $days;
+
         Cookie::set(
             $key,
             $value,
-            ['expires' => time() + 60 * 60 * 24 * 30, 'path' => '/', 'secure' => $secure, 'httpOnly' => true]
+            [
+                'lifetime' => $expiresInMinutes,
+                'path'     => '/',
+                'secure'   => $secure,
+                'httpOnly' => true
+            ]
         );
     }
 
@@ -3272,7 +3450,7 @@ abstract class KirbyBaseHelper
     {
         //TODO: proper handling of CSRF expiry
         if (csrf(get('csrf')) === true) {
-            $this->setCookie(self::COOKIE_CONSENT_NAME, 'yes');
+            $this->setCookie(self::COOKIE_CONSENT_NAME, 'yes', 365);
             $referringPage = $this->getRequestAsString('referringPage');
             if (!empty($referringPage)) {
                 go($referringPage);

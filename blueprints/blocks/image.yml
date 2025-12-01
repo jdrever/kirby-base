@@ -5,6 +5,7 @@ fields:
   fullWidth:
     type: toggle
     label: Full Width?
+    help: this means the image will appear across the full width of the page on larger screens
   location:
     label: field.blocks.image.location
     type: radio
@@ -25,6 +26,9 @@ fields:
       template: blocks/image
     when:
       location: kirby
+    help: |
+      If you would like to a photographer credit, or change the focal point of the image, click into the
+      image, make your changes and save, then go back in your browser to return to this page.
   bank:
     type: files
     label: Select an Image
@@ -37,11 +41,15 @@ fields:
     text: "{{ file.alt.or(file.filename) }}"
     when:
       location: bank
+    help: |
+      If you would like to a photographer credit, or change the focal point of the image, click into the
+      image, make your changes and save, then go back in your browser to return to this page.
   src:
     label: field.blocks.image.url
     type: url
     when:
       location: web
+
   alt:
     label: field.blocks.image.alt
     type: text
