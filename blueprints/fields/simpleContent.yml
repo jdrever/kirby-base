@@ -20,6 +20,8 @@ fieldsets:
       - gallery
 help: |
   Click the + icon above to add headings, text, lists, images and image galleries.
+  If you select a block, you can click the six dot icon to drag it up or down the page, or use the three dot icon
+  to insert another block before or after it.
   To paste content in from Word, click the + icon and then use ctrl+V (cmd+V on Mac)
 
 
