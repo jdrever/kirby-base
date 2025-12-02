@@ -4513,7 +4513,7 @@ abstract class KirbyBaseHelper
         $cacheName = option('cacheName');
         try {
             $cache = $this->kirby->cache($cacheName);
-        } catch (InvalidArgumentException) {
+        } catch (Throwable) {
             return 'Failed to get cache';
         }
         $cacheMapping = option('cacheMapping');
