@@ -2941,7 +2941,7 @@ abstract class KirbyBaseHelper
         /** @var Page $collectionPage */
         foreach ($collectionPages as $collectionPage) {
             $model = $this->getSpecificModel($collectionPage, $modelClass);
-            $modelList->addListItem($model);
+            $modelList->addItem($model);
         }
 
         return $modelList;
@@ -2975,7 +2975,7 @@ abstract class KirbyBaseHelper
         $pages = $this->getPageFieldAsPages($page, $fieldName);
         foreach ($pages as $page) {
             $model = $this->getSpecificModel($page, $modelClass);
-            $modelList->addListItem($model);
+            $modelList->addItem($model);
         }
         return $modelList;
     }
@@ -4513,7 +4513,7 @@ abstract class KirbyBaseHelper
         $cacheName = option('cacheName');
         try {
             $cache = $this->kirby->cache($cacheName);
-        } catch (InvalidArgumentException) {
+        } catch (Throwable) {
             return 'Failed to get cache';
         }
         $cacheMapping = option('cacheMapping');

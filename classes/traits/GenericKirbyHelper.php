@@ -1411,7 +1411,7 @@ trait GenericKirbyHelper
         foreach ($collectionPages as $collectionPage) {
             $model = $this->getSpecificModel($collectionPage, $modelClass);
             /** @noinspection PhpParamsInspection */
-            $modelList->addListItem($model);
+            $modelList->addItem($model);
         }
 
         if ($modelList->usePagination()) {
