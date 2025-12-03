@@ -2941,7 +2941,7 @@ abstract class KirbyBaseHelper
         /** @var Page $collectionPage */
         foreach ($collectionPages as $collectionPage) {
             $model = $this->getSpecificModel($collectionPage, $modelClass);
-            $modelList->addItem($model);
+            $modelList->addListItem($model);
         }
 
         return $modelList;
