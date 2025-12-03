@@ -21,7 +21,7 @@ Kirby::plugin(
             'page_link' =>  require __DIR__ . '/controllers/page_link.php',
         ],
         'sections' => [
-            'externalfiles' => require __DIR__ . '/sections/externalfiles.php'
+            'quicklinks' => require __DIR__ . '/sections/quicklinks.php',
         ],
     ]
 );
