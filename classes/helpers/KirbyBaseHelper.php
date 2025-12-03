@@ -33,6 +33,7 @@ use DateTimeZone;
 use Kirby\Cms\App;
 use Kirby\Cms\Block;
 use Kirby\Cms\Blocks;
+use Kirby\Cms\Users;
 use Kirby\Data\Data;
 use Kirby\Data\Yaml;
 use Kirby\Toolkit\Collection;
@@ -2184,6 +2185,10 @@ abstract class KirbyBaseHelper
 
     #region USER_FIELDS
 
+    protected function isUserFieldNotEmpty(\Kirby\Cms\User $user, string $fieldName): bool {
+        return $user->{$fieldName}()->isNotEmpty();
+    }
+
 
     /**
      * @param \Kirby\Cms\User $user
@@ -2218,6 +2223,21 @@ abstract class KirbyBaseHelper
             return $this->getUser($kirbyUser);
         }
         return (new User('not found'))->recordError('User not found');
+    }
+
+    /**
+     * @param \Kirby\Cms\User $user
+     * @param string $fieldName
+     * @return string
+     */
+    protected function getUserFieldAsUserNames(\Kirby\Cms\User $user, string $fieldName): string {
+        $userField= $user->{$fieldName}()->value();
+        $userNames = '';
+        $userNamesAsArray = explode("\n", $userField);
+        foreach ($userNamesAsArray as $userName) {
+            $userNames .= $this->getUserName($userName) . ', ';
+        }
+        return trim($userNames,', ');
     }
 
     /**
