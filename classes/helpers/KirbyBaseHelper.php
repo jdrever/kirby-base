@@ -2255,8 +2255,29 @@ abstract class KirbyBaseHelper
      * @param string $default
      * @return string
      */
-    protected function getCurrentUserFieldAsSlug(string $fieldName, string $default =''): string {
+    protected function getCurrentUserFieldAsSlug(string $fieldName, string $default =''): string
+    {
         return $this->getUserFieldAsSlug(kirby()->user(), $fieldName, $default);
+    }
+
+    /**
+     * @param \Kirby\Cms\User $user
+     * @param string $fieldName
+     * @return Pages|null
+     */
+    protected function getUserFieldAsPages(\Kirby\Cms\User $user, string $fieldName): Pages|null
+    {
+        return $user->{$fieldName}()->toPages();
+    }
+
+    /**
+     * @param string $fieldName
+     * @param string $default
+     * @return Pages|null
+     */
+    protected function getCurrentUserFieldAsPages(string $fieldName): Pages|null
+    {
+        return $this->getUserFieldAsPages(kirby()->user(), $fieldName);
     }
 
     /**
@@ -2318,6 +2339,10 @@ abstract class KirbyBaseHelper
         } else {
             return "User id is malformed";
         }
+    }
+
+    protected function getCurrentKirbyUser(): \Kirby\Cms\User {
+        return kirby()->user();
     }
 
     /**
