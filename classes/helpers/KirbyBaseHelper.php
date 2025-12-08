@@ -3020,7 +3020,7 @@ abstract class KirbyBaseHelper
         $pages = $this->getPageFieldAsPages($page, $fieldName);
         foreach ($pages as $page) {
             $model = $this->getSpecificModel($page, $modelClass);
-            $modelList->addItem($model);
+            $modelList->addListItem($model);
         }
         return $modelList;
     }
