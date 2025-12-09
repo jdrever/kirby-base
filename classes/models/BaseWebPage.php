@@ -523,7 +523,7 @@ class BaseWebPage extends BaseModel
      * @return bool
      */
     public function hasCurrentUser(): bool {
-        return isset($this->currentUser);
+        return isset($this->currentUser) && $this->currentUser->isLoggedIn();
     }
 
     /**
