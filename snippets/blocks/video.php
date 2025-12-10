@@ -6,6 +6,14 @@ declare(strict_types=1);
 
 use Kirby\Cms\Block;
 use Kirby\Toolkit\Html;
+use BSBI\WebBase\helpers\KirbyInternalHelper;
+
+$helper = new KirbyInternalHelper();
+
+if (!$helper->hasCookieConsent()) :
+    snippet('block-consent', ['purpose' => 'It will display an externally hosted video']);
+    return;
+endif;
 
 /**
  * @var Block $block

@@ -33,4 +33,5 @@ class KirbyInternalHelper extends KirbyBaseHelper
     {
         throw new KirbyRetrievalException('Not implemented');
     }
+
 }
