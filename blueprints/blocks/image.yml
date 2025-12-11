@@ -2,10 +2,6 @@ ame: field.blocks.image.name
 icon: image
 preview: image
 fields:
-  fullWidth:
-    type: toggle
-    label: Full Width?
-    help: this means the image will appear across the full width of the page on larger screens
   location:
     label: field.blocks.image.location
     type: radio
@@ -98,3 +94,7 @@ fields:
     label: Centre Image?
     type: toggle
     width: 1/2
+  fullWidth:
+    type: toggle
+    label: Full Width?
+    help: this means the image will appear across the full width of the page on larger screens
