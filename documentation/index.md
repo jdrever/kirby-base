@@ -100,3 +100,11 @@ You need to do this to update the plugin in your project
 ## Getting the latest version of KirbyBase in your project
 
 - Run composer update
+
+
+## Requirements
+
+The following need to be in place for any site using KirbyBase
+
+- Needs favicons in /assets/favicons - using https://realfavicongenerator.net/
+- Needs bootstrap icons in /assets/images/icons - using https://icons.getbootstrap.com/
