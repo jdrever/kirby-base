@@ -30,7 +30,8 @@ class WebPageLinks extends BaseList
     /**
      * @return WebPageLink[]
      */
-    public function getListItems(): array {
+    public function getListItems(): array
+    {
         return $this->list;
     }
 
@@ -49,11 +50,22 @@ class WebPageLinks extends BaseList
         });
 
         if (count($matchingLink) === 0) {
-            $linkNotFound = new WebPageLink('','', 'NOT_FOUND', 'NOT_FOUND');
+            $linkNotFound = new WebPageLink('', '', 'NOT_FOUND', 'NOT_FOUND');
             $linkNotFound->setStatus(false);
             return $linkNotFound;
         }
         return reset($matchingLink);
+    }
+
+    public function hasLinksIncludedInMenus(): bool
+    {
+        $linksIncludedInMenus = array_filter($this->list, function ($item) {
+            if ($item instanceof WebPageLink) {
+                return $item->doIncludeInMenus();
+            }
+            return false;
+        });
+        return (count($linksIncludedInMenus) > 0);
     }
 
     /**

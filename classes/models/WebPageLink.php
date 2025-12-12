@@ -142,6 +142,11 @@ class WebPageLink extends BaseModel
         return $this;
     }
 
+    public function doIncludeInMenus(): bool
+    {
+        return !$this->excludeFromMenus;
+    }
+
     /**
      * @return bool
      */
