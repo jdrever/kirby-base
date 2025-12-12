@@ -4599,8 +4599,12 @@ abstract class KirbyBaseHelper
         $cacheMapping = option('cacheMapping');
         if ($cacheMapping) {
             if (array_key_exists($page->template()->name(), $cacheMapping)) {
-                $cacheKey = $cacheMapping[$page->template()->name()];
-                $cache->remove($cacheKey);
+                $cacheKeys = $cacheMapping[$page->template()->name()];
+                $cacheKeysAsArray = Str::split($cacheKeys);
+                foreach ($cacheKeysAsArray as $cacheKey) {
+                    $cache->remove($cacheKey);
+                }
+
             }
         }
         if ($searchCacheKeys = option('searchCacheKeys')) {
