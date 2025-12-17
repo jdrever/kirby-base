@@ -4200,7 +4200,7 @@ abstract class KirbyBaseHelper
         return $pages->filter(function ($page) use ($fieldName, $value) {
             $field = $page->{$fieldName}();
             if ($field->isNotEmpty()) {
-                $values = $field->split(',');
+                $values = Str::split($field->value(), ', ');
                 return in_array($value, $values, true);
             }
             return false;
