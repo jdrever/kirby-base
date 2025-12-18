@@ -51,6 +51,10 @@ columns:
             help: |
               Just give the final part of the url, e.g. the full url will be https://bsbi.org/files/ + whatever you have entered above
               NOTE -  will only work with files that are in the file archive
+          permanentUrlLink:
+              type: info
+              label: Permanent URL Link (for copying or testing)
+              text: "{{ site.url }}/files/{{ file.permanenturl }}"
 
 
 
