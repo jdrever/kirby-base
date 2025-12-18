@@ -57,6 +57,7 @@ return [
     'files/default' => __DIR__ . '/blueprints/files/default.yml',
     'files/image' => __DIR__ . '/blueprints/files/image.yml',
     'files/image_bank_item' => __DIR__ . '/blueprints/files/image_bank_item.yml',
+    'files/file_archive_item' => __DIR__ . '/blueprints/files/file_archive_item.yml',
 
     //section blueprints
     'sections/corePageFields' => __DIR__ . '/blueprints/sections/corePageFields.yml',

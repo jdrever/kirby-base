@@ -1,4 +1,4 @@
-title: Default File
+title: File Archive Item
 
 columns:
   - width: 1/2
@@ -45,6 +45,12 @@ columns:
           link:
             label: Link
             type: url
+          permanentUrl:
+            label: Permanent URL
+            type: slug
+            help: |
+              Just give the final part of the url, e.g. the full url will be https://bsbi.org/files/ + whatever you have entered above
+              NOTE -  will only work with files that are in the file archive
 
 
 

@@ -2,6 +2,7 @@
 
 use Kirby\Cms\App as Kirby;
 use Kirby\Toolkit\Tpl;
+use BSBI\WebBase\filemodels\FileArchiveItem;
 
 Kirby::plugin(
     'open-foundations/kirby-base',
@@ -22,6 +23,9 @@ Kirby::plugin(
         ],
         'sections' => [
             'quicklinks' => require __DIR__ . '/sections/quicklinks.php',
+        ],
+        'fileModels' => [
+            'file_archive_item' => FileArchiveItem::class
         ],
     ]
 );

@@ -1169,13 +1169,13 @@ abstract class KirbyBaseHelper
     }
 
     /**
-     * @param $pageFile
+     * @param File $pageFile
      * @param string $title
      * @return Document
      */
-    private function getDocumentFromFile($pageFile, string $title = 'Download'): Document
+    private function getDocumentFromFile(File $pageFile, string $title = 'Download'): Document
     {
-        $url = $pageFile->url();
+        $url = $this->getFileURL($pageFile);
         /** @noinspection PhpUndefinedMethodInspection */
         $size = $pageFile->niceSize();
         $document = new Document($title, $url);
@@ -2616,6 +2616,26 @@ abstract class KirbyBaseHelper
 
     #endregion
 
+    #region FILES
+
+    protected function getFileURL(File $file): string
+    {
+        return $this->isFileFieldNotEmtpy($file, 'permanentUrl')
+            ? $this->getFileFieldAsString($file, 'permanentUrl')
+            : $file->url();
+    }
+
+    protected function isFileFieldNotEmtpy(File $file, string $fieldName) : bool
+    {
+        return $file->{$fieldName}()->isNotEmpty();
+    }
+
+    protected function getFileFieldAsString(File $file, string $fieldName): string
+    {
+        return $file->{$fieldName}()->value();
+    }
+    #endregion
+
 
     #region MENU PAGES/NAVIGATION
 
@@ -2845,7 +2865,7 @@ abstract class KirbyBaseHelper
         }
         if ($templateName === 'file_link') {
             $file = $this->getPageFieldAsFile($page, 'file');
-            $pageUrl = $file ? $file->url() : '';
+            $pageUrl = $this->getFileUrl($file);
         }
 
         $linkDescription = empty($linkDescription)
@@ -4627,7 +4647,8 @@ abstract class KirbyBaseHelper
     public function redirectToFile(Page $page, string $fieldName = 'file'):void {
         $file = $this->getPageFieldAsDocument($page, $fieldName);
         if ($file->hasUrl()) {
-            go($file->getUrl());
+            $fileUrl = $this->getFileURL($file);
+            go($fileUrl);
         } else {
             go('error');
         }
