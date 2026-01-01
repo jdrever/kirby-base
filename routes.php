@@ -65,7 +65,26 @@ return [
                 'exception' => $exceptionAsString,
             ]);
             exit();
-        }
-    ]
+        },
+    ],
+    [
+        'pattern' => 'files/(:any)',
+        'action'  => function ($slug) {
+            // Find the archive page first to narrow the search
+            $archivePage = page('file-archive'); // Adjust to your actual page URI
 
+            if ($archivePage) {
+                // Search files for a match in the 'alt_slug' field
+                $file = $archivePage->files()->findBy('permanentUrl', $slug);
+
+                if ($file) {
+                    // Redirect to the actual physical file URL
+                    return go($file->mediaUrl());
+                }
+            }
+
+            // If no file matches, show 404
+            return site()->errorPage();
+        }
+    ],
 ];

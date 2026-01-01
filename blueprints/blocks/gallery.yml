@@ -20,6 +20,8 @@ fields:
     help: |
       If you would like to a photographer credit, or change the focal point of the image, click into the
       image, make your changes and save, then go back in your browser to return to this page.
+      You can change the order of the images in your gallery by putting your mouse over the image and using the
+      six dot icon to drag the image.
   caption:
     label: field.blocks.image.caption
     type: writer

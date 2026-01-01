@@ -17,12 +17,12 @@ tabs:
               continue to work.</b>
       - width: 3/4
         sections:
-          allImages:
+          allFiles:
             type: files
             uploads:
               parent: site.find('files')
             headline: All Files
-            template: file
+            template: file_archive_item
             layout: cards
             text: "{{ file.filename }}"
             sortBy: filename asc
