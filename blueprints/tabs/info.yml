@@ -33,7 +33,7 @@ sections:
       lastTagSync:
         label: Last Tag Sync
         type: date
-        time: true;
+        time: true
 
 
 
