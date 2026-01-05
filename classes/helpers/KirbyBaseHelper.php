@@ -4294,6 +4294,27 @@ abstract class KirbyBaseHelper
         return $tags;
     }
 
+    /**
+     * @param Page $kirbyPage
+     * @param string $fieldName
+     * @param string $modelListClass
+     * @return BaseList
+     * @throws KirbyRetrievalException
+     */
+    protected function getCustomTagList(Page   $kirbyPage,
+                                        string $fieldName,
+                                        string $modelListClass = BaseList::class): BaseList
+    {
+        $modelList = new $modelListClass();
+        $modelClassName = $modelList->getItemType();
+        $kirbyPages = $this->getPageFieldAsPages($kirbyPage,$fieldName);
+        foreach ($kirbyPages as $kirbyPage) {
+            $model = $this->getSpecificModel($kirbyPage,$modelClassName);
+            $modelList->addListItem($model);
+        }
+        return $modelList;
+    }
+
 
     /**
      * @throws KirbyRetrievalException
@@ -4913,7 +4934,8 @@ abstract class KirbyBaseHelper
             if (isset($section) && $section->fields()) {
 
                 foreach ($section->fields() as $fieldName => $fieldDefinition) {
-                    if ($fieldDefinition['type'] !== 'info') {
+                    $customTag = $fieldDefinition['customTag'] ?? false;
+                    if ($fieldDefinition['type'] !== 'info' && !$customTag) {
                         $fieldNamesInSection[] = ['name' => $fieldName, 'label' => $fieldDefinition['label']];
                     }
                 }
