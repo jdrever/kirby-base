@@ -4341,9 +4341,11 @@ abstract class KirbyBaseHelper
         $modelList = new $modelListClass();
         $modelClassName = $modelList->getItemType();
         $kirbyPages = $this->getPageFieldAsPages($kirbyPage,$fieldName);
-        foreach ($kirbyPages as $kirbyPage) {
-            $model = $this->getSpecificModel($kirbyPage,$modelClassName);
-            $modelList->addListItem($model);
+        if ($kirbyPages) {
+            foreach ($kirbyPages as $kirbyPage) {
+                $model = $this->getSpecificModel($kirbyPage, $modelClassName);
+                $modelList->addListItem($model);
+            }
         }
         return $modelList;
     }
