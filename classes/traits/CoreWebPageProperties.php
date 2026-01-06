@@ -26,9 +26,7 @@ trait CoreWebPageProperties {
      */
     protected WebPageLinks $subPages;
 
-    protected bool $isCookieConsentGiven = false;
 
-    private string $cookieConsentCSRFToken = '';
 
 
     /**
@@ -126,42 +124,6 @@ trait CoreWebPageProperties {
     public function addSubPage(WebPageLink $subPage): static
     {
         $this->subPages->addListItem($subPage);
-        return $this;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isCookieConsentGiven(): bool
-    {
-        return $this->isCookieConsentGiven;
-    }
-
-    /**
-     * @param bool $isCookieConsentGiven
-     * @return static
-     */
-    public function setIsCookieConsentGiven(bool $isCookieConsentGiven): static
-    {
-        $this->isCookieConsentGiven = $isCookieConsentGiven;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCookieConsentCSRFToken(): string
-    {
-        return $this->cookieConsentCSRFToken;
-    }
-
-    /**
-     * @param string $cookieConsentCSRFToken
-     * @return static
-     */
-    public function setCookieConsentCSRFToken(string $cookieConsentCSRFToken): static
-    {
-        $this->cookieConsentCSRFToken = $cookieConsentCSRFToken;
         return $this;
     }
 

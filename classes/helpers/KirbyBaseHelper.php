@@ -17,6 +17,8 @@ use BSBI\WebBase\models\ImageType;
 use BSBI\WebBase\models\Language;
 use BSBI\WebBase\models\Languages;
 use BSBI\WebBase\models\LoginDetails;
+use BSBI\WebBase\models\OnThisPageLink;
+use BSBI\WebBase\models\OnThisPageLinks;
 use BSBI\WebBase\models\Pagination;
 use BSBI\WebBase\models\PrevNextPageNavigation;
 use BSBI\WebBase\models\SimpleFilter;
@@ -194,6 +196,7 @@ abstract class KirbyBaseHelper
 
             $webPage->setMenuPages($this->getMenuPages());
 
+
             if ($webPage->doSimpleGetSubPages()) {
                 $webPage->setSubPages($this->getSubPages($page, $webPage->isUsingSimpleLinksForSubPages()));
             }
@@ -204,6 +207,8 @@ abstract class KirbyBaseHelper
             if ($this->isPageFieldNotEmpty($page, 'lowerContent')) {
                 $webPage->setLowerContentBlocks($this->getContentBlocks($page, 'lowerContent'));
             }
+
+            $webPage->setOnThisPageLinks($this->getOnThisPageLinks($webPage));
 
             if ($this->isPageFieldNotEmpty($page, 'related')) {
                 if ($this->getPageFieldType($page, 'related') === 'structure') {
@@ -2770,6 +2775,34 @@ abstract class KirbyBaseHelper
             $navigation->setNextPageTitle($nextPage->title()->value());
         }
         return $navigation;
+    }
+
+    protected function getOnThisPageLinks(BaseWebPage $webPage): OnThisPageLinks
+    {
+        $onThisPageLinks = new OnThisPageLinks();
+        $mainContentBlocks = $webPage->getMainContent();
+        $onThisPageLinks = $this->getOnThisPageLinksFromContentBlocks($onThisPageLinks, $mainContentBlocks, 'main');
+        if ($webPage->hasLowerContentBlocks()) {
+            $onThisPageLinks = $this->getOnThisPageLinksFromContentBlocks($onThisPageLinks, $webPage->getLowerContentBlocks(), 'lower');
+        }
+        return $onThisPageLinks;
+    }
+
+    private function getOnThisPageLinksFromContentBlocks(OnThisPageLinks $onThisPageLinks, WebPageBlocks $contentBlocks, string $linkArea): OnThisPageLinks
+    {
+
+        foreach ($contentBlocks->getListItems() as $contentBlock) {
+
+            if ($contentBlock->getBlockType() === 'heading'
+                && (in_array($contentBlock->getBlockLevel(), ['h2', 'h3']))) {
+                $linkTitle = strip_tags($contentBlock->getBlockContent());
+                $anchorLink = $contentBlock->getAnchor();
+                $linkLevel = $contentBlock->getBlockLevel();
+                $onThisPageLink = new OnThisPageLink($linkTitle, $anchorLink, $linkLevel, $linkArea);
+                $onThisPageLinks->addListItem($onThisPageLink);
+            }
+        }
+        return $onThisPageLinks;
     }
 
 

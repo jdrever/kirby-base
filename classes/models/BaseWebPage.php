@@ -70,6 +70,11 @@ class BaseWebPage extends BaseModel
     protected WebPageLinks $breadcrumb;
 
     /**
+     * @var OnThisPageLinks
+     */
+    protected OnThisPageLinks $onThisPageLinks;
+
+    /**
      * @var CoreLinks
      */
     protected CoreLinks $coreLinks;
@@ -119,6 +124,10 @@ class BaseWebPage extends BaseModel
     private string $displayPageTitle;
 
     private string $displayPageTitleClass = '';
+
+    protected bool $isCookieConsentGiven = false;
+
+    private string $cookieConsentCSRFToken = '';
 
 
     /**
@@ -337,6 +346,42 @@ class BaseWebPage extends BaseModel
         $this->menuPages = $menuPages;
         return $this;
     }
+
+    public function hasOnThisPageLinks(): bool {
+        return isset($this->onThisPageLinks) && $this->onThisPageLinks->count()>0;
+    }
+
+    /**
+     * @return OnThisPageLinks
+     */
+    public function getOnThisPageLinks(): OnThisPageLinks
+    {
+        return $this->onThisPageLinks;
+    }
+
+    /**
+     * @param OnThisPageLinks $onThisPageLinks
+     * @return BaseWebPage
+     */
+    public function setOnThisPageLinks(OnThisPageLinks $onThisPageLinks): BaseWebPage
+    {
+        $this->onThisPageLinks = $onThisPageLinks;
+        return $this;
+    }
+
+    public function addOnPageLink(OnThisPageLink $onPageLink): BaseWebPage
+    {
+        $this->onThisPageLinks->addListItem($onPageLink);
+        return $this;
+    }
+
+    public function addOnPageLinkAfterMain(OnThisPageLink $onPageLink): BaseWebPage
+    {
+        $this->onThisPageLinks->addListItemAfterMain($onPageLink);
+        return $this;
+    }
+
+
 
     /**
      * @return CoreLinks
@@ -709,6 +754,42 @@ class BaseWebPage extends BaseModel
     public function setDisplayPageTitleClass(string $displayPageTitleClass): BaseWebPage
     {
         $this->displayPageTitleClass = $displayPageTitleClass;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCookieConsentGiven(): bool
+    {
+        return $this->isCookieConsentGiven;
+    }
+
+    /**
+     * @param bool $isCookieConsentGiven
+     * @return static
+     */
+    public function setIsCookieConsentGiven(bool $isCookieConsentGiven): static
+    {
+        $this->isCookieConsentGiven = $isCookieConsentGiven;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCookieConsentCSRFToken(): string
+    {
+        return $this->cookieConsentCSRFToken;
+    }
+
+    /**
+     * @param string $cookieConsentCSRFToken
+     * @return static
+     */
+    public function setCookieConsentCSRFToken(string $cookieConsentCSRFToken): static
+    {
+        $this->cookieConsentCSRFToken = $cookieConsentCSRFToken;
         return $this;
     }
 
