@@ -1133,6 +1133,19 @@ abstract class KirbyBaseHelper
     /**
      * @param Page $page
      * @param string $fieldName
+     * @return User
+     * @throws KirbyRetrievalException
+     */
+    protected function getPageFieldAsUser(Page $page, string $fieldName): User
+    {
+        $field = $this->getPageField($page, $fieldName);
+        /** @noinspection PhpUndefinedMethodInspection */
+        return $this->getUser($field->toUser());
+    }
+
+    /**
+     * @param Page $page
+     * @param string $fieldName
      * @param string $title
      * @return Document
      */
