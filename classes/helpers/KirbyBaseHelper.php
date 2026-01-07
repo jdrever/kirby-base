@@ -2245,7 +2245,7 @@ abstract class KirbyBaseHelper
         if ($kirbyUser) {
             return $this->getUser($kirbyUser);
         }
-        return (new User('not found'))->recordError('User not found');
+        return (new User('not found'))->recordError('User not found')->setUserName('User not found');
     }
 
     /**
