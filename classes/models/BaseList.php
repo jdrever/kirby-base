@@ -137,6 +137,17 @@ abstract class BaseList
         }
     }
 
+
+    /**
+     * the default sort for the list (by title, intended to be overriden
+     * for specific lists)
+     * @return $this
+     */
+    public function sort(): static
+    {
+        return $this->sortByTitle();
+    }
+
     /**
      * Sorts the list by the title of the items.
      *
@@ -146,10 +157,24 @@ abstract class BaseList
      */
     public function sortByTitle(bool $descending = false): static
     {
-        usort($this->list, function (BaseModel $a, BaseModel $b) use ($descending) {
-            $comparison = strcmp($a->getTitle(), $b->getTitle());
+        return $this->sortBy(fn($item) => $item->getTitle(), true);
+    }
+
+    /**
+     * @param callable(T): mixed $callback
+     * @param bool $descending
+     * @return $this
+     */
+    protected function sortBy(callable $callback, bool $descending = false): static
+    {
+        usort($this->list, function (BaseModel $a, BaseModel $b) use ($callback, $descending) {
+            $valA = $callback($a);
+            $valB = $callback($b);
+
+            $comparison = $valA <=> $valB;
             return $descending ? -$comparison : $comparison;
         });
+
         return $this;
     }
 
