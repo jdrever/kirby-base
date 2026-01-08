@@ -21,7 +21,6 @@ use BSBI\WebBase\models\OnThisPageLink;
 use BSBI\WebBase\models\OnThisPageLinks;
 use BSBI\WebBase\models\Pagination;
 use BSBI\WebBase\models\PrevNextPageNavigation;
-use BSBI\WebBase\models\SimpleFilter;
 use BSBI\WebBase\models\WebPageBlock;
 use BSBI\WebBase\models\WebPageBlocks;
 use BSBI\WebBase\models\WebPageLink;
@@ -35,7 +34,6 @@ use DateTimeZone;
 use Kirby\Cms\App;
 use Kirby\Cms\Block;
 use Kirby\Cms\Blocks;
-use Kirby\Cms\Users;
 use Kirby\Data\Data;
 use Kirby\Data\Yaml;
 use Kirby\Toolkit\Collection;
@@ -190,17 +188,26 @@ abstract class KirbyBaseHelper
                 $password = $this->getPageFieldAsString($page, 'password');
                 if (!empty($password)) {
                     $passwordFromUser = $this->getRequestAsString('password');
-                    if ($password !== $passwordFromUser ) {
-                        $webPage->setStatus(false);
-                        $webPage->setIsCriticalError(true);
-                        $webPage->addFriendlyMessage('This page is protected by a password.');
-                        $webPage->setIsPasswordProtected(true);
-                        if (!empty($passwordFromUser)) {
+                    if (!empty($passwordFromUser)) {
+                        if (!csrf(get('passwordCsrf')) === true) {
+                            $webPage->setStatus(false);
+                            $webPage->setIsCriticalError(true);
+                            $webPage->addFriendlyMessage('Your security token has expired - please login again.');
+                            $webPage->setIsPasswordProtected(true);
+                        }
+                    }
+                    if (empty($passwordFromUser)) {
+                        $webPage = $this->passwordProtectPage($webPage);
+                    } else {
+                        if ($password !== $passwordFromUser) {
+                            $webPage = $this->passwordProtectPage($webPage);
                             $webPage->addFriendlyMessage('The password you entered is not correct.');
                         }
                     }
                 }
             }
+
+
 
             $webPage->setDescription(
                 $this->isPageFieldNotEmpty($page, 'description')
@@ -422,6 +429,16 @@ abstract class KirbyBaseHelper
             }
         }
         return '';
+    }
+
+    private function passwordProtectPage(BaseWebPage $webPage): BaseWebPage
+    {
+        $webPage->setStatus(false);
+        $webPage->setIsCriticalError(true);
+        $webPage->addFriendlyMessage('This page is protected by a password.');
+        $webPage->setIsPasswordProtected(true);
+        $webPage->setPasswordCSRFToken($this->getCSFRToken());
+        return $webPage;
     }
 
     #endregion
@@ -2647,6 +2664,7 @@ abstract class KirbyBaseHelper
     {
         return csrf();
     }
+
 
     #endregion
 

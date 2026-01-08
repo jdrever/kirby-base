@@ -16,6 +16,7 @@ endif;
 </style>
 
 <form method="post" class="login-form">
+    <input type="hidden" name="passwordCsrf" value="<?= $currentPage->getPasswordCSRFToken() ?>">
     <fieldset class="border border-success rounded p-3">
         <ol class="list-unstyled">
             <li class="mb-3">

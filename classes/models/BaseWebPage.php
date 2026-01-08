@@ -131,6 +131,8 @@ class BaseWebPage extends BaseModel
 
     private bool $isPasswordProtected = false;
 
+    private string $passwordCSRFToken = '';
+
 
     /**
      * @param string $title
@@ -809,8 +811,23 @@ class BaseWebPage extends BaseModel
         return ($this->isPasswordProtected);
     }
 
+    /**
+     * @return string
+     */
+    public function getPasswordCSRFToken(): string
+    {
+        return $this->passwordCSRFToken;
+    }
 
-
+    /**
+     * @param string $passwordCSRFToken
+     * @return BaseWebPage
+     */
+    public function setPasswordCSRFToken(string $passwordCSRFToken): BaseWebPage
+    {
+        $this->passwordCSRFToken = $passwordCSRFToken;
+        return $this;
+    }
 
 
 }
