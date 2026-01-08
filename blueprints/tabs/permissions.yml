@@ -6,9 +6,11 @@ fields:
     type: multiselect
     options:
       type: query
-      # The `not()` method is the most concise way to exclude specific items.
-      # We chain `not('admin')` and `not('editor')` to exclude both roles.
       query: kirby.roles.not('admin').not('editor')
       text: "{{ item.title }}"
       value: "{{ item.name }}"
     help: 'Note: Admins and Editors are able to see all pages'
+  password:
+    label: Password to protect this page
+    type: text
+

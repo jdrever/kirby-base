@@ -87,6 +87,18 @@ sitemapExclude
 There is a route set up for robots.txt excluding the kirby folders and search/login folder, plus AI bots.  To add 
 additional elements to the robots.txt, create a snippet called robots-txt-additional
 
+## Login and password protection
+
+There is a tab blueprint called permissions.yml which can be added to any page.
+
+The requiredRoles field allows only users with specified roles to be able to access the page.
+The password allows the setting of a simple password for that page only.
+### Login page
+The login functionality requires a page called login to be in the site root.  It should use the base/login snippet to 
+display the login form.
+
+
+
 # Updates
 
 ## Changing the KirbyBase version number

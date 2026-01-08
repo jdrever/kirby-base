@@ -186,6 +186,22 @@ abstract class KirbyBaseHelper
                 }
             }
 
+            if (!$this->isCurrentUserAdminOrEditor()) {
+                $password = $this->getPageFieldAsString($page, 'password');
+                if (!empty($password)) {
+                    $passwordFromUser = $this->getRequestAsString('password');
+                    if ($password !== $passwordFromUser ) {
+                        $webPage->setStatus(false);
+                        $webPage->setIsCriticalError(true);
+                        $webPage->addFriendlyMessage('This page is protected by a password.');
+                        $webPage->setIsPasswordProtected(true);
+                        if (!empty($passwordFromUser)) {
+                            $webPage->addFriendlyMessage('The password you entered is not correct.');
+                        }
+                    }
+                }
+            }
+
             $webPage->setDescription(
                 $this->isPageFieldNotEmpty($page, 'description')
                     ? $this->getPageFieldAsString($page, 'description')
@@ -4735,6 +4751,7 @@ abstract class KirbyBaseHelper
 
 
     /**
+     * looks for a page with the title 'login' in the site root
      * @param string $redirectPage
      * @return void
      */
@@ -4748,6 +4765,7 @@ abstract class KirbyBaseHelper
         }
         go($url);
     }
+
 
     /**
      * @return void

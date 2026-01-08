@@ -28,18 +28,21 @@ if (!$currentPage->getStatus()) : ?>
     <div class="container mt-2">
         <a href="/" class="btn btn-outline-primary">Return to home page</a>
     </div>
-<?php endif ?>
-
-    <?php if (!$currentPage->getStatus()) :
-        if ($currentPage->getCurrentUserRole()==='admin') : ?>
+    <?php if ($currentPage->getCurrentUserRole() === 'admin') : ?>
     <div class="p-2">
         <h3>Error details</h3>
             <?php foreach ($currentPage->getErrorMessages() as $message) : ?>
         <p><?=$message?></p>
             <?php endforeach ?>
     </div>
-        <?php endif;
+    <?php else :
+        if ($currentPage->isPasswordProtected()) :
+            snippet('base/password');
+        endif;
+    endif;
     echo('</body></html>');
     die();
     endif;?>
 <?php endif ?>
+
+

@@ -129,6 +129,8 @@ class BaseWebPage extends BaseModel
 
     private string $cookieConsentCSRFToken = '';
 
+    private bool $isPasswordProtected = false;
+
 
     /**
      * @param string $title
@@ -792,6 +794,23 @@ class BaseWebPage extends BaseModel
         $this->cookieConsentCSRFToken = $cookieConsentCSRFToken;
         return $this;
     }
+
+    /**
+     * @param bool $isPasswordProtected
+     * @return $this
+     */
+    public function setIsPasswordProtected(bool $isPasswordProtected): static
+    {
+        $this->isPasswordProtected = $isPasswordProtected;
+        return $this;
+    }
+
+    public function isPasswordProtected(): bool {
+        return ($this->isPasswordProtected);
+    }
+
+
+
 
 
 }
