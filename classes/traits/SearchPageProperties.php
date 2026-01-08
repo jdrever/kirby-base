@@ -11,6 +11,8 @@ trait SearchPageProperties
 {
     private WebPageLinks $searchResults;
 
+    private string $specialSearchType = '';
+
     /**
      * @return bool
      */
@@ -34,6 +36,28 @@ trait SearchPageProperties
     public function setSearchResults(WebPageLinks $searchResults): static
     {
         $this->searchResults = $searchResults;
+        return $this;
+    }
+
+    public function hasSpecialSearchType(): bool {
+        return !empty($this->specialSearchType);
+    }
+
+    /**
+     * @return string
+     */
+    public function getSpecialSearchType(): string
+    {
+        return $this->specialSearchType;
+    }
+
+    /**
+     * @param string $specialSearchType
+     * @return $this
+     */
+    public function setSpecialSearchType(string $specialSearchType): static
+    {
+        $this->specialSearchType = $specialSearchType;
         return $this;
     }
 }

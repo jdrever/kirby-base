@@ -58,5 +58,8 @@ snippet('search/form');
 else :
     if (!empty($query)) :?>
     <p>No results found.</p>
-    <?php endif;
+        <?php if ($currentPage->hasSpecialSearchType()) :
+            snippet('search/no-results-'.$currentPage->getSpecialSearchType());
+        endif;
+    endif;
 endif ?>
