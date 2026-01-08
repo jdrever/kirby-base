@@ -13,4 +13,5 @@ fields:
   password:
     label: Password to protect this page
     type: text
+    help: 'Note: Admin and Editors are able to see this page without a password.'
 
