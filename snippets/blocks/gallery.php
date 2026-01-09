@@ -98,7 +98,7 @@ $figCaptionClass="figure-caption";
     if ($hiddenImages && $hiddenImages->count() > 0) :
         ?>
         <details class="as-accordion mt-2 p-0">
-            <summary class="mb-2">
+            <summary class="btn btn-outline-primary mb-2">
                 See all images
             </summary>
             <div class="row row-cols-2 pt-6">
