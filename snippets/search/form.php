@@ -20,7 +20,7 @@ endif;
 $query = $currentPage->getQuery();
 ?>
 
-<form method="get" role="search">
+<form method="get" role="search" <?php if (isset($searchUrl)) : ?> action="<?=$searchUrl?>" <?php endif; ?>
     <p>Search for:
         <input type="search" aria-label="Search" name="q" class="form-control-sm ms-2 me-2" value="<?=$query ?>" required>
         <button class="btn btn-sm btn-success me-1" type="submit">Search</button></p>
