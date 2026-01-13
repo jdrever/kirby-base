@@ -2656,6 +2656,17 @@ abstract class KirbyBaseHelper
         }
     }
 
+    public function changeUserEmail(\Kirby\Cms\User $user, string $email): \Kirby\Cms\User
+    {
+        try {
+            return $this->kirby->impersonate('kirby', function () use ($user, $email) {
+                return $user->changeEmail($email);
+            });
+        } catch (Throwable $e) {
+            throw new KirbyRetrievalException($e->getMessage());
+        }
+    }
+
 
     /**
      * @return string
