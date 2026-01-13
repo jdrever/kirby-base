@@ -58,6 +58,13 @@ use Throwable;
  */
 abstract class KirbyBaseHelper
 {
+    private const STOP_WORDS = [
+        'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+        'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been',
+        'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
+        'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'need',
+        'this', 'that', 'these', 'those', 'it', 'its'
+    ];
 
     #region CONSTRUCTOR
     /**
@@ -4187,42 +4194,50 @@ abstract class KirbyBaseHelper
                 'hits' => 0,
                 'score' => 0
             ];
-            $words = preg_split('/\s+/', $query); // Split the query into words
+
+            // Extract quoted phrases first (e.g., "botanical society")
+            preg_match_all('/"([^"]+)"/', $query, $phraseMatches);
+            $phrases = $phraseMatches[1] ?? [];
+
+            // Get remaining query after removing quoted phrases
+            $remainingQuery = preg_replace('/"[^"]+"/', '', $query);
+            $words = preg_split('/\s+/', trim($remainingQuery ?? ''));
 
             if ($words === false) {
-                $words = []; // fallback to an empty array if preg_split fails
+                $words = [];
             }
-            //var_dump($options);
+
+            // Filter stop words and empty strings
+            $words = $this->filterStopWords(array_filter($words));
 
             foreach ($keys as $key) {
                 $score = $options['score'][$key] ?? 1;
                 $value = (string)$item->$key();
-                //var_dump($data[$key]);
 
-                // check for exact query matches
-                if ($matches = preg_match_all('!' . preg_quote($query) . '!i', $value, $r)) {
-                    $scoring['score'] += 10 * $matches * $score;
-                    $scoring['hits'] += $matches;
-                    //echo ('<p>' . $key . ' : exact match - score: '. (10*$matches *$score).'</p>');
+                // Check for quoted phrase matches (highest priority - 10x)
+                foreach ($phrases as $phrase) {
+                    if ($matches = preg_match_all('!' . preg_quote($phrase) . '!i', $value, $r)) {
+                        $scoring['score'] += 10 * $matches * $score;
+                        $scoring['hits'] += $matches;
+                    }
                 }
 
+                // Check for individual word matches
                 $allWords = true;
                 $wordMatches = 0;
                 foreach ($words as $word) {
-                    // Use preg_quote to escape any special characters in the word for regex
-                    $word = preg_quote($word, '/');
-                    // Create a regex pattern to match the word
-                    $pattern = "/\b" . $word . "\b/i"; // \b is a word boundary, and 'i' is for case-insensitive
+                    $escapedWord = preg_quote($word, '/');
+                    $pattern = "/\b" . $escapedWord . "\b/i";
 
                     if ($matches = preg_match_all($pattern, $value, $r)) {
                         $wordMatches += $matches;
-                        //echo ('<p>' . $key . ':' . $word . ' : match - score:'.$matches * $score.'</p>');
                     } else {
                         $allWords = false;
                     }
                 }
-                if ($allWords) {
-                    //echo('<p>all words bonus</p>');
+
+                // Bonus if all words found in same field
+                if ($allWords && count($words) > 0) {
                     $scoring['score'] += 5 * $wordMatches * $score;
                 } else {
                     $scoring['score'] += $wordMatches * $score;
@@ -4242,15 +4257,52 @@ abstract class KirbyBaseHelper
     }
 
     /**
-     * Adds span class="highlight" to the term
+     * Adds span class="highlight" to individual words in the term
      * @param string $text
      * @param string $term
      * @return string
      */
     private function highlightTerm(string $text, string $term): string
     {
-        $term = preg_quote($term, '/');
-        return preg_replace("/($term)/i", '<span class="highlight">$1</span>', $text) ?? $text;
+        // Extract quoted phrases first
+        preg_match_all('/"([^"]+)"/', $term, $phraseMatches);
+        $phrases = $phraseMatches[1] ?? [];
+
+        // Get remaining words after removing quoted phrases
+        $remainingTerm = preg_replace('/"[^"]+"/', '', $term);
+        $words = preg_split('/\s+/', trim($remainingTerm ?? ''));
+        if ($words === false) {
+            $words = [];
+        }
+        $words = array_filter($words);
+
+        // Highlight exact phrases first
+        foreach ($phrases as $phrase) {
+            $escaped = preg_quote($phrase, '/');
+            $text = preg_replace("/($escaped)/i", '<span class="highlight">$1</span>', $text) ?? $text;
+        }
+
+        // Highlight individual words (skip very short words and stop words)
+        foreach ($words as $word) {
+            if (strlen($word) > 2 && !in_array(strtolower($word), self::STOP_WORDS)) {
+                $escaped = preg_quote($word, '/');
+                $text = preg_replace("/(\b$escaped\b)/i", '<span class="highlight">$1</span>', $text) ?? $text;
+            }
+        }
+
+        return $text;
+    }
+
+    /**
+     * Filters stop words from an array of search terms
+     * @param array $words
+     * @return array
+     */
+    private function filterStopWords(array $words): array
+    {
+        return array_filter($words, fn($word) =>
+            strlen($word) > 2 && !in_array(strtolower($word), self::STOP_WORDS)
+        );
     }
 
     /**
