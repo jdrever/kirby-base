@@ -3534,6 +3534,17 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * Will return zero if no request is found
+     * @param string $key
+     * @return int
+     */
+    protected function getRequestAsInt(string $key): int
+    {
+        return (int) get($key, 0);
+    }
+
+
+    /**
      * Retrieves a request parameter or cookie value by the given key,
      * returning a fallback value if neither is available.
      *
