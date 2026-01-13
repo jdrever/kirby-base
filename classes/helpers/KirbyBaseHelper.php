@@ -12,6 +12,7 @@ use BSBI\WebBase\models\Document;
 use BSBI\WebBase\models\Documents;
 use BSBI\WebBase\models\FeedbackForm;
 use BSBI\WebBase\models\Image;
+use BSBI\WebBase\models\ImageList;
 use BSBI\WebBase\models\ImageSizes;
 use BSBI\WebBase\models\ImageType;
 use BSBI\WebBase\models\Language;
@@ -1714,6 +1715,24 @@ abstract class KirbyBaseHelper
     /**
      * @param StructureObject $structure
      * @param string $fieldName
+     * @return Files
+     * @throws KirbyRetrievalException
+     */
+    protected function getStructureFieldAsFiles(StructureObject $structure, string $fieldName): Files
+    {
+        $structureField = $this->getStructureField($structure, $fieldName);
+        /** @noinspection PhpUndefinedMethodInspection */
+        $files = $structureField->toFiles();
+        if ($files) {
+            return $files;
+        } else {
+            throw new KirbyRetrievalException('The file field ' . $fieldName . ' does not exist');
+        }
+    }
+
+    /**
+     * @param StructureObject $structure
+     * @param string $fieldName
      * @return string
      * @throws KirbyRetrievalException
      * @noinspection PhpUnused
@@ -3199,6 +3218,40 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * @param Page $page
+     * @param string $fieldName
+     * @param int $width
+     * @param int|null $height
+     * @param int $quality
+     * @param ImageType $imageType
+     * @param string $imageFormat
+     * @param ImageSizes $imageSizes
+     * @param bool $crop
+     * @param string $imageClass
+     * @return ImageList
+     * @throws KirbyRetrievalException
+     */
+    protected function getImages(Page       $page,
+                                 string     $fieldName,
+                                 int        $width,
+                                 ?int       $height,
+                                 int        $quality = 90,
+                                 ImageType  $imageType = ImageType::SQUARE,
+                                 string     $imageFormat = '',
+                                 ImageSizes $imageSizes = ImageSizes::NOT_SPECIFIED,
+                                 bool       $crop = true,
+                                 string     $imageClass = ''): ImageList
+    {
+
+        $pageImage = $this->getPageFieldAsFiles($page, $fieldName);
+        $imageList = new ImageList();
+        foreach ($pageImage as $image) {
+            $imageList->addListItem($this->getImageFromFile($image, $width, $height, $quality, $imageType, $imageFormat, $imageSizes, $crop, $imageClass));
+        }
+        return $imageList;
+    }
+
+    /**
      * @param StructureObject $structureObject
      * @param string $fieldName
      * @param int $width
@@ -3235,6 +3288,42 @@ abstract class KirbyBaseHelper
             $crop,
             $imageClass);
     }
+
+    /**
+     * @param StructureObject $structureObject
+     * @param string $fieldName
+     * @param int $width
+     * @param int $height
+     * @param int $quality
+     * @param ImageType $imageType
+     * @param string $imageFormat
+     * @param ImageSizes $imageSizes
+     * @param bool $crop
+     * @param string $imageClass
+     * @return ImageList
+     * @throws KirbyRetrievalException
+     */
+    protected function getImagesFromStructureField(StructureObject $structureObject,
+                                                   string          $fieldName,
+                                                   int             $width,
+                                                   int             $height,
+                                                   int             $quality = 90,
+                                                   ImageType       $imageType = ImageType::SQUARE,
+                                                   string          $imageFormat = '',
+                                                   ImageSizes      $imageSizes = ImageSizes::NOT_SPECIFIED,
+                                                   bool            $crop = true,
+                                                   string          $imageClass = ''): ImageList
+    {
+
+        $structureImages = $this->getStructureFieldAsFiles($structureObject, $fieldName);
+
+        $imageList = new ImageList();
+        foreach ($structureImages as $image) {
+            $imageList->addListItem($this->getImageFromFile($image, $width, $height, $quality, $imageType, $imageFormat, $imageSizes, $crop, $imageClass));
+        }
+        return $imageList;
+    }
+
 
     /**
      * @param string $fieldName
