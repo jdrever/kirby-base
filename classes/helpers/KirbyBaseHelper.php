@@ -2656,6 +2656,12 @@ abstract class KirbyBaseHelper
         }
     }
 
+    /**
+     * @param \Kirby\Cms\User $user
+     * @param string $email
+     * @return \Kirby\Cms\User
+     * @throws KirbyRetrievalException
+     */
     public function changeUserEmail(\Kirby\Cms\User $user, string $email): \Kirby\Cms\User
     {
         try {
