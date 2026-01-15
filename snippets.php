@@ -3,6 +3,7 @@ return [
     'scripts' => __DIR__ . '/snippets/scripts.php',
     'sitemap' => __DIR__ . '/snippets/sitemap.php',
     'rss' => __DIR__ . '/snippets/rss.php',
+    'rss-html' => __DIR__ . '/snippets/rss-html.php',
     'robots-txt' => __DIR__ . '/snippets/robots-txt.php',
     'block-consent' => __DIR__ . '/snippets/block-consent.php',
 
