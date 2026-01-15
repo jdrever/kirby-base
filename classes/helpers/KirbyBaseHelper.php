@@ -58,7 +58,7 @@ use Throwable;
  */
 abstract class KirbyBaseHelper
 {
-    private const STOP_WORDS = [
+    private const array STOP_WORDS = [
         'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
         'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been',
         'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
@@ -2286,6 +2286,20 @@ abstract class KirbyBaseHelper
     public function getCurrentUserFieldAsString(string $fieldName): string
     {
         return $this->getUserFieldAsString(kirby()->user(), $fieldName);
+    }
+
+    protected function getUserFieldAsBool(\Kirby\Cms\User $user, string $fieldName, bool $default = false): bool
+    {
+        return $user->{$fieldName}()->toBool() ?? $default;
+    }
+
+    /**
+     * @param string $fieldName
+     * @return string
+     */
+    public function getCurrentUserFieldAsBool(string $fieldName): bool
+    {
+        return $this->getUserFieldAsBool(kirby()->user(), $fieldName);
     }
 
     protected function getCurrentUserFieldAsUser(string $fieldName): User

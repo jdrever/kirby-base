@@ -60,13 +60,5 @@ return [
         $helper = new KirbyInternalHelper();
         $helper->handleCaches($page);
     },
-    'panel.route:after' => function () {
-        // Check if a user is logged in and has the 'vice_county' role
-        if (kirby()->user() && kirby()->user()->role()->id() === 'vice_county') {
-            // Add the custom stylesheet to the panel's head
-            kirby()->response()->header('Link', '</assets/css/vc-panel.css>; rel=preload; as=style');
-        }
-    }
-
 
 ];
