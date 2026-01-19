@@ -4271,6 +4271,61 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * Search using SQLite FTS5 index with fallback to in-memory search
+     *
+     * @param string|null $query Search query
+     * @param string $params Pipe-separated field names (for fallback)
+     * @param int $perPage Results per page
+     * @param Collection|null $collection Optional collection to search within (for fallback)
+     * @return Collection
+     */
+    protected function getSearchCollectionSqlite(
+        ?string $query = null,
+        string $params = 'title|mainContent|description|keywords',
+        int $perPage = 10,
+        ?Collection $collection = null
+    ): Collection
+    {
+        if (empty(trim($query ?? ''))) {
+            return ($collection ?? $this->site->index())->limit(0);
+        }
+
+        // Check if SQLite search is enabled
+        $useSqlite = option('search.useSqlite', false);
+        if (!$useSqlite) {
+            return $this->getSearchCollection($query, $params, $perPage, $collection);
+        }
+
+        try {
+            $searchIndex = new SearchIndexHelper();
+            $isMemberOrAdmin = $this->kirby->user() &&
+                in_array($this->kirby->user()->role()->name(), ['member', 'vice_county', 'admin', 'editor']);
+
+            // Calculate pagination
+            $page = (int)get('page', 1);
+            $offset = ($page - 1) * $perPage;
+
+            $searchResults = $searchIndex->search($query, $isMemberOrAdmin, $perPage, $offset);
+
+            if (empty($searchResults['results'])) {
+                return ($collection ?? $this->site->index())->limit(0);
+            }
+
+            // Convert results to Kirby pages collection
+            $pageIds = array_column($searchResults['results'], 'page_id');
+            $pages = pages($pageIds);
+
+            // Apply pagination manually
+            return $pages->paginate($perPage);
+
+        } catch (\Throwable $e) {
+            // Log error and fall back to existing search
+            error_log('SQLite search failed: ' . $e->getMessage());
+            return $this->getSearchCollection($query, $params, $perPage, $collection);
+        }
+    }
+
+    /**
      * Adds span class="highlight" to individual words in the term
      * @param string $text
      * @param string $term

@@ -1,6 +1,7 @@
 <?php
 
 use BSBI\WebBase\helpers\KirbyInternalHelper;
+use BSBI\WebBase\helpers\SearchIndexHelper;
 
 function handlePageChange($newPage, $oldPage) {
     $user = kirby()->user();
@@ -20,6 +21,15 @@ function handlePageChange($newPage, $oldPage) {
     /** @noinspection PhpUnhandledExceptionInspection */
     $helper->handleTwoWayTagging($newPage, $oldPage);
     $helper->handleCaches($newPage);
+
+    // Update search index
+    try {
+        $searchIndex = new SearchIndexHelper();
+        $searchIndex->indexPage($newPage);
+    } catch (Throwable $e) {
+        error_log('Failed to update search index: ' . $e->getMessage());
+    }
+
     return $newPage;
 }
 
@@ -49,6 +59,15 @@ return [
         $helper = new KirbyInternalHelper();
         $helper->handleTwoWayTagging($page);
         $helper->handleCaches($page);
+
+        // Add to search index
+        try {
+            $searchIndex = new SearchIndexHelper();
+            $searchIndex->indexPage($page);
+        } catch (Throwable $e) {
+            error_log('Failed to add page to search index: ' . $e->getMessage());
+        }
+
         return $page;
     },
 
@@ -59,6 +78,14 @@ return [
     'page.delete:before' => function (Kirby\Cms\Page $page) {
         $helper = new KirbyInternalHelper();
         $helper->handleCaches($page);
+
+        // Remove from search index
+        try {
+            $searchIndex = new SearchIndexHelper();
+            $searchIndex->removePage($page->id());
+        } catch (Throwable $e) {
+            error_log('Failed to remove page from search index: ' . $e->getMessage());
+        }
     },
 
 ];
