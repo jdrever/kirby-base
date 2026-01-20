@@ -36,10 +36,12 @@ snippet('search/form');
     <?=$additionalSearchForm?>
 <?php endif ?>
 
-<?php if ($currentPage->hasSearchResults()) :
-    $searchResults = $currentPage->getSearchResults(); ?>
+<?php
+if ($currentPage->hasSearchCompleted()) :
+    if ($currentPage->hasSearchResults()) :
+        $searchResults = $currentPage->getSearchResults(); ?>
     <ul>
-        <?php foreach ($searchResults->getList() as $resultPage) : ?>
+            <?php foreach ($searchResults->getList() as $resultPage) : ?>
             <li>
                 <?php if ($resultPage->hasBreadcrumb()) : ?>
                 <small class="font-size:0.5em;"><?=$resultPage->getBreadCrumb()?></small><br>
@@ -52,14 +54,16 @@ snippet('search/form');
                     </p>
                 <?php endif ?>
             </li>
-        <?php endforeach ?>
+            <?php endforeach ?>
     </ul>
-    <?php snippet('base/pagination', ['pagination' => $searchResults->getPagination()]);
-else :
-    if (!empty($query)) :?>
+            <?php snippet('base/pagination', ['pagination' => $searchResults->getPagination()]);
+    else :
+        if (!empty($query)) :?>
     <p>No results found.</p>
-        <?php if ($currentPage->hasSpecialSearchType()) :
-            snippet('search/no-results-'.$currentPage->getSpecialSearchType());
+            <?php if ($currentPage->hasSpecialSearchType()) :
+                snippet('search/no-results-'.$currentPage->getSpecialSearchType());
+            endif;
         endif;
     endif;
-endif ?>
+endif;
+?>

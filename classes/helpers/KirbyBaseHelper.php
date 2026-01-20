@@ -29,6 +29,7 @@ use BSBI\WebBase\models\WebPageLinks;
 use BSBI\WebBase\models\User;
 use BSBI\WebBase\models\WebPageTagLinks;
 use BSBI\WebBase\models\WebPageTagLinkSet;
+use BSBI\WebBase\traits\OptionsHandling;
 use DateMalformedStringException;
 use DateTime;
 use DateTimeZone;
@@ -58,6 +59,7 @@ use Throwable;
  */
 abstract class KirbyBaseHelper
 {
+    use OptionsHandling;
     private const array STOP_WORDS = [
         'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
         'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been',
@@ -3620,6 +3622,11 @@ abstract class KirbyBaseHelper
         return ($this->kirby->request()->is('POST'));
     }
 
+    protected function hasGetRequest(): bool
+    {
+        return ($this->kirby->request()->is('GET'));
+    }
+
     /**
      * Checks if a request exists for the given key.
      *
@@ -4163,7 +4170,6 @@ abstract class KirbyBaseHelper
     ): Collection
     {
         if ($collection === null) {
-            //TODO: may need multiple versions of this, depending on user permissions
             $collection = $this->site->index();
         }
 
@@ -4274,26 +4280,24 @@ abstract class KirbyBaseHelper
      * Search using SQLite FTS5 index with fallback to in-memory search
      *
      * @param string|null $query Search query
-     * @param string $params Pipe-separated field names (for fallback)
      * @param int $perPage Results per page
-     * @param Collection|null $collection Optional collection to search within (for fallback)
+     * @param string|null $templates Optional comma limited template names to filter results
      * @return Collection
      */
     protected function getSearchCollectionSqlite(
         ?string $query = null,
-        string $params = 'title|mainContent|description|keywords',
         int $perPage = 10,
-        ?Collection $collection = null
+        ?string $templates = null
     ): Collection
     {
         if (empty(trim($query ?? ''))) {
-            return ($collection ?? $this->site->index())->limit(0);
+            return $this->site->index()->limit(0);
         }
 
         // Check if SQLite search is enabled
         $useSqlite = option('search.useSqlite', false);
         if (!$useSqlite) {
-            return $this->getSearchCollection($query, $params, $perPage, $collection);
+            return $this->getSearchCollection($query, 'title|mainContent|description|keywords', $perPage);
         }
 
         try {
@@ -4301,28 +4305,43 @@ abstract class KirbyBaseHelper
             $isMemberOrAdmin = $this->kirby->user() &&
                 in_array($this->kirby->user()->role()->name(), ['member', 'vice_county', 'admin', 'editor']);
 
-            // Calculate pagination
-            $page = (int)get('page', 1);
-            $offset = ($page - 1) * $perPage;
+            // Get all matching page IDs sorted by relevance
+            $pageIds = $searchIndex->searchAllIds($query, $isMemberOrAdmin, $templates);
 
-            $searchResults = $searchIndex->search($query, $isMemberOrAdmin, $perPage, $offset);
-
-            if (empty($searchResults['results'])) {
-                return ($collection ?? $this->site->index())->limit(0);
+            if (empty($pageIds)) {
+                return $this->site->index()->limit(0);
             }
 
-            // Convert results to Kirby pages collection
-            $pageIds = array_column($searchResults['results'], 'page_id');
+            // Convert to Kirby pages collection and let Kirby handle pagination
             $pages = pages($pageIds);
 
-            // Apply pagination manually
             return $pages->paginate($perPage);
 
         } catch (\Throwable $e) {
             // Log error and fall back to existing search
             error_log('SQLite search failed: ' . $e->getMessage());
-            return $this->getSearchCollection($query, $params, $perPage, $collection);
+            return $this->getSearchCollection($query, 'title|mainContent|description|keywords', $perPage);
         }
+    }
+
+    /**
+     * Get the available content type filter options for search
+     *
+     * Returns the keys from the search.contentTypeOptions config as an array for use in a select box
+     *
+     * @return array Array of content type option names
+     */
+    protected function getSearchContentTypeOptions(): array
+    {
+        $contentTypeOptionsFromConfig = option('search.contentTypeOptions', []);
+
+        $options = [];
+
+        $options[] = $this->createOption('', 'All content');
+        foreach ($contentTypeOptionsFromConfig as $key => $value) {
+            $options[] = $this->createOption($value, $key);
+        }
+        return $options;
     }
 
     /**

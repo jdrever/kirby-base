@@ -21,7 +21,24 @@ $query = $currentPage->getQuery();
 ?>
 
 <form method="get" role="search" <?php if (isset($searchUrl)) : ?> action="<?=$searchUrl?>" <?php endif; ?>
-    <p>Search for:
+    <div class="row align-items-end bg-light p-2 rounded mb-3">
+        <div class="col col-lg-5">
+        <label class="form-label" for="q">Search for:</label>
         <input type="search" aria-label="Search" name="q" class="form-control-sm ms-2 me-2" value="<?=$query ?>" required>
-        <button class="btn btn-sm btn-success me-1" type="submit">Search</button></p>
+        </div>
+        <div class="col col-lg-5">
+        <?php if ($currentPage->hasContentTypeOptions()) :
+            snippet('form/select', [
+              'label' => 'Looking in: ',
+              'id' => 'contentTypes',
+              'name' => 'contentTypes',
+              'selectedValue' => $currentPage->getSelectedContentType(),
+              'options' => $currentPage->getContentTypeOptions()
+            ]);
+        endif ?>
+        </div>
+        <div class="col col-lg-2">
+            <button class="btn btn-sm btn-success w-100" type="submit">Search</button>
+        </div>
+    </div>
 </form>

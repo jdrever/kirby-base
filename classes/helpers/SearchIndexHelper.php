@@ -85,6 +85,7 @@ class SearchIndexHelper
                 description,
                 keywords,
                 main_content,
+                additional_content,
                 url,
                 is_members_only,
                 template,
@@ -97,6 +98,38 @@ class SearchIndexHelper
                 value TEXT
             );
         ');
+    }
+
+    /**
+     * Get additional field values for a page based on its template
+     *
+     * @param Page $page The page to get additional fields for
+     * @return string Combined additional field values
+     */
+    private function getAdditionalFieldsContent(Page $page): string
+    {
+        $additionalFieldsConfig = option('search.additionalFields', []);
+        $templateName = $page->template()->name();
+
+        if (!isset($additionalFieldsConfig[$templateName])) {
+            return '';
+        }
+
+        $fieldNames = explode('|', $additionalFieldsConfig[$templateName]);
+        $content = $page->content();
+        $values = [];
+
+        foreach ($fieldNames as $fieldName) {
+            $fieldName = trim($fieldName);
+            if (!empty($fieldName)) {
+                $value = (string)($content->$fieldName()->value() ?? '');
+                if (!empty($value)) {
+                    $values[] = strip_tags($value);
+                }
+            }
+        }
+
+        return implode(' ', $values);
     }
 
     /**
@@ -121,9 +154,12 @@ class SearchIndexHelper
         // Strip HTML from main content
         $mainContent = strip_tags((string)($content->mainContent()->value() ?? ''));
 
+        // Get additional fields based on template
+        $additionalContent = $this->getAdditionalFieldsContent($page);
+
         $stmt = $this->database->prepare('
-            INSERT INTO search_index (page_id, title, description, keywords, main_content, url, is_members_only, template, last_updated)
-            VALUES (:page_id, :title, :description, :keywords, :main_content, :url, :is_members_only, :template, :last_updated)
+            INSERT INTO search_index (page_id, title, description, keywords, main_content, additional_content, url, is_members_only, template, last_updated)
+            VALUES (:page_id, :title, :description, :keywords, :main_content, :additional_content, :url, :is_members_only, :template, :last_updated)
         ');
 
         return $stmt->execute([
@@ -132,6 +168,7 @@ class SearchIndexHelper
             'description' => (string)($content->description()->value() ?? ''),
             'keywords' => (string)($content->keywords()->value() ?? ''),
             'main_content' => $mainContent,
+            'additional_content' => $additionalContent,
             'url' => $page->url(),
             'is_members_only' => $isMembersOnly,
             'template' => $page->template()->name(),
@@ -158,9 +195,10 @@ class SearchIndexHelper
      * @param bool $includeMembersContent Whether to include members-only content
      * @param int $limit Maximum number of results
      * @param int $offset Offset for pagination
+     * @param array|null $templates Optional array of template names to filter results
      * @return array{results: array, total: int} Search results with total count
      */
-    public function search(string $query, bool $includeMembersContent = false, int $limit = 10, int $offset = 0): array
+    public function search(string $query, bool $includeMembersContent = false, int $limit = 10, int $offset = 0, ?array $templates = null): array
     {
         $ftsQuery = $this->prepareQuery($query);
 
@@ -170,34 +208,56 @@ class SearchIndexHelper
 
         $membersClause = $includeMembersContent ? '' : "AND is_members_only = '0'";
 
+        // Build template filter clause if templates specified
+        $templateClause = '';
+        $templateParams = [];
+        if ($templates !== null && count($templates) > 0) {
+            $placeholders = [];
+            foreach ($templates as $i => $template) {
+                $placeholder = ':template' . $i;
+                $placeholders[] = $placeholder;
+                $templateParams[$placeholder] = $template;
+            }
+            $templateClause = 'AND template IN (' . implode(', ', $placeholders) . ')';
+        }
+
         // Get total count
-        $countStmt = $this->database->prepare("
+        $countSql = "
             SELECT COUNT(*) as total
             FROM search_index
-            WHERE search_index MATCH :query $membersClause
-        ");
-        $countStmt->execute(['query' => $ftsQuery]);
+            WHERE search_index MATCH :query $membersClause $templateClause
+        ";
+        $countStmt = $this->database->prepare($countSql);
+        $countStmt->bindValue(':query', $ftsQuery, PDO::PARAM_STR);
+        foreach ($templateParams as $placeholder => $value) {
+            $countStmt->bindValue($placeholder, $value, PDO::PARAM_STR);
+        }
+        $countStmt->execute();
         $countResult = $countStmt->fetch(PDO::FETCH_ASSOC);
         $total = (int)($countResult['total'] ?? 0);
 
         // Get results with BM25 ranking
-        // Weights: title=10, description=5, keywords=5, main_content=1, others=0
-        $resultsStmt = $this->database->prepare("
+        // Weights: page_id=0, title=10, description=5, keywords=5, main_content=1, additional_content=5, url=0, is_members_only=0, template=0
+        $resultsSql = "
             SELECT
                 page_id,
                 title,
                 description,
                 url,
                 template,
-                bm25(search_index, 0.0, 10.0, 5.0, 5.0, 1.0, 0.0, 0.0, 0.0, 0.0) as score
+                bm25(search_index, 0.0, 10.0, 5.0, 5.0, 1.0, 5.0, 0.0, 0.0, 0.0) as score
             FROM search_index
-            WHERE search_index MATCH :query $membersClause
+            WHERE search_index MATCH :query $membersClause $templateClause
             ORDER BY score
             LIMIT :limit OFFSET :offset
-        ");
+        ";
+        $resultsStmt = $this->database->prepare($resultsSql);
         $resultsStmt->bindValue(':query', $ftsQuery, PDO::PARAM_STR);
         $resultsStmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $resultsStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        foreach ($templateParams as $placeholder => $value) {
+            $resultsStmt->bindValue($placeholder, $value, PDO::PARAM_STR);
+        }
         $resultsStmt->execute();
         $results = $resultsStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -205,6 +265,60 @@ class SearchIndexHelper
             'results' => $results,
             'total' => $total
         ];
+    }
+
+    /**
+     * Search and return all matching page IDs sorted by relevance
+     *
+     * Returns all matching page IDs without pagination, suitable for use with
+     * Kirby's built-in pagination system.
+     *
+     * @param string $query Search query string
+     * @param bool $includeMembersContent Whether to include members-only content
+     * @param string|null $templates Optional array of template names to filter results
+     * @return array Array of page IDs sorted by relevance
+     */
+    public function searchAllIds(string $query, bool $includeMembersContent = false, ?string $templates = null): array
+    {
+        $ftsQuery = $this->prepareQuery($query);
+
+        if (empty($ftsQuery)) {
+            return [];
+        }
+
+        $membersClause = $includeMembersContent ? '' : "AND is_members_only = '0'";
+
+        // Build template filter clause if templates specified
+        $templateClause = '';
+        $templateParams = [];
+        $templatesAsArray = $templates ? explode(',', $templates) : [];
+        if (count($templatesAsArray) > 0) {
+            $placeholders = [];
+            foreach ($templatesAsArray as $i => $template) {
+                $placeholder = ':template' . $i;
+                $placeholders[] = $placeholder;
+                $templateParams[$placeholder] = $template;
+            }
+            $templateClause = 'AND template IN (' . implode(', ', $placeholders) . ')';
+        }
+
+        // Get all page IDs sorted by BM25 relevance
+        // Weights: page_id=0, title=10, description=5, keywords=5, main_content=1, additional_content=5, url=0, is_members_only=0, template=0
+        $sql = "
+            SELECT page_id
+            FROM search_index
+            WHERE search_index MATCH :query $membersClause $templateClause
+            ORDER BY bm25(search_index, 0.0, 10.0, 5.0, 5.0, 1.0, 5.0, 0.0, 0.0, 0.0)
+        ";
+
+        $stmt = $this->database->prepare($sql);
+        $stmt->bindValue(':query', $ftsQuery, PDO::PARAM_STR);
+        foreach ($templateParams as $placeholder => $value) {
+            $stmt->bindValue($placeholder, $value, PDO::PARAM_STR);
+        }
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
     }
 
     /**
@@ -293,8 +407,8 @@ class SearchIndexHelper
 
             // Prepare statement once for reuse
             $stmt = $this->database->prepare('
-                INSERT INTO search_index (page_id, title, description, keywords, main_content, url, is_members_only, template, last_updated)
-                VALUES (:page_id, :title, :description, :keywords, :main_content, :url, :is_members_only, :template, :last_updated)
+                INSERT INTO search_index (page_id, title, description, keywords, main_content, additional_content, url, is_members_only, template, last_updated)
+                VALUES (:page_id, :title, :description, :keywords, :main_content, :additional_content, :url, :is_members_only, :template, :last_updated)
             ');
 
             foreach ($allPages as $page) {
@@ -302,6 +416,7 @@ class SearchIndexHelper
                     $content = $page->content();
                     $isMembersOnly = str_starts_with($page->id(), 'members') ? '1' : '0';
                     $mainContent = strip_tags((string)($content->mainContent()->value() ?? ''));
+                    $additionalContent = $this->getAdditionalFieldsContent($page);
 
                     $stmt->execute([
                         'page_id' => $page->id(),
@@ -309,6 +424,7 @@ class SearchIndexHelper
                         'description' => (string)($content->description()->value() ?? ''),
                         'keywords' => (string)($content->keywords()->value() ?? ''),
                         'main_content' => $mainContent,
+                        'additional_content' => $additionalContent,
                         'url' => $page->url(),
                         'is_members_only' => $isMembersOnly,
                         'template' => $page->template()->name(),
