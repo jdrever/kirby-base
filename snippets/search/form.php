@@ -28,7 +28,8 @@ $query = $currentPage->getQuery();
         </div>
         <div class="col col-lg-5">
         <?php if (method_exists($currentPage, 'hasContentTypeOptions') &&
-         method_exists($currentPage, 'getSelectedContentType')
+         method_exists($currentPage, 'getSelectedContentType') &&
+         method_exists($currentPage, 'getContentTypeOptions')
          && $currentPage->hasContentTypeOptions()) :
             snippet('form/select', [
               'label' => 'Looking in: ',
