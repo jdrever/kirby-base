@@ -27,7 +27,9 @@ $query = $currentPage->getQuery();
         <input type="search" aria-label="Search" name="q" class="form-control-sm ms-2 me-2" value="<?=$query ?>" required>
         </div>
         <div class="col col-lg-5">
-        <?php if ($currentPage->hasContentTypeOptions()) :
+        <?php if (method_exists($currentPage, 'hasContentTypeOptions') &&
+         method_exists($currentPage, 'getSelectedContentType')
+         && $currentPage->hasContentTypeOptions()) :
             snippet('form/select', [
               'label' => 'Looking in: ',
               'id' => 'contentTypes',
