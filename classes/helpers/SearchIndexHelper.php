@@ -115,7 +115,7 @@ class SearchIndexHelper
             return '';
         }
 
-        $fieldNames = explode('|', $additionalFieldsConfig[$templateName]);
+        $fieldNames = explode(',', $additionalFieldsConfig[$templateName]);
         $content = $page->content();
         $values = [];
 
