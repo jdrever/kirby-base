@@ -2683,6 +2683,23 @@ abstract class KirbyBaseHelper
 
     /**
      * @param \Kirby\Cms\User $user
+     * @param string $name
+     * @return \Kirby\Cms\User
+     * @throws KirbyRetrievalException
+     */
+    public function changeUserName(\Kirby\Cms\User $user, string $name): \Kirby\Cms\User
+    {
+        try {
+            return $this->kirby->impersonate('kirby', function () use ($user, $name) {
+                return $user->changeName($name);
+            });
+        } catch (Throwable $e) {
+            throw new KirbyRetrievalException($e->getMessage());
+        }
+    }
+
+    /**
+     * @param \Kirby\Cms\User $user
      * @param string $role
      * @return \Kirby\Cms\User
      * @throws KirbyRetrievalException
