@@ -32,6 +32,7 @@ class SearchIndexHelper
         'basket', 'basket_item', 'basket_page', 'blog_month_folder',
         'blog_year_folder', 'checkout', 'error', 'error-500',
         'file_archive', 'form_training', 'image_bank', 'login',
+        'order', 'orders',
         'vice_county_recorders', 'vice_county_records'
     ];
 
