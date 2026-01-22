@@ -531,6 +531,11 @@ class SearchIndexHelper
 
             foreach ($allPages as $page) {
                 try {
+                    // Check if page should be indexed (respects EXCLUDED_TEMPLATES)
+                    if (!$this->shouldIndex($page)) {
+                        continue;
+                    }
+
                     $content = $page->content();
                     $isMembersOnly = str_starts_with($page->id(), 'members') ? '1' : '0';
                     $mainContent = strip_tags((string)($content->mainContent()->value() ?? ''));
