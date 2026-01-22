@@ -38,6 +38,9 @@ class SearchIndexHelper
     protected PDO $database;
     protected App $kirby;
 
+    /** @var PDO|null Cached static database connection for fast lookups */
+    private static ?PDO $staticDb = null;
+
     /**
      * Constructor - initializes database connection
      *
@@ -98,6 +101,12 @@ class SearchIndexHelper
                 key TEXT PRIMARY KEY,
                 value TEXT
             );
+
+            CREATE TABLE page_lookup (
+                ddb_id TEXT PRIMARY KEY,
+                page_id TEXT NOT NULL
+            );
+            CREATE INDEX idx_page_lookup_page_id ON page_lookup(page_id);
         ');
     }
 
@@ -163,7 +172,7 @@ class SearchIndexHelper
             VALUES (:page_id, :title, :vernacular_name, :description, :keywords, :main_content, :additional_content, :url, :is_members_only, :template, :last_updated)
         ');
 
-        return $stmt->execute([
+        $result = $stmt->execute([
             'page_id' => $page->id(),
             'title' => (string)($content->title()->value() ?? ''),
             'vernacular_name' => (string)($content->vernacularName()->value() ?? ''),
@@ -176,6 +185,14 @@ class SearchIndexHelper
             'template' => $page->template()->name(),
             'last_updated' => date('Y-m-d H:i:s')
         ]);
+
+        // Add ddbId to page_lookup if present
+        $ddbId = (string)($content->ddbId()->value() ?? '');
+        if (!empty($ddbId)) {
+            $this->addPageLookup($ddbId, $page->id());
+        }
+
+        return $result;
     }
 
     /**
@@ -187,7 +204,91 @@ class SearchIndexHelper
     public function removePage(string $pageId): bool
     {
         $stmt = $this->database->prepare('DELETE FROM search_index WHERE page_id = :page_id');
-        return $stmt->execute(['page_id' => $pageId]);
+        $result = $stmt->execute(['page_id' => $pageId]);
+
+        // Also remove from page_lookup
+        $lookupStmt = $this->database->prepare('DELETE FROM page_lookup WHERE page_id = :page_id');
+        $lookupStmt->execute(['page_id' => $pageId]);
+
+        return $result;
+    }
+
+    /**
+     * Add or update a page lookup entry by ddb_id
+     *
+     * @param string $ddbId The DDB identifier
+     * @param string $pageId The Kirby page ID
+     * @return bool True if entry was added/updated
+     */
+    public function addPageLookup(string $ddbId, string $pageId): bool
+    {
+        if (empty($ddbId)) {
+            return false;
+        }
+        $stmt = $this->database->prepare('INSERT OR REPLACE INTO page_lookup (ddb_id, page_id) VALUES (:ddb_id, :page_id)');
+        return $stmt->execute(['ddb_id' => $ddbId, 'page_id' => $pageId]);
+    }
+
+    /**
+     * Find a page ID by its ddb_id
+     *
+     * @param string $ddbId The DDB identifier to look up
+     * @return string|null The page ID if found, null otherwise
+     */
+    public function findPageIdByDdbId(string $ddbId): ?string
+    {
+        $this->ensurePageLookupTable();
+        $stmt = $this->database->prepare('SELECT page_id FROM page_lookup WHERE ddb_id = :ddb_id LIMIT 1');
+        $stmt->execute(['ddb_id' => $ddbId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? $result['page_id'] : null;
+    }
+
+    /**
+     * Ensure the page_lookup table exists (for databases created before this feature)
+     */
+    private function ensurePageLookupTable(): void
+    {
+        $result = $this->database->query("SELECT name FROM sqlite_master WHERE type='table' AND name='page_lookup'");
+        if ($result->fetch() === false) {
+            $this->database->exec('
+                CREATE TABLE page_lookup (
+                    ddb_id TEXT PRIMARY KEY,
+                    page_id TEXT NOT NULL
+                );
+                CREATE INDEX idx_page_lookup_page_id ON page_lookup(page_id);
+            ');
+        }
+    }
+
+    /**
+     * Fast static lookup of page ID by ddb_id
+     *
+     * Uses a cached database connection for minimal overhead.
+     * Call this instead of instantiating SearchIndexHelper for simple lookups.
+     *
+     * @param string $ddbId The DDB identifier to look up
+     * @return string|null The page ID if found, null otherwise
+     */
+    public static function lookupPageIdByDdbId(string $ddbId): ?string
+    {
+        if (self::$staticDb === null) {
+            $file = kirby()->root('site') . self::DATABASE_PATH;
+            if (!F::exists($file)) {
+                return null;
+            }
+            self::$staticDb = new PDO('sqlite:' . $file);
+            self::$staticDb->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        }
+
+        try {
+            $stmt = self::$staticDb->prepare('SELECT page_id FROM page_lookup WHERE ddb_id = :ddb_id LIMIT 1');
+            $stmt->execute(['ddb_id' => $ddbId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? $result['page_id'] : null;
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     /**
@@ -408,8 +509,10 @@ class SearchIndexHelper
         $this->database->beginTransaction();
 
         try {
-            // Clear existing index
+            // Clear existing index and page_lookup table
             $this->database->exec('DELETE FROM search_index');
+            $this->ensurePageLookupTable();
+            $this->database->exec('DELETE FROM page_lookup');
 
             $count = 0;
 
@@ -417,11 +520,13 @@ class SearchIndexHelper
             // Get both public and members pages by temporarily impersonating admin
             $allPages = $this->kirby->collection('allPages');
 
-            // Prepare statement once for reuse
+            // Prepare statements once for reuse
             $stmt = $this->database->prepare('
                 INSERT INTO search_index (page_id, title, vernacular_name, description, keywords, main_content, additional_content, url, is_members_only, template, last_updated)
                 VALUES (:page_id, :title, :vernacular_name, :description, :keywords, :main_content, :additional_content, :url, :is_members_only, :template, :last_updated)
             ');
+
+            $lookupStmt = $this->database->prepare('INSERT OR REPLACE INTO page_lookup (ddb_id, page_id) VALUES (:ddb_id, :page_id)');
 
             foreach ($allPages as $page) {
                 try {
@@ -443,6 +548,13 @@ class SearchIndexHelper
                         'template' => $page->template()->name(),
                         'last_updated' => date('Y-m-d H:i:s')
                     ]);
+
+                    // Add ddbId to page_lookup if present
+                    $ddbId = (string)($content->ddbId()->value() ?? '');
+                    if (!empty($ddbId)) {
+                        $lookupStmt->execute(['ddb_id' => $ddbId, 'page_id' => $page->id()]);
+                    }
+
                     $count++;
                 } catch (Throwable $e) {
                     error_log('Failed to index page ' . $page->id() . ': ' . $e->getMessage());
