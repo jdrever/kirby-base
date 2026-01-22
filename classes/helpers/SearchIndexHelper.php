@@ -82,6 +82,7 @@ class SearchIndexHelper
             CREATE VIRTUAL TABLE search_index USING fts5(
                 page_id,
                 title,
+                vernacular_name,
                 description,
                 keywords,
                 main_content,
@@ -158,13 +159,14 @@ class SearchIndexHelper
         $additionalContent = $this->getAdditionalFieldsContent($page);
 
         $stmt = $this->database->prepare('
-            INSERT INTO search_index (page_id, title, description, keywords, main_content, additional_content, url, is_members_only, template, last_updated)
-            VALUES (:page_id, :title, :description, :keywords, :main_content, :additional_content, :url, :is_members_only, :template, :last_updated)
+            INSERT INTO search_index (page_id, title, vernacular_name, description, keywords, main_content, additional_content, url, is_members_only, template, last_updated)
+            VALUES (:page_id, :title, :vernacular_name, :description, :keywords, :main_content, :additional_content, :url, :is_members_only, :template, :last_updated)
         ');
 
         return $stmt->execute([
             'page_id' => $page->id(),
             'title' => (string)($content->title()->value() ?? ''),
+            'vernacular_name' => (string)($content->vernacularName()->value() ?? ''),
             'description' => (string)($content->description()->value() ?? ''),
             'keywords' => (string)($content->keywords()->value() ?? ''),
             'main_content' => $mainContent,
@@ -236,8 +238,9 @@ class SearchIndexHelper
         $countResult = $countStmt->fetch(PDO::FETCH_ASSOC);
         $total = (int)($countResult['total'] ?? 0);
 
-        // Get results with BM25 ranking
-        // Weights: page_id=0, title=10, description=5, keywords=5, main_content=1, additional_content=5, url=0, is_members_only=0, template=0
+        // Get results with BM25 ranking and exact-match boost
+        // Weights: page_id=0, title=10, vernacular_name=20, description=5, keywords=5, main_content=1, additional_content=5, url=0, is_members_only=0, template=0
+        // Exact match on vernacular_name or title gets a large bonus (subtract 100 from score since more negative = better)
         $resultsSql = "
             SELECT
                 page_id,
@@ -245,7 +248,10 @@ class SearchIndexHelper
                 description,
                 url,
                 template,
-                bm25(search_index, 0.0, 10.0, 5.0, 5.0, 1.0, 5.0, 0.0, 0.0, 0.0) as score
+                bm25(search_index, 0.0, 10.0, 20.0, 5.0, 5.0, 1.0, 5.0, 0.0, 0.0, 0.0)
+                - CASE WHEN LOWER(vernacular_name) = LOWER(:exact_query) THEN 100 ELSE 0 END
+                - CASE WHEN LOWER(title) = LOWER(:exact_query) THEN 100 ELSE 0 END
+                as score
             FROM search_index
             WHERE search_index MATCH :query $membersClause $templateClause
             ORDER BY score
@@ -253,6 +259,7 @@ class SearchIndexHelper
         ";
         $resultsStmt = $this->database->prepare($resultsSql);
         $resultsStmt->bindValue(':query', $ftsQuery, PDO::PARAM_STR);
+        $resultsStmt->bindValue(':exact_query', trim($query), PDO::PARAM_STR);
         $resultsStmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $resultsStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         foreach ($templateParams as $placeholder => $value) {
@@ -302,17 +309,22 @@ class SearchIndexHelper
             $templateClause = 'AND template IN (' . implode(', ', $placeholders) . ')';
         }
 
-        // Get all page IDs sorted by BM25 relevance
-        // Weights: page_id=0, title=10, description=5, keywords=5, main_content=1, additional_content=5, url=0, is_members_only=0, template=0
+        // Get all page IDs sorted by BM25 relevance with exact-match boost
+        // Weights: page_id=0, title=10, vernacular_name=20, description=5, keywords=5, main_content=1, additional_content=5, url=0, is_members_only=0, template=0
+        // Exact match on vernacular_name gets a large bonus (subtract 100 from score since more negative = better)
         $sql = "
             SELECT page_id
             FROM search_index
             WHERE search_index MATCH :query $membersClause $templateClause
-            ORDER BY bm25(search_index, 0.0, 10.0, 5.0, 5.0, 1.0, 5.0, 0.0, 0.0, 0.0)
+            ORDER BY
+                bm25(search_index, 0.0, 10.0, 20.0, 5.0, 5.0, 1.0, 5.0, 0.0, 0.0, 0.0)
+                - CASE WHEN LOWER(vernacular_name) = LOWER(:exact_query) THEN 100 ELSE 0 END
+                - CASE WHEN LOWER(title) = LOWER(:exact_query) THEN 100 ELSE 0 END
         ";
 
         $stmt = $this->database->prepare($sql);
         $stmt->bindValue(':query', $ftsQuery, PDO::PARAM_STR);
+        $stmt->bindValue(':exact_query', trim($query), PDO::PARAM_STR);
         foreach ($templateParams as $placeholder => $value) {
             $stmt->bindValue($placeholder, $value, PDO::PARAM_STR);
         }
@@ -407,8 +419,8 @@ class SearchIndexHelper
 
             // Prepare statement once for reuse
             $stmt = $this->database->prepare('
-                INSERT INTO search_index (page_id, title, description, keywords, main_content, additional_content, url, is_members_only, template, last_updated)
-                VALUES (:page_id, :title, :description, :keywords, :main_content, :additional_content, :url, :is_members_only, :template, :last_updated)
+                INSERT INTO search_index (page_id, title, vernacular_name, description, keywords, main_content, additional_content, url, is_members_only, template, last_updated)
+                VALUES (:page_id, :title, :vernacular_name, :description, :keywords, :main_content, :additional_content, :url, :is_members_only, :template, :last_updated)
             ');
 
             foreach ($allPages as $page) {
@@ -421,6 +433,7 @@ class SearchIndexHelper
                     $stmt->execute([
                         'page_id' => $page->id(),
                         'title' => (string)($content->title()->value() ?? ''),
+                        'vernacular_name' => (string)($content->vernacularName()->value() ?? ''),
                         'description' => (string)($content->description()->value() ?? ''),
                         'keywords' => (string)($content->keywords()->value() ?? ''),
                         'main_content' => $mainContent,

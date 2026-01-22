@@ -1,0 +1,12 @@
+title: Search Log
+icon: file-zip
+
+fields:
+  log:
+    label: Log
+    type: pages
+    template: search_log_item
+
+
+
+
