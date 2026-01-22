@@ -491,6 +491,11 @@ class SearchIndexHelper
             return false;
         }
 
+        // Exclude checkout subfolder
+        if (str_starts_with($page->id(), 'checkout')) {
+            return false;
+        }
+
         // Only index published/listed pages
         if (!$page->isListed() && !$page->isUnlisted()) {
             return false;
