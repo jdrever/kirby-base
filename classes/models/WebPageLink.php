@@ -19,7 +19,7 @@ class WebPageLink extends BaseModel
     /**
      * @var string
      */
-    private string $linkDescription;
+    private string $linkDescription = '';
 
     private string $requirements;
 
