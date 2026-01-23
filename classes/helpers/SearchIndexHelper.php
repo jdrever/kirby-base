@@ -472,6 +472,42 @@ class SearchIndexHelper
     }
 
     /**
+     * Find a page ID by exact title match
+     *
+     * @param string $title The title to search for (case-insensitive, trimmed)
+     * @param array<string>|null $templates Optional array of template names to filter by
+     * @return string|null The page ID if found, null otherwise
+     */
+    public function findPageIdByTitle(string $title, ?array $templates = null): ?string
+    {
+        $title = trim(strtolower($title));
+        if (empty($title)) {
+            return null;
+        }
+
+        $sql = 'SELECT page_id FROM search_index WHERE LOWER(TRIM(title)) = :title';
+        $params = ['title' => $title];
+
+        if ($templates !== null && count($templates) > 0) {
+            $placeholders = [];
+            foreach ($templates as $i => $template) {
+                $placeholder = ':template' . $i;
+                $placeholders[] = $placeholder;
+                $params[$placeholder] = $template;
+            }
+            $sql .= ' AND template IN (' . implode(', ', $placeholders) . ')';
+        }
+
+        $sql .= ' LIMIT 1';
+
+        $stmt = $this->database->prepare($sql);
+        $stmt->execute($params);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $result ? $result['page_id'] : null;
+    }
+
+    /**
      * Search the index for matching pages
      *
      * @param string $query Search query string
