@@ -2796,14 +2796,39 @@ abstract class KirbyBaseHelper
         return new WebPageLinks();
     }
 
+    /**
+     * @param bool $simpleLink
+     * @return WebPageLinks
+     * @throws KirbyRetrievalException
+     */
+    protected function getSiteChildrenAsSubPages(bool $simpleLink, array|null $templates = null): WebPageLinks
+    {
+        $subPagesCollection = $this->site->children()->listed()->notTemplate($this->getExcludedTemplates());
+        if ($templates) {
+            $subPagesCollection = $subPagesCollection->template($templates);
+        }
+        return $this->getWebPageLinks($subPagesCollection, $simpleLink, true);
+    }
+
 
     /**
-     * get the pages below the current page (excluding certain template types)
-     * if home page, return menu pages without the home page itself
+     * get the pages below the current page (excluding certain template types, as specified in the
+     * subPagesExclude config)
      * @param Page $page
      * @return Pages|Collection|null
      */
     protected function getSubPagesAsCollection(Page $page): Pages|Collection|null
+    {
+        return $page->children()->listed()->notTemplate($this->getExcludedTemplates());
+    }
+
+
+    /**
+     * Retrieves the list of excluded templates from the configuration option subPagesExclude.
+     *
+     * @return array The array of excluded template names.
+     */
+    protected function getExcludedTemplates(): array
     {
         $excludedTemplates = option('subPagesExclude');
 
@@ -2811,7 +2836,7 @@ abstract class KirbyBaseHelper
         if (!is_array($excludedTemplates)) {
             $excludedTemplates = [];
         }
-        return $page->children()->listed()->notTemplate($excludedTemplates);
+        return $excludedTemplates;
     }
 
     /**
