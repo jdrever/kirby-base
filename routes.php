@@ -1,7 +1,9 @@
 <?php
 
 use BSBI\WebBase\helpers\KirbyInternalHelper;
+use BSBI\WebBase\helpers\SearchIndexHelper;
 use Kirby\Cms\Page;
+use Kirby\Http\Response;
 use Kirby\Toolkit\Tpl;
 
 return [
@@ -85,6 +87,56 @@ return [
 
             // If no file matches, show 404
             return site()->errorPage();
+        }
+    ],
+    [
+        'pattern' => 'search-rebuild',
+        'method' => 'GET',
+        'action' => function () {
+            $helper = new KirbyInternalHelper();
+            if ($helper->isCurrentUserAdminOrEditor()) {
+                try {
+                    $searchIndex = new SearchIndexHelper();
+                    $count = $searchIndex->rebuildIndex();
+                    return new Response(
+                        "Search index rebuilt successfully. Indexed $count pages.",
+                        'text/plain',
+                        200
+                    );
+                } catch (Exception $e) {
+                    return new Response(
+                        'Failed to rebuild search index: ' . $e->getMessage(),
+                        'text/plain',
+                        500
+                    );
+                }
+            }
+            return new Response('You must be an administrator to access this page.', 'text/plain', 403);
+        }
+    ],
+    [
+        'pattern' => 'search-stats',
+        'method' => 'GET',
+        'action' => function () {
+            $helper = new KirbyInternalHelper();
+            if ($helper->isCurrentUserAdminOrEditor()) {
+                try {
+                    $searchIndex = new SearchIndexHelper();
+                    $stats = $searchIndex->getStats();
+                    return new Response(
+                        json_encode($stats, JSON_PRETTY_PRINT),
+                        'application/json',
+                        200
+                    );
+                } catch (Exception $e) {
+                    return new Response(
+                        json_encode(['error' => $e->getMessage()]),
+                        'application/json',
+                        500
+                    );
+                }
+            }
+            return new Response('You must be an administrator to access this page.', 'text/plain', 403);
         }
     ],
 ];
