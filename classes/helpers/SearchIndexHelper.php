@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace BSBI\WebBase\helpers;
 
+use Exception;
 use Kirby\Cms\App;
 use Kirby\Cms\Page;
+use Kirby\Exception\InvalidArgumentException;
 use Kirby\Filesystem\Dir;
 use Kirby\Filesystem\F;
 use PDO;
@@ -15,12 +17,24 @@ use Throwable;
  * SQLite FTS5-based search index manager
  *
  * Handles indexing, querying, and maintenance of the full-text search database.
+ *
+ * Configuration options (set in config.php under 'search' key):
+ * - databasePath: Path to SQLite database relative to site root (default: '/logs/search/search.sqlite')
+ * - excludedTemplates: Array of template names to exclude from indexing (default: ['error', 'error-500', 'login'])
+ * - excludedPaths: Array of page path prefixes to exclude from indexing (default: [])
+ * - membersPathPrefix: Path prefix that identifies members-only content (default: 'members')
+ * - stopWords: Array of stop words to filter from search queries (has sensible defaults)
+ * - fieldWeights: Array mapping field names to BM25 weights (has sensible defaults)
+ * - exactMatchBoost: Boost value for exact matches on title/vernacular_name (default: 100)
+ * - exactMatchFields: Array of field names that receive exact match boost (default: ['vernacular_name', 'title'])
  */
 class SearchIndexHelper
 {
-    private const string DATABASE_PATH = '/logs/search/search.sqlite';
+    /** @var string Default database path relative to site root */
+    private const string DEFAULT_DATABASE_PATH = '/logs/search/search.sqlite';
 
-    private const array STOP_WORDS = [
+    /** @var array<string> Default stop words for query filtering */
+    private const array DEFAULT_STOP_WORDS = [
         'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
         'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been',
         'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
@@ -28,13 +42,33 @@ class SearchIndexHelper
         'this', 'that', 'these', 'those', 'it', 'its'
     ];
 
-    private const array EXCLUDED_TEMPLATES = [
-        'basket', 'basket_item', 'basket_page', 'blog_month_folder',
-        'blog_year_folder', 'checkout', 'error', 'error-500',
-        'file_archive', 'form_training', 'image_bank', 'login',
-        'order', 'orders',
-        'vice_county_recorders', 'vice_county_records'
+    /** @var array<string> Default templates to exclude (minimal generic list) */
+    private const array DEFAULT_EXCLUDED_TEMPLATES = [
+        'error', 'error-500', 'login'
     ];
+
+    /** @var array<string, float> Default BM25 field weights */
+    private const array DEFAULT_FIELD_WEIGHTS = [
+        'page_id' => 0.0,
+        'title' => 10.0,
+        'vernacular_name' => 20.0,
+        'description' => 5.0,
+        'keywords' => 5.0,
+        'main_content' => 1.0,
+        'additional_content' => 5.0,
+        'url' => 0.0,
+        'is_members_only' => 0.0,
+        'template' => 0.0,
+    ];
+
+    /** @var array<string> Default fields that receive exact match boost */
+    private const array DEFAULT_EXACT_MATCH_FIELDS = ['vernacular_name', 'title'];
+
+    /** @var int Default boost value for exact matches */
+    private const int DEFAULT_EXACT_MATCH_BOOST = 100;
+
+    /** @var string Default path prefix for members-only content */
+    private const string DEFAULT_MEMBERS_PATH_PREFIX = 'members';
 
     protected PDO $database;
     protected App $kirby;
@@ -45,7 +79,7 @@ class SearchIndexHelper
     /**
      * Constructor - initializes database connection
      *
-     * @throws KirbyRetrievalException If database cannot be initialized
+     * @throws Exception If database cannot be initialized
      */
     public function __construct()
     {
@@ -54,18 +88,178 @@ class SearchIndexHelper
     }
 
     /**
+     * Get the database path from configuration
+     *
+     * @return string Database path relative to site root
+     */
+    private function getDatabasePath(): string
+    {
+        return option('search.databasePath', self::DEFAULT_DATABASE_PATH);
+    }
+
+    /**
+     * Get the list of excluded templates from configuration
+     *
+     * @return array<string> Template names to exclude from indexing
+     */
+    private function getExcludedTemplates(): array
+    {
+        return option('search.excludedTemplates', self::DEFAULT_EXCLUDED_TEMPLATES);
+    }
+
+    /**
+     * Get the list of excluded path prefixes from configuration
+     *
+     * @return array<string> Path prefixes to exclude from indexing
+     */
+    private function getExcludedPaths(): array
+    {
+        return option('search.excludedPaths', []);
+    }
+
+    /**
+     * Get the members path prefix from configuration
+     *
+     * @return string Path prefix that identifies members-only content
+     */
+    private function getMembersPathPrefix(): string
+    {
+        return option('search.membersPathPrefix', self::DEFAULT_MEMBERS_PATH_PREFIX);
+    }
+
+    /**
+     * Get stop words from configuration
+     *
+     * @return array<string> Stop words to filter from search queries
+     */
+    private function getStopWords(): array
+    {
+        return option('search.stopWords', self::DEFAULT_STOP_WORDS);
+    }
+
+    /**
+     * Get field weights from configuration
+     *
+     * @return array<string, float> Field name to weight mapping
+     */
+    private function getFieldWeights(): array
+    {
+        return option('search.fieldWeights', self::DEFAULT_FIELD_WEIGHTS);
+    }
+
+    /**
+     * Get exact match boost value from configuration
+     *
+     * @return int Boost value for exact matches (subtracted from BM25 score)
+     */
+    private function getExactMatchBoost(): int
+    {
+        return option('search.exactMatchBoost', self::DEFAULT_EXACT_MATCH_BOOST);
+    }
+
+    /**
+     * Get fields that receive exact match boost from configuration
+     *
+     * @return array<string> Field names that receive exact match boost
+     */
+    private function getExactMatchFields(): array
+    {
+        return option('search.exactMatchFields', self::DEFAULT_EXACT_MATCH_FIELDS);
+    }
+
+    /**
+     * Build the BM25 function call string with configured weights
+     *
+     * @return string BM25 function call for SQL query
+     */
+    private function buildBm25Call(): string
+    {
+        $weights = $this->getFieldWeights();
+
+        // Weights must be in schema column order
+        $orderedWeights = [
+            $weights['page_id'] ?? 0.0,
+            $weights['title'] ?? 10.0,
+            $weights['vernacular_name'] ?? 20.0,
+            $weights['description'] ?? 5.0,
+            $weights['keywords'] ?? 5.0,
+            $weights['main_content'] ?? 1.0,
+            $weights['additional_content'] ?? 5.0,
+            $weights['url'] ?? 0.0,
+            $weights['is_members_only'] ?? 0.0,
+            $weights['template'] ?? 0.0,
+        ];
+
+        return 'bm25(search_index, ' . implode(', ', $orderedWeights) . ')';
+    }
+
+    /**
+     * Build the exact match boost SQL clause
+     *
+     * @return string SQL CASE statements for exact match boosting
+     */
+    private function buildExactMatchClause(): string
+    {
+        $fields = $this->getExactMatchFields();
+        $boost = $this->getExactMatchBoost();
+
+        if (empty($fields) || $boost === 0) {
+            return '';
+        }
+
+        $clauses = [];
+        foreach ($fields as $field) {
+            $clauses[] = "CASE WHEN LOWER($field) = LOWER(:exact_query) THEN $boost ELSE 0 END";
+        }
+
+        return ' - ' . implode(' - ', $clauses);
+    }
+
+    /**
+     * Extract index data from a page for insertion into the search index
+     *
+     * @param Page $page The page to extract data from
+     * @param string $membersPrefix The members path prefix for detecting members-only content
+     * @return array<string, string> Associative array of field values for the search index
+     * @throws InvalidArgumentException
+     */
+    private function getPageIndexData(Page $page, string $membersPrefix): array
+    {
+        $content = $page->content();
+        $isMembersOnly = (!empty($membersPrefix) && str_starts_with($page->id(), $membersPrefix)) ? '1' : '0';
+        $mainContent = strip_tags((string)($content->mainContent()->value() ?? ''));
+        $additionalContent = $this->getAdditionalFieldsContent($page);
+
+        return [
+            'page_id' => $page->id(),
+            'title' => (string)($content->title()->value() ?? ''),
+            'vernacular_name' => (string)($content->vernacularName()->value() ?? ''),
+            'description' => (string)($content->description()->value() ?? ''),
+            'keywords' => (string)($content->keywords()->value() ?? ''),
+            'main_content' => $mainContent,
+            'additional_content' => $additionalContent,
+            'url' => $page->url(),
+            'is_members_only' => $isMembersOnly,
+            'template' => $page->template()->name(),
+            'last_updated' => date('Y-m-d H:i:s')
+        ];
+    }
+
+    /**
      * Initialize database connection, creating file and schema if needed
      *
-     * @throws KirbyRetrievalException If database cannot be created or connected
+     * @throws Exception If database directory cannot be created or database connection fails
      */
     private function initializeDatabase(): void
     {
-        $file = $this->kirby->root('site') . self::DATABASE_PATH;
+        $file = $this->kirby->root('site') . $this->getDatabasePath();
 
         if (F::exists($file) === false) {
             $dir = dirname($file);
             if (is_dir($dir) === false) {
-                Dir::make($dir);
+                if (Dir::make($dir) === false) {
+                    throw new Exception("Failed to create search database directory: $dir");
+                }
             }
             $this->createDatabase($file);
         }
@@ -116,6 +310,7 @@ class SearchIndexHelper
      *
      * @param Page $page The page to get additional fields for
      * @return string Combined additional field values
+     * @throws InvalidArgumentException If page content cannot be retrieved
      */
     private function getAdditionalFieldsContent(Page $page): string
     {
@@ -148,6 +343,7 @@ class SearchIndexHelper
      *
      * @param Page $page The Kirby page to index
      * @return bool True if page was indexed, false if skipped
+     * @throws InvalidArgumentException If page content cannot be retrieved
      */
     public function indexPage(Page $page): bool
     {
@@ -159,36 +355,18 @@ class SearchIndexHelper
             return false;
         }
 
-        $content = $page->content();
-        $isMembersOnly = str_starts_with($page->id(), 'members') ? '1' : '0';
-
-        // Strip HTML from main content
-        $mainContent = strip_tags((string)($content->mainContent()->value() ?? ''));
-
-        // Get additional fields based on template
-        $additionalContent = $this->getAdditionalFieldsContent($page);
+        $membersPrefix = $this->getMembersPathPrefix();
+        $indexData = $this->getPageIndexData($page, $membersPrefix);
 
         $stmt = $this->database->prepare('
             INSERT INTO search_index (page_id, title, vernacular_name, description, keywords, main_content, additional_content, url, is_members_only, template, last_updated)
             VALUES (:page_id, :title, :vernacular_name, :description, :keywords, :main_content, :additional_content, :url, :is_members_only, :template, :last_updated)
         ');
 
-        $result = $stmt->execute([
-            'page_id' => $page->id(),
-            'title' => (string)($content->title()->value() ?? ''),
-            'vernacular_name' => (string)($content->vernacularName()->value() ?? ''),
-            'description' => (string)($content->description()->value() ?? ''),
-            'keywords' => (string)($content->keywords()->value() ?? ''),
-            'main_content' => $mainContent,
-            'additional_content' => $additionalContent,
-            'url' => $page->url(),
-            'is_members_only' => $isMembersOnly,
-            'template' => $page->template()->name(),
-            'last_updated' => date('Y-m-d H:i:s')
-        ]);
+        $result = $stmt->execute($indexData);
 
         // Add ddbId to page_lookup if present
-        $ddbId = (string)($content->ddbId()->value() ?? '');
+        $ddbId = (string)($page->content()->ddbId()->value() ?? '');
         if (!empty($ddbId)) {
             $this->addPageLookup($ddbId, $page->id());
         }
@@ -274,7 +452,8 @@ class SearchIndexHelper
     public static function lookupPageIdByDdbId(string $ddbId): ?string
     {
         if (self::$staticDb === null) {
-            $file = kirby()->root('site') . self::DATABASE_PATH;
+            $databasePath = option('search.databasePath', self::DEFAULT_DATABASE_PATH);
+            $file = kirby()->root('site') . $databasePath;
             if (!F::exists($file)) {
                 return null;
             }
@@ -341,8 +520,8 @@ class SearchIndexHelper
         $total = (int)($countResult['total'] ?? 0);
 
         // Get results with BM25 ranking and exact-match boost
-        // Weights: page_id=0, title=10, vernacular_name=20, description=5, keywords=5, main_content=1, additional_content=5, url=0, is_members_only=0, template=0
-        // Exact match on vernacular_name or title gets a large bonus (subtract 100 from score since more negative = better)
+        $bm25Call = $this->buildBm25Call();
+        $exactMatchClause = $this->buildExactMatchClause();
         $resultsSql = "
             SELECT
                 page_id,
@@ -350,9 +529,7 @@ class SearchIndexHelper
                 description,
                 url,
                 template,
-                bm25(search_index, 0.0, 10.0, 20.0, 5.0, 5.0, 1.0, 5.0, 0.0, 0.0, 0.0)
-                - CASE WHEN LOWER(vernacular_name) = LOWER(:exact_query) THEN 100 ELSE 0 END
-                - CASE WHEN LOWER(title) = LOWER(:exact_query) THEN 100 ELSE 0 END
+                {$bm25Call}{$exactMatchClause}
                 as score
             FROM search_index
             WHERE search_index MATCH :query $membersClause $templateClause
@@ -412,16 +589,14 @@ class SearchIndexHelper
         }
 
         // Get all page IDs sorted by BM25 relevance with exact-match boost
-        // Weights: page_id=0, title=10, vernacular_name=20, description=5, keywords=5, main_content=1, additional_content=5, url=0, is_members_only=0, template=0
-        // Exact match on vernacular_name gets a large bonus (subtract 100 from score since more negative = better)
+        $bm25Call = $this->buildBm25Call();
+        $exactMatchClause = $this->buildExactMatchClause();
         $sql = "
             SELECT page_id
             FROM search_index
             WHERE search_index MATCH :query $membersClause $templateClause
             ORDER BY
-                bm25(search_index, 0.0, 10.0, 20.0, 5.0, 5.0, 1.0, 5.0, 0.0, 0.0, 0.0)
-                - CASE WHEN LOWER(vernacular_name) = LOWER(:exact_query) THEN 100 ELSE 0 END
-                - CASE WHEN LOWER(title) = LOWER(:exact_query) THEN 100 ELSE 0 END
+                {$bm25Call}{$exactMatchClause}
         ";
 
         $stmt = $this->database->prepare($sql);
@@ -463,8 +638,9 @@ class SearchIndexHelper
         }
 
         // Filter stop words and empty strings
+        $stopWords = $this->getStopWords();
         $filteredWords = array_filter($words, fn($word) =>
-            strlen($word) > 2 && !in_array(strtolower($word), self::STOP_WORDS)
+            strlen($word) > 2 && !in_array(strtolower($word), $stopWords)
         );
 
         // Build FTS5 query with prefix matching for individual words
@@ -482,13 +658,16 @@ class SearchIndexHelper
     private function shouldIndex(Page $page): bool
     {
         // Exclude certain templates
-        if (in_array($page->template()->name(), self::EXCLUDED_TEMPLATES)) {
+        if (in_array($page->template()->name(), $this->getExcludedTemplates())) {
             return false;
         }
 
-        // Exclude Fermanagh species accounts subfolder
-        if (str_starts_with($page->id(), 'in-your-area/local-botany/co-fermanagh/fermanagh-species-accounts')) {
-            return false;
+        // Exclude configured path prefixes
+        $pageId = $page->id();
+        foreach ($this->getExcludedPaths() as $excludedPath) {
+            if (str_starts_with($pageId, $excludedPath)) {
+                return false;
+            }
         }
 
         // Only index published/listed pages
@@ -503,6 +682,7 @@ class SearchIndexHelper
      * Rebuild the entire search index using the allPages collection
      *
      * @return int Number of pages indexed
+     * @throws Throwable If database transaction fails
      */
     public function rebuildIndex(): int
     {
@@ -529,34 +709,20 @@ class SearchIndexHelper
 
             $lookupStmt = $this->database->prepare('INSERT OR REPLACE INTO page_lookup (ddb_id, page_id) VALUES (:ddb_id, :page_id)');
 
+            $membersPrefix = $this->getMembersPathPrefix();
+
             foreach ($allPages as $page) {
                 try {
-                    // Check if page should be indexed (respects EXCLUDED_TEMPLATES)
+                    // Check if page should be indexed (respects configured exclusions)
                     if (!$this->shouldIndex($page)) {
                         continue;
                     }
 
-                    $content = $page->content();
-                    $isMembersOnly = str_starts_with($page->id(), 'members') ? '1' : '0';
-                    $mainContent = strip_tags((string)($content->mainContent()->value() ?? ''));
-                    $additionalContent = $this->getAdditionalFieldsContent($page);
-
-                    $stmt->execute([
-                        'page_id' => $page->id(),
-                        'title' => (string)($content->title()->value() ?? ''),
-                        'vernacular_name' => (string)($content->vernacularName()->value() ?? ''),
-                        'description' => (string)($content->description()->value() ?? ''),
-                        'keywords' => (string)($content->keywords()->value() ?? ''),
-                        'main_content' => $mainContent,
-                        'additional_content' => $additionalContent,
-                        'url' => $page->url(),
-                        'is_members_only' => $isMembersOnly,
-                        'template' => $page->template()->name(),
-                        'last_updated' => date('Y-m-d H:i:s')
-                    ]);
+                    $indexData = $this->getPageIndexData($page, $membersPrefix);
+                    $stmt->execute($indexData);
 
                     // Add ddbId to page_lookup if present
-                    $ddbId = (string)($content->ddbId()->value() ?? '');
+                    $ddbId = (string)($page->content()->ddbId()->value() ?? '');
                     if (!empty($ddbId)) {
                         $lookupStmt->execute(['ddb_id' => $ddbId, 'page_id' => $page->id()]);
                     }
