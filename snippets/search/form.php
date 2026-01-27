@@ -10,6 +10,10 @@ if (!isset($currentPage)) :
     throw new Exception('$currentPage was not provided');
 endif;
 
+if (!isset($searchUrl)) :
+    $searchUrl = $currentPage->getUrl();
+endif;
+
 /**
  * @var Slots $slots
  */
@@ -17,10 +21,12 @@ endif;
 /** @var BaseWebPage $currentPage */
 
 
+
+
 $query = $currentPage->getQuery();
 ?>
 
-<form method="get" role="search" <?php if (isset($searchUrl)) : ?> action="<?=$searchUrl?>" <?php endif; ?>
+<form method="get" role="search" action="<?=$searchUrl?>">
     <div class="row align-items-end bg-light p-2 rounded mb-3">
         <div class="col col-lg-5">
         <label class="form-label" for="q">Search for:</label>
