@@ -71,10 +71,18 @@ return [
         return $page;
     },
 
-    //'page.changeStatus:after' => function ($newPage, $oldPage) {
-    //    $helper = new KirbyHelper(kirby(), kirby()->site(), kirby()->page());
-    //    //$helper->handleCaches($newPage);
-    //},
+    'page.changeStatus:after' => function ($newPage, $oldPage) {
+        $helper = new KirbyInternalHelper();
+        $helper->handleCaches($newPage);
+
+        // Update search index
+        try {
+            $searchIndex = new SearchIndexHelper();
+            $searchIndex->indexPage($newPage);
+        } catch (Throwable $e) {
+            error_log('Failed to update search index after status change: ' . $e->getMessage());
+        }
+    },
     'page.delete:before' => function (Kirby\Cms\Page $page) {
         $helper = new KirbyInternalHelper();
         $helper->handleCaches($page);
