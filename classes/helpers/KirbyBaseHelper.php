@@ -4682,7 +4682,8 @@ abstract class KirbyBaseHelper
      */
     protected function getCustomTagList(Page   $kirbyPage,
                                         string $fieldName,
-                                        string $modelListClass = BaseList::class): BaseList
+                                        string $modelListClass = BaseList::class,
+                                        BaseFilter $filter = null): BaseList
     {
         $modelList = new $modelListClass();
         $modelClassName = $modelList->getItemType();
@@ -4692,6 +4693,9 @@ abstract class KirbyBaseHelper
                 $model = $this->getSpecificModel($kirbyPage, $modelClassName);
                 $modelList->addListItem($model);
             }
+        }
+        if ($filter !== null) {
+            $modelList->setFilters($filter);
         }
         return $modelList;
     }
