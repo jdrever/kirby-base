@@ -653,7 +653,7 @@ abstract class KirbyBaseHelper
      * @throws KirbyRetrievalException
      * @noinspection PhpUnused
      */
-    protected function getPageFieldAsInt(Page $page, string $fieldName, bool $required = false): int
+    protected function getPageFieldAsInt(Page $page, string $fieldName, bool $required = false, int $default = 0): int
     {
         try {
             $pageField = $this->getPageField($page, $fieldName);
@@ -663,8 +663,7 @@ abstract class KirbyBaseHelper
             if ($required) {
                 throw $e;
             }
-            //TODO: should be better than returning zero if not required.  Maybe return int|null
-            return 0;
+            return $default;
 
         }
     }
