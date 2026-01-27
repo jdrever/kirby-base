@@ -20,7 +20,7 @@ class Document extends BaseModel
      */
     public function getSize(): string
     {
-        return $this->size;
+        return $this->size ?? 'Unknown';
     }
 
     /**
