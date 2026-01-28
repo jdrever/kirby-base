@@ -10,7 +10,7 @@ use BSBI\WebBase\helpers\KirbyInternalHelper;
 
 $helper = new KirbyInternalHelper();
 
-if (!$helper->hasCookieConsent()) :
+if ($helper->requiresCookieConstent() && !$helper->hasCookieConsent()) :
     snippet('block-consent', ['purpose' => 'It will display an externally hosted video']);
     return;
 endif;

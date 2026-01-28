@@ -125,6 +125,8 @@ class BaseWebPage extends BaseModel
 
     private string $displayPageTitleClass = '';
 
+    private bool $requiresCookieConsent = false;
+
     protected bool $isCookieConsentGiven = false;
 
     private string $cookieConsentCSRFToken = '';
@@ -759,6 +761,24 @@ class BaseWebPage extends BaseModel
     {
         return $this->displayPageTitleClass;
     }
+
+    public function doesNotRequireCookieConsent(): bool
+    {
+        return !($this->requiresCookieConsent);
+    }
+
+
+    public function doesRequireCookieConsent(): bool
+    {
+        return $this->requiresCookieConsent;
+    }
+
+    public function setRequiresCookieConsent(bool $requiresCookieConsent): void
+    {
+        $this->requiresCookieConsent = $requiresCookieConsent;
+    }
+
+
 
     /**
      * @param string $displayPageTitleClass

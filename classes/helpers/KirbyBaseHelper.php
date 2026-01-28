@@ -279,10 +279,14 @@ abstract class KirbyBaseHelper
             $webPage->setColourMode($this->getColourMode());
             $webPage->setLanguages($this->getLanguages());
 
-            if ($this->hasCookie(self::COOKIE_CONSENT_NAME)) {// {
-                $webPage->setIsCookieConsentGiven(true);
-            } else {
-                $webPage->setCookieConsentCSRFToken($this->getCSFRToken());
+            $webPage->setRequiresCookieConsent($this->requiresCookieConstent());
+
+            if ($webPage->doesRequireCookieConsent()) {
+                if ($this->hasCookie(self::COOKIE_CONSENT_NAME)) {// {
+                    $webPage->setIsCookieConsentGiven(true);
+                } else {
+                    $webPage->setCookieConsentCSRFToken($this->getCSFRToken());
+                }
             }
 
             //add scripts for blocks
@@ -3818,6 +3822,10 @@ abstract class KirbyBaseHelper
             }
         }
         go();
+    }
+
+    public function requiresCookieConstent(): bool {
+        return option('cookieConsentRequired', false);
     }
 
     public function hasCookieConsent(): bool
