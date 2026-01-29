@@ -2477,6 +2477,7 @@ abstract class KirbyBaseHelper
         $user = new User('user');
         $user->setUserId($kirbyUser->id())
             ->setUserName($kirbyUser->username())
+            ->setEmail($kirbyUser->email())
             ->setRole($kirbyUser->role()->name());
         return $user;
     }
