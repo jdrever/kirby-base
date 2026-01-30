@@ -653,9 +653,9 @@ abstract class KirbyBaseHelper
      * @param Page $page
      * @param string $fieldName
      * @param bool $required
+     * @param int $default
      * @return int
      * @throws KirbyRetrievalException
-     * @noinspection PhpUnused
      */
     protected function getPageFieldAsInt(Page $page, string $fieldName, bool $required = false, int $default = 0): int
     {
@@ -2026,7 +2026,7 @@ abstract class KirbyBaseHelper
             if ($required) {
                 throw $e;
             }
-            return [];
+            return $default;
         }
     }
 
@@ -2300,7 +2300,7 @@ abstract class KirbyBaseHelper
 
     /**
      * @param string $fieldName
-     * @return string
+     * @return bool
      */
     public function getCurrentUserFieldAsBool(string $fieldName): bool
     {
@@ -2375,7 +2375,6 @@ abstract class KirbyBaseHelper
 
     /**
      * @param string $fieldName
-     * @param string $default
      * @return Pages|null
      */
     protected function getCurrentUserFieldAsPages(string $fieldName): Pages|null
@@ -2384,7 +2383,7 @@ abstract class KirbyBaseHelper
     }
 
     /**
-     * @param User $user
+     * @param \Kirby\Cms\User $user
      * @param string $fieldName
      * @param bool $simpleLinks
      * @param bool $required
@@ -2802,6 +2801,7 @@ abstract class KirbyBaseHelper
 
     /**
      * @param bool $simpleLink
+     * @param array|null $templates
      * @return WebPageLinks
      * @throws KirbyRetrievalException
      */
@@ -4137,6 +4137,7 @@ abstract class KirbyBaseHelper
     /**
      * if $specialSearchType is supplied, the function will look for a getWebPageLinksFor{$specialSearchType} function
      * if not, or if not matching function is provided, it will use getWebPageLinks
+     * Will create a log entry (of type search_log_item) if there is a page of type search_log in the site root
      * @param string $query
      * @param Collection|null $collection
      * @param string $specialSearchType
@@ -4180,8 +4181,32 @@ abstract class KirbyBaseHelper
                 $searchResults->recordError($e->getMessage(), 'An error occurred while retrieving the search results');
             }
         }
-
+        $this->logSearchQuery($query);
         return $searchResults;
+    }
+
+    /**
+     * @param string $query
+     * @return void
+     */
+    private function logSearchQuery(string $query): void {
+        try {
+            $searchLog = $this->site->children()->template('search_log')->first();
+            if ($searchLog) {
+                $this->createPage($searchLog, [
+                    'template' => 'search_log_item',
+                    'slug' => date('Y-m-d H:i:s'),
+                    'content' => [
+                        'title' => $query . ' ('. date('Y-m-d H:i:s'). ')',
+                        'searchQuery' => $query,
+                        'searchDate' => date('Y-m-d H:i:s')
+                    ]
+                ], true);
+            }
+        } catch (KirbyRetrievalException $e) {
+            $this->writeToErrorLog($e->getMessage());
+        }
+
     }
 
     /**
@@ -4367,7 +4392,7 @@ abstract class KirbyBaseHelper
 
             return $pages->paginate($perPage);
 
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Log error and fall back to existing search
             error_log('SQLite search failed: ' . $e->getMessage());
             return $this->getSearchCollection($query, 'title|mainContent|description|keywords', $perPage);
@@ -4685,6 +4710,7 @@ abstract class KirbyBaseHelper
      * @param Page $kirbyPage
      * @param string $fieldName
      * @param string $modelListClass
+     * @param BaseFilter|null $filter
      * @return BaseList
      * @throws KirbyRetrievalException
      */

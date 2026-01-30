@@ -44,7 +44,7 @@ class SearchIndexHelper
 
     /** @var array<string> Default templates to exclude (minimal generic list) */
     private const array DEFAULT_EXCLUDED_TEMPLATES = [
-        'error', 'error-500', 'login'
+        'error', 'error-500', 'login', 'search_log', 'search_log_item', 'file_archive', 'form_submission', 'image_bank'
     ];
 
     /** @var array<string, float> Default BM25 field weights */
@@ -100,11 +100,14 @@ class SearchIndexHelper
     /**
      * Get the list of excluded templates from configuration
      *
+     * Merges default exclusions (required by kirby-base) with any site-specific exclusions.
+     *
      * @return array<string> Template names to exclude from indexing
      */
     private function getExcludedTemplates(): array
     {
-        return option('search.excludedTemplates', self::DEFAULT_EXCLUDED_TEMPLATES);
+        $siteExclusions = option('search.excludedTemplates', []);
+        return array_unique(array_merge(self::DEFAULT_EXCLUDED_TEMPLATES, $siteExclusions));
     }
 
     /**

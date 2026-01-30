@@ -1,11 +1,12 @@
 title: Search Log
 icon: file-zip
 
-fields:
+sections:
   log:
     label: Log
     type: pages
     template: search_log_item
+    sortBy: searchDate desc
 
 
 

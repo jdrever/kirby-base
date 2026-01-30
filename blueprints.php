@@ -5,14 +5,6 @@ $user = kirby()->user();
 $basePath = kirby()->root('blueprints');
 $siteBluePrintPath =  $basePath . '/site_admin.yml';
 
-//if ($user && $user->role()->name() !== 'admin') {
-//    $checkSiteBlueprintPath = $basePath . '/site_' . $user->role()->name() . '.yml';
-//    // Check if the specific blueprint file exists
-//    if (F::exists($checkSiteBlueprintPath)) {
-//        $siteBluePrintPath = $checkSiteBlueprintPath;
-//    }
-//}
-
 return [
     'site' => $siteBluePrintPath,
 
@@ -22,6 +14,8 @@ return [
     'pages/form_submission' => __DIR__ . '/blueprints/pages/form_submission.yml',
     'pages/page_link' => __DIR__ . '/blueprints/pages/page_link.yml',
     'pages/image_bank' => __DIR__ . '/blueprints/pages/image_bank.yml',
+    'pages/search_log' => __DIR__ . '/blueprints/pages/search_log.yml',
+    'pages/search_log_item' => __DIR__ . '/blueprints/pages/search_log_item.yml',
 
     //block blueprints
     'blocks/accordion' => __DIR__ . '/blueprints/blocks/accordion.yml',

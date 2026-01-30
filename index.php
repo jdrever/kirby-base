@@ -15,6 +15,8 @@ Kirby::plugin(
             'page_link' => __DIR__ . '/templates/page_link.php',
             'emails/form-notification.html' => __DIR__ . '/templates/emails/form-notification.html.php',
             'emails/form-notification.text' => __DIR__ . '/templates/emails/form-notification.text.php',
+            'search_log' => __DIR__ . '/templates/search_log.php',
+            'search_log_item' => __DIR__ . '/templates/search_log_item.php',
         ],
         'controllers' => [
             'file_link' =>  require __DIR__ . '/controllers/file_link.php',

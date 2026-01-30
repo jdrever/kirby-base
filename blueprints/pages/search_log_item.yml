@@ -8,6 +8,7 @@ fields:
   searchDate:
     type: date
     label: Date
+    time: true
 
 
 
