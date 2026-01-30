@@ -3473,16 +3473,31 @@ abstract class KirbyBaseHelper
             // Generate single WebP URL for CSS background-image use
             $webpThumbOptions = array_merge($thumbOptions, ['format' => 'webp']);
             $webpSrc = $image->thumb($webpThumbOptions)->url();
-            // Generate single AVIF URL for CSS background-image use
-            $avifThumbOptions = array_merge($thumbOptions, ['format' => 'avif']);
-            $avifSrc = $image->thumb($avifThumbOptions)->url();
         } catch (InvalidArgumentException $e) {
             throw new KirbyRetrievalException('The image could not be retrieved: ' . $e->getMessage());
         }
+
+        // Generate single AVIF URL - may fail if server doesn't support AVIF encoding
+        $avifSrc = '';
+        try {
+            $avifThumbOptions = array_merge($thumbOptions, ['format' => 'avif']);
+            $avifSrc = $image->thumb($avifThumbOptions)->url();
+        } catch (Exception $e) {
+            // AVIF not supported on this server - continue without it
+        }
+
         $srcSetType = strtolower($imageType->value);
         $srcSet = $image->srcset($srcSetType);
         $webpSrcSet = $image->srcset($srcSetType . '-webp');
-        $avifSrcSet = $image->srcset($srcSetType . '-avif');
+
+        // AVIF srcset may fail if server doesn't support AVIF encoding
+        $avifSrcSet = '';
+        try {
+            $avifSrcSet = $image->srcset($srcSetType . '-avif');
+        } catch (Exception $e) {
+            // AVIF not supported on this server - continue without it
+        }
+
         /** @noinspection PhpUndefinedMethodInspection */
         $alt = $image->alt()->isNotEmpty() ? $image->alt()->value() : '';
         $caption = $this->getCaptionForImage($image);
@@ -3491,8 +3506,10 @@ abstract class KirbyBaseHelper
                 ->setSizes($imageSizes->value)
                 ->setClass($imageClass)
                 ->setCaption($caption)
-                ->setWebpSrc($webpSrc)
-                ->setAvifSrc($avifSrc);
+                ->setWebpSrc($webpSrc);
+            if (!empty($avifSrc)) {
+                $imageObj->setAvifSrc($avifSrc);
+            }
             if (!empty($avifSrcSet)) {
                 $imageObj->setAvifSrcset($avifSrcSet);
             }

@@ -68,7 +68,6 @@ snippet('base/full-width-block-starts', ['fullWidth' => $fullWidth]);
             if ($image = kirby()->file($imageBankId)) :
                 ?>
                 <picture>
-                    <source type="image/avif" srcset="<?= $image->srcset('avif') ?>" sizes="<?= $sizes ?>">
                     <source type="image/webp" srcset="<?= $image->srcset('webp') ?>" sizes="<?= $sizes ?>">
                     <img class="<?= $imgClass ?>" alt="<?= $image->alt()->or($alt) ?>" src="<?= $image->resize($width)->url() ?>"
                          srcset="<?= $image->srcset() ?>" sizes="<?= $sizes ?>" width="<?= $image->resize($width)->width() ?>"
@@ -81,7 +80,6 @@ snippet('base/full-width-block-starts', ['fullWidth' => $fullWidth]);
         elseif ($image = $block->image()->toFile()) :
             ?>
             <picture>
-                <source type="image/avif" srcset="<?= $image->srcset('avif') ?>" sizes="<?= $sizes ?>">
                 <source type="image/webp" srcset="<?= $image->srcset('webp') ?>" sizes="<?= $sizes ?>">
                 <img class="<?= $imgClass ?>" alt="<?= $image->alt()->or($alt) ?>" src="<?= $image->resize($width)->url() ?>"
                      srcset="<?= $image->srcset() ?>" sizes="<?= $sizes ?>" width="<?= $image->resize($width)->width() ?>"
