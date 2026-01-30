@@ -4175,13 +4175,17 @@ abstract class KirbyBaseHelper
                 $paginationFromKirby = $collection->pagination();
 
                 if (isset($paginationFromKirby)) {
-                    $searchResults->setPagination($this->getPagination($paginationFromKirby));
+                    $pagination = $this->getPagination($paginationFromKirby);
+                    $searchResults->setPagination($pagination);
+                    if ($pagination->getCurrentPage() === 1) {
+                        $this->logSearchQuery($query);
+                    }
                 }
             } catch (\Exception $e) {
                 $searchResults->recordError($e->getMessage(), 'An error occurred while retrieving the search results');
             }
         }
-        $this->logSearchQuery($query);
+
         return $searchResults;
     }
 
