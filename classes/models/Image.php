@@ -337,9 +337,9 @@ class Image extends BaseModel
     }
 
     /**
-     * @return int
+     * @return ?int
      */
-    public function getHeight(): int
+    public function getHeight(): ?int
     {
         return $this->height;
     }
