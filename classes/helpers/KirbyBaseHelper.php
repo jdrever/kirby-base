@@ -4214,6 +4214,139 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * Stop words to filter out when extracting keywords from search queries
+     */
+    private const array SEARCH_STOP_WORDS = [
+        'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+        'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been',
+        'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
+        'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'need',
+        'this', 'that', 'these', 'those', 'it', 'its', 'i', 'me', 'my', 'we',
+        'our', 'you', 'your', 'he', 'she', 'they', 'them', 'their', 'what',
+        'which', 'who', 'whom', 'how', 'when', 'where', 'why', 'all', 'any',
+        'both', 'each', 'more', 'most', 'other', 'some', 'such', 'no', 'not',
+        'only', 'same', 'so', 'than', 'too', 'very', 'just', 'also', 'now'
+    ];
+
+    /**
+     * Get top search terms by frequency
+     *
+     * @param int $limit Number of results to return
+     * @return array<array{term: string, count: int}> Array of search terms with counts
+     */
+    public function getTopSearchTerms(int $limit = 20): array
+    {
+        $searchLog = $this->site->children()->template('search_log')->first();
+        if (!$searchLog) {
+            return [];
+        }
+
+        $logEntries = $searchLog->children()->template('search_log_item');
+        $termCounts = [];
+
+        foreach ($logEntries as $entry) {
+            $query = strtolower(trim($entry->searchQuery()->value() ?? ''));
+            if ($query !== '') {
+                $termCounts[$query] = ($termCounts[$query] ?? 0) + 1;
+            }
+        }
+
+        arsort($termCounts);
+        $topTerms = array_slice($termCounts, 0, $limit, true);
+
+        $result = [];
+        foreach ($topTerms as $term => $count) {
+            $result[] = ['term' => $term, 'count' => $count];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get top search keywords by frequency (parsed from queries, stop words removed)
+     *
+     * @param int $limit Number of results to return
+     * @return array<array{keyword: string, count: int}> Array of keywords with counts
+     */
+    public function getTopSearchKeywords(int $limit = 20): array
+    {
+        $searchLog = $this->site->children()->template('search_log')->first();
+        if (!$searchLog) {
+            return [];
+        }
+
+        $logEntries = $searchLog->children()->template('search_log_item');
+        $keywordCounts = [];
+
+        foreach ($logEntries as $entry) {
+            $query = strtolower(trim($entry->searchQuery()->value() ?? ''));
+            if ($query === '') {
+                continue;
+            }
+
+            // Split query into words, filter stop words and short words
+            $words = preg_split('/\s+/', $query);
+            foreach ($words as $word) {
+                $word = preg_replace('/[^\p{L}\p{N}]/u', '', $word); // Remove non-alphanumeric
+                if (strlen($word) >= 2 && !in_array($word, self::SEARCH_STOP_WORDS, true)) {
+                    $keywordCounts[$word] = ($keywordCounts[$word] ?? 0) + 1;
+                }
+            }
+        }
+
+        arsort($keywordCounts);
+        $topKeywords = array_slice($keywordCounts, 0, $limit, true);
+
+        $result = [];
+        foreach ($topKeywords as $keyword => $count) {
+            $result[] = ['keyword' => $keyword, 'count' => $count];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get search analytics summary
+     *
+     * @return array{totalSearches: int, uniqueTerms: int, dateRange: array{from: string|null, to: string|null}}
+     */
+    public function getSearchAnalyticsSummary(): array
+    {
+        $searchLog = $this->site->children()->template('search_log')->first();
+        if (!$searchLog) {
+            return [
+                'totalSearches' => 0,
+                'uniqueTerms' => 0,
+                'dateRange' => ['from' => null, 'to' => null]
+            ];
+        }
+
+        $logEntries = $searchLog->children()->template('search_log_item')->sortBy('searchDate', 'asc');
+        $totalSearches = $logEntries->count();
+        $uniqueTerms = [];
+        $firstDate = null;
+        $lastDate = null;
+
+        foreach ($logEntries as $entry) {
+            $query = strtolower(trim($entry->searchQuery()->value() ?? ''));
+            if ($query !== '') {
+                $uniqueTerms[$query] = true;
+            }
+            $date = $entry->searchDate()->value();
+            if ($firstDate === null) {
+                $firstDate = $date;
+            }
+            $lastDate = $date;
+        }
+
+        return [
+            'totalSearches' => $totalSearches,
+            'uniqueTerms' => count($uniqueTerms),
+            'dateRange' => ['from' => $firstDate, 'to' => $lastDate]
+        ];
+    }
+
+    /**
      * @param \Kirby\Cms\Pagination|\Kirby\Toolkit\Pagination $paginationFromKirby
      * @return Pagination
      */

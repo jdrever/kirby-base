@@ -24,6 +24,7 @@ Kirby::plugin(
         ],
         'sections' => [
             'quicklinks' => require __DIR__ . '/sections/quicklinks.php',
+            'searchanalytics' => require __DIR__ . '/sections/searchanalytics.php',
         ],
     ]
 );

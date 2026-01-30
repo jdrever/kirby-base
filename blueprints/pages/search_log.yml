@@ -2,6 +2,10 @@ title: Search Log
 icon: file-zip
 
 sections:
+  analytics:
+    type: searchanalytics
+    headline: Search Analytics
+    limit: 20
   log:
     label: Log
     type: pages
