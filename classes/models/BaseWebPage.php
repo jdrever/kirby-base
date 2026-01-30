@@ -129,6 +129,8 @@ class BaseWebPage extends BaseModel
 
     protected bool $isCookieConsentGiven = false;
 
+    protected bool $isCookieConsentRejected = false;
+
     private string $cookieConsentCSRFToken = '';
 
     private bool $isPasswordProtected = false;
@@ -805,6 +807,24 @@ class BaseWebPage extends BaseModel
     public function setIsCookieConsentGiven(bool $isCookieConsentGiven): static
     {
         $this->isCookieConsentGiven = $isCookieConsentGiven;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCookieConsentRejected(): bool
+    {
+        return $this->isCookieConsentRejected;
+    }
+
+    /**
+     * @param bool $isCookieConsentRejected
+     * @return static
+     */
+    public function setIsCookieConsentRejected(bool $isCookieConsentRejected): static
+    {
+        $this->isCookieConsentRejected = $isCookieConsentRejected;
         return $this;
     }
 

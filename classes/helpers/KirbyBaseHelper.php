@@ -282,8 +282,11 @@ abstract class KirbyBaseHelper
             $webPage->setRequiresCookieConsent($this->requiresCookieConstent());
 
             if ($webPage->doesRequireCookieConsent()) {
-                if ($this->hasCookie(self::COOKIE_CONSENT_NAME)) {// {
+                if ($this->hasCookieConsent()) {
                     $webPage->setIsCookieConsentGiven(true);
+                } elseif ($this->hasCookieConsentRejected()) {
+                    $webPage->setIsCookieConsentRejected(true);
+                    $webPage->setCookieConsentCSRFToken($this->getCSFRToken());
                 } else {
                     $webPage->setCookieConsentCSRFToken($this->getCSFRToken());
                 }
@@ -3807,16 +3810,19 @@ abstract class KirbyBaseHelper
     }
 
     /**
-     * sets the cookie 'cookieConsentGiven' and redirects to the
-     * page passed in the request as referringPage
-     * otherwise redirects to the home page
+     * Processes cookie consent form submission (accept or reject).
+     * Sets the cookie 'cookieConsentGiven' to 'yes' or 'no' and redirects to the
+     * page passed in the request as referringPage, otherwise redirects to the home page.
+     *
      * @return void
      */
     public function processCookieConsent(): void
     {
         //TODO: proper handling of CSRF expiry
         if (csrf(get('csrf')) === true) {
-            $this->setCookie(self::COOKIE_CONSENT_NAME, 'yes', 365);
+            $consent = $this->getRequestAsString('consent');
+            $cookieValue = ($consent === 'accepted') ? 'yes' : 'no';
+            $this->setCookie(self::COOKIE_CONSENT_NAME, $cookieValue, 365);
             $referringPage = $this->getRequestAsString('referringPage');
             if (!empty($referringPage)) {
                 go($referringPage);
@@ -3825,13 +3831,32 @@ abstract class KirbyBaseHelper
         go();
     }
 
-    public function requiresCookieConstent(): bool {
+    /**
+     * @return bool
+     */
+    public function requiresCookieConstent(): bool
+    {
         return option('cookieConsentRequired', false);
     }
 
+    /**
+     * Checks if cookie consent has been given (cookie value is 'yes').
+     *
+     * @return bool
+     */
     public function hasCookieConsent(): bool
     {
-        return $this->hasCookie(self::COOKIE_CONSENT_NAME);
+        return $this->getCookieAsString(self::COOKIE_CONSENT_NAME) === 'yes';
+    }
+
+    /**
+     * Checks if cookie consent has been explicitly rejected (cookie value is 'no').
+     *
+     * @return bool
+     */
+    public function hasCookieConsentRejected(): bool
+    {
+        return $this->getCookieAsString(self::COOKIE_CONSENT_NAME) === 'no';
     }
 
     #endregion

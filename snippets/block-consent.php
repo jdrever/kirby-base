@@ -12,7 +12,10 @@ endif;
   <?php if (isset($purpose)) : ?>
     <p><?= $purpose ?></p>
   <?php endif ?>
-  <p>Please give consent using the Accept button at the top of the screen, where you can also find more about our
-    privacy policy.</p>
+  <form action="/cookie-consent" method="post" class="mt-2">
+    <input type="hidden" name="csrf" value="<?= csrf() ?>">
+    <input type="hidden" name="referringPage" value="<?= kirby()->request()->url() ?>">
+    <button type="submit" name="consent" value="accepted" class="btn btn-primary btn-sm">Accept cookies</button>
+  </form>
 </div>
 
