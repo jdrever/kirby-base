@@ -1,24 +1,62 @@
-<?php /** @noinspection PhpUndefinedMethodInspection */
+<?php
+/**
+ * Responsive image snippet with AVIF/WebP support and Core Web Vitals optimizations
+ *
+ * @var Image $image The Image object to render
+ * @var bool $showDimensions Whether to include width/height attributes (recommended for CLS)
+ */
 
 declare(strict_types=1);
+
+use BSBI\WebBase\helpers\KirbyRetrievalException;
+use BSBI\WebBase\models\Image;
 
 if (!isset($image)) :
     return;
 endif;
 
+if (!$image instanceof Image) :
+  /** @noinspection PhpUnhandledExceptionInspection */
+  throw new KirbyRetrievalException("$image not an instance of Image");
+endif;
+
+// Default to showing dimensions to prevent Cumulative Layout Shift (CLS)
+if (!isset($showDimensions)) :
+    $showDimensions = true;
+endif;
 
 ?>
 
-
-<img
-<?php if ($image->hasClass()) : ?>
-    class="<?= $image->getClass() ?>"
+<figure>
+    <picture>
+<?php if ($image->hasAvifSrcset()) : ?>
+        <source type="image/avif" srcset="<?= $image->getAvifSrcset() ?>"<?php if ($image->hasSizes()) : ?> sizes="<?= $image->getSizes() ?>"<?php endif ?>>
 <?php endif ?>
-    alt="<?= $image->getAlt() ?>"
-    src="<?= $image->getSrc() ?>"
-    width="<?= $image->getWidth() ?>"
-    height="<?= $image->getHeight() ?>"
-    <?php if ($image->hasCaption()) : ?>
-        title="<?= $image->getCaption() ?>"
-    <?php endif ?>
->
+        <source type="image/webp" srcset="<?= $image->getWebpSrcset() ?>"<?php if ($image->hasSizes()) : ?> sizes="<?= $image->getSizes() ?>"<?php endif ?>>
+        <img
+<?php if ($image->hasClass()) : ?>
+            class="<?= $image->getClass() ?>"
+<?php endif ?>
+            alt="<?= $image->getAlt() ?>"
+            src="<?= $image->getSrc() ?>"
+            srcset="<?= $image->getSrcset() ?>"
+<?php if ($showDimensions && $image->getWidth() > 0) : ?>
+            width="<?= $image->getWidth() ?>"
+<?php endif ?>
+<?php if ($showDimensions && $image->getHeight() > 0) : ?>
+            height="<?= $image->getHeight() ?>"
+<?php endif ?>
+<?php if ($image->hasSizes()) : ?>
+            sizes="<?= $image->getSizes() ?>"
+<?php endif ?>
+            loading="<?= $image->getLoading() ?>"
+            decoding="<?= $image->getDecoding() ?>"
+<?php if ($image->hasFetchPriority()) : ?>
+            fetchpriority="<?= $image->getFetchPriority() ?>"
+<?php endif ?>
+<?php if ($image->hasCaption()) : ?>
+            title="<?= $image->getCaptionWithoutHTML() ?>"
+<?php endif ?>
+        >
+    </picture>
+</figure>

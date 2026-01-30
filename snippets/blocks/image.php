@@ -58,7 +58,7 @@ snippet('base/full-width-block-starts', ['fullWidth' => $fullWidth]);
         if ($block->location()->value() === 'web') :
             $src = $block->src()->esc();
             ?>
-            <img class="<?= $imgClass ?>" src="<?= $src ?>" alt="<?= $alt->esc() ?>">
+            <img class="<?= $imgClass ?>" src="<?= $src ?>" alt="<?= $alt->esc() ?>" loading="lazy" decoding="async">
 
         <?php
 // Handle image bank source
@@ -68,11 +68,11 @@ snippet('base/full-width-block-starts', ['fullWidth' => $fullWidth]);
             if ($image = kirby()->file($imageBankId)) :
                 ?>
                 <picture>
-                    <source type="image/webp" srcset="<?= $image->srcset('webp') ?>" sizes="<?= $sizes ?>" type="image/webp"
-                            sizes="<?= $sizes ?>">
+                    <source type="image/avif" srcset="<?= $image->srcset('avif') ?>" sizes="<?= $sizes ?>">
+                    <source type="image/webp" srcset="<?= $image->srcset('webp') ?>" sizes="<?= $sizes ?>">
                     <img class="<?= $imgClass ?>" alt="<?= $image->alt()->or($alt) ?>" src="<?= $image->resize($width)->url() ?>"
                          srcset="<?= $image->srcset() ?>" sizes="<?= $sizes ?>" width="<?= $image->resize($width)->width() ?>"
-                         height="<?= $image->resize($width)->height() ?>">
+                         height="<?= $image->resize($width)->height() ?>" loading="lazy" decoding="async">
                 </picture>
             <?php endif; ?>
 
@@ -81,11 +81,11 @@ snippet('base/full-width-block-starts', ['fullWidth' => $fullWidth]);
         elseif ($image = $block->image()->toFile()) :
             ?>
             <picture>
-                <source type="image/webp" srcset="<?= $image->srcset('webp') ?>" sizes="<?= $sizes ?>" type="image/webp"
-                        sizes="<?= $sizes ?>">
+                <source type="image/avif" srcset="<?= $image->srcset('avif') ?>" sizes="<?= $sizes ?>">
+                <source type="image/webp" srcset="<?= $image->srcset('webp') ?>" sizes="<?= $sizes ?>">
                 <img class="<?= $imgClass ?>" alt="<?= $image->alt()->or($alt) ?>" src="<?= $image->resize($width)->url() ?>"
                      srcset="<?= $image->srcset() ?>" sizes="<?= $sizes ?>" width="<?= $image->resize($width)->width() ?>"
-                     height="<?= $image->resize($width)->height() ?>">
+                     height="<?= $image->resize($width)->height() ?>" loading="lazy" decoding="async">
             </picture>
         <?php endif ?>
 

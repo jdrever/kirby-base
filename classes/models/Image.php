@@ -3,10 +3,10 @@
 namespace BSBI\WebBase\models;
 
 /**
- * Class Person
- * Represents a person (e.g. member of staff or trustee)
+ * Class Image
+ * Represents an image with responsive srcsets and performance attributes
  *
- * @package BSBI\Web
+ * @package BSBI\WebBase
  */
 class Image extends BaseModel
 {
@@ -19,6 +19,15 @@ class Image extends BaseModel
 
     /** @var string The webp srcset */
     private string $webpSrcset;
+
+    /** @var string The AVIF srcset */
+    private string $avifSrcset = '';
+
+    /** @var string Single WebP URL for CSS background-image */
+    private string $webpSrc = '';
+
+    /** @var string Single AVIF URL for CSS background-image */
+    private string $avifSrc = '';
 
     /** @var string The CSS class */
     private string $class;
@@ -35,6 +44,15 @@ class Image extends BaseModel
     private string $sizes = '';
 
     private string $caption = '';
+
+    /** @var string Loading attribute (lazy|eager) - defaults to lazy for below-fold images */
+    private string $loading = 'lazy';
+
+    /** @var string Fetch priority (high|low|auto) - use high for LCP images */
+    private string $fetchPriority = '';
+
+    /** @var string Decoding attribute (async|sync|auto) - async prevents render blocking */
+    private string $decoding = 'async';
 
     /**
      * @param string $src
@@ -111,6 +129,148 @@ class Image extends BaseModel
     public function setWebpSrcset(string $webpSrcset): Image
     {
         $this->webpSrcset = $webpSrcset;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasAvifSrcset(): bool
+    {
+        return !empty($this->avifSrcset);
+    }
+
+    /**
+     * @return string
+     */
+    public function getAvifSrcset(): string
+    {
+        return $this->avifSrcset;
+    }
+
+    /**
+     * @param string $avifSrcset
+     * @return $this
+     */
+    public function setAvifSrcset(string $avifSrcset): Image
+    {
+        $this->avifSrcset = $avifSrcset;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasWebpSrc(): bool
+    {
+        return !empty($this->webpSrc);
+    }
+
+    /**
+     * Get single WebP URL for use in CSS background-image
+     * @return string
+     */
+    public function getWebpSrc(): string
+    {
+        return $this->webpSrc;
+    }
+
+    /**
+     * @param string $webpSrc
+     * @return $this
+     */
+    public function setWebpSrc(string $webpSrc): Image
+    {
+        $this->webpSrc = $webpSrc;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasAvifSrc(): bool
+    {
+        return !empty($this->avifSrc);
+    }
+
+    /**
+     * Get single AVIF URL for use in CSS background-image
+     * @return string
+     */
+    public function getAvifSrc(): string
+    {
+        return $this->avifSrc;
+    }
+
+    /**
+     * @param string $avifSrc
+     * @return $this
+     */
+    public function setAvifSrc(string $avifSrc): Image
+    {
+        $this->avifSrc = $avifSrc;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLoading(): string
+    {
+        return $this->loading;
+    }
+
+    /**
+     * @param string $loading (lazy|eager)
+     * @return $this
+     */
+    public function setLoading(string $loading): Image
+    {
+        $this->loading = $loading;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasFetchPriority(): bool
+    {
+        return !empty($this->fetchPriority);
+    }
+
+    /**
+     * @return string
+     */
+    public function getFetchPriority(): string
+    {
+        return $this->fetchPriority;
+    }
+
+    /**
+     * @param string $fetchPriority (high|low|auto)
+     * @return $this
+     */
+    public function setFetchPriority(string $fetchPriority): Image
+    {
+        $this->fetchPriority = $fetchPriority;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDecoding(): string
+    {
+        return $this->decoding;
+    }
+
+    /**
+     * @param string $decoding (async|sync|auto)
+     * @return $this
+     */
+    public function setDecoding(string $decoding): Image
+    {
+        $this->decoding = $decoding;
         return $this;
     }
 

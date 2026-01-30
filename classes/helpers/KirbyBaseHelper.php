@@ -3470,20 +3470,33 @@ abstract class KirbyBaseHelper
 
         try {
             $src = $image->thumb($thumbOptions)->url();
+            // Generate single WebP URL for CSS background-image use
+            $webpThumbOptions = array_merge($thumbOptions, ['format' => 'webp']);
+            $webpSrc = $image->thumb($webpThumbOptions)->url();
+            // Generate single AVIF URL for CSS background-image use
+            $avifThumbOptions = array_merge($thumbOptions, ['format' => 'avif']);
+            $avifSrc = $image->thumb($avifThumbOptions)->url();
         } catch (InvalidArgumentException $e) {
             throw new KirbyRetrievalException('The image could not be retrieved: ' . $e->getMessage());
         }
         $srcSetType = strtolower($imageType->value);
         $srcSet = $image->srcset($srcSetType);
         $webpSrcSet = $image->srcset($srcSetType . '-webp');
+        $avifSrcSet = $image->srcset($srcSetType . '-avif');
         /** @noinspection PhpUndefinedMethodInspection */
         $alt = $image->alt()->isNotEmpty() ? $image->alt()->value() : '';
         $caption = $this->getCaptionForImage($image);
         if ($src !== null && $srcSet !== null && $webpSrcSet !== null) {
-            return (new Image ($src, $srcSet, $webpSrcSet, $alt, $width, $height))
+            $imageObj = (new Image($src, $srcSet, $webpSrcSet, $alt, $width, $height))
                 ->setSizes($imageSizes->value)
                 ->setClass($imageClass)
-                ->setCaption($caption);
+                ->setCaption($caption)
+                ->setWebpSrc($webpSrc)
+                ->setAvifSrc($avifSrc);
+            if (!empty($avifSrcSet)) {
+                $imageObj->setAvifSrcset($avifSrcSet);
+            }
+            return $imageObj;
         }
         return (new Image())->recordError('Image not found');
 
