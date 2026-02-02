@@ -3001,6 +3001,7 @@ abstract class KirbyBaseHelper
      * @param bool $getSubPages
      * @param bool $getImages
      * @param ImageSizes $imageSizes The sizes attribute for responsive images
+     * @param ImageType $imageType The srcset type for images
      * @return WebPageLinks
      * @throws KirbyRetrievalException
      */
@@ -3008,16 +3009,17 @@ abstract class KirbyBaseHelper
                                        bool $simpleLink = true,
                                        bool $getSubPages = false,
                                        bool $getImages = true,
-                                       ImageSizes $imageSizes = ImageSizes::HALF_LARGE_SCREEN): WebPageLinks
+                                       ImageSizes $imageSizes = ImageSizes::HALF_LARGE_SCREEN,
+                                       ImageType $imageType = ImageType::PANEL): WebPageLinks
     {
         $webPageLinks = new WebPageLinks();
         /** @var Page $collectionPage */
         foreach ($collection as $collectionPage) {
-            $webPageLink = $this->getWebPageLink($collectionPage, $simpleLink, null, null, $getImages, $imageSizes);
+            $webPageLink = $this->getWebPageLink($collectionPage, $simpleLink, null, null, $getImages, $imageSizes, $imageType);
             if ($getSubPages) {
                 $subPages = $this->getSubPagesAsCollection($collectionPage);
                 $getSubPageImages = $webPageLink->doShowSubPageImages();
-                $webPageLink->setSubPages($this->getWebPageLinks($subPages, $simpleLink, false, $getSubPageImages, ImageSizes::QUARTER_LARGE_SCREEN));
+                $webPageLink->setSubPages($this->getWebPageLinks($subPages, $simpleLink, false, $getSubPageImages, ImageSizes::QUARTER_LARGE_SCREEN, ImageType::PANEL_SMALL));
             }
             $webPageLinks->addListItem($webPageLink);
         }
@@ -3032,6 +3034,7 @@ abstract class KirbyBaseHelper
      * @param string|null $linkDescription
      * @param bool $getImages
      * @param ImageSizes $imageSizes The sizes attribute for responsive images
+     * @param ImageType $imageType The srcset type for images
      * @return WebPageLink
      * @throws KirbyRetrievalException
      */
@@ -3040,7 +3043,8 @@ abstract class KirbyBaseHelper
                                       string|null $linkTitle = null,
                                       string|null $linkDescription = null,
                                       bool        $getImages = true,
-                                      ImageSizes  $imageSizes = ImageSizes::HALF_LARGE_SCREEN): WebPageLink
+                                      ImageSizes  $imageSizes = ImageSizes::HALF_LARGE_SCREEN,
+                                      ImageType   $imageType = ImageType::PANEL): WebPageLink
     {
         $templateName = $page->template()->name();
 
@@ -3083,7 +3087,7 @@ abstract class KirbyBaseHelper
             return $webPageLink;
         }
         if ($getImages && $this->isPageFieldNotEmpty($page, 'panelImage')) {
-            $panelImage = $this->getImage($page, 'panelImage', 400, 300, 80, ImageType::PANEL, '', $imageSizes);
+            $panelImage = $this->getImage($page, 'panelImage', 400, 300, 80, $imageType, '', $imageSizes);
             $panelImage->setClass('img-fix-size img-fix-size--four-three');
             $webPageLink->setImage($panelImage);
         }
