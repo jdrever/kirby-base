@@ -3000,19 +3000,24 @@ abstract class KirbyBaseHelper
      * @param bool $simpleLink
      * @param bool $getSubPages
      * @param bool $getImages
+     * @param ImageSizes $imageSizes The sizes attribute for responsive images
      * @return WebPageLinks
      * @throws KirbyRetrievalException
      */
-    protected function getWebPageLinks(Collection $collection, bool $simpleLink = true, bool $getSubPages = false, bool $getImages = true): WebPageLinks
+    protected function getWebPageLinks(Collection $collection,
+                                       bool $simpleLink = true,
+                                       bool $getSubPages = false,
+                                       bool $getImages = true,
+                                       ImageSizes $imageSizes = ImageSizes::HALF_LARGE_SCREEN): WebPageLinks
     {
         $webPageLinks = new WebPageLinks();
         /** @var Page $collectionPage */
         foreach ($collection as $collectionPage) {
-            $webPageLink = $this->getWebPageLink($collectionPage, $simpleLink, null, null, $getImages);
+            $webPageLink = $this->getWebPageLink($collectionPage, $simpleLink, null, null, $getImages, $imageSizes);
             if ($getSubPages) {
                 $subPages = $this->getSubPagesAsCollection($collectionPage);
                 $getSubPageImages = $webPageLink->doShowSubPageImages();
-                $webPageLink->setSubPages($this->getWebPageLinks($subPages, $simpleLink, false, $getSubPageImages));
+                $webPageLink->setSubPages($this->getWebPageLinks($subPages, $simpleLink, false, $getSubPageImages, ImageSizes::QUARTER_LARGE_SCREEN));
             }
             $webPageLinks->addListItem($webPageLink);
         }
@@ -3026,6 +3031,7 @@ abstract class KirbyBaseHelper
      * @param string|null $linkTitle
      * @param string|null $linkDescription
      * @param bool $getImages
+     * @param ImageSizes $imageSizes The sizes attribute for responsive images
      * @return WebPageLink
      * @throws KirbyRetrievalException
      */
@@ -3033,7 +3039,8 @@ abstract class KirbyBaseHelper
                                       bool        $simpleLink = true,
                                       string|null $linkTitle = null,
                                       string|null $linkDescription = null,
-                                      bool        $getImages = true): WebPageLink
+                                      bool        $getImages = true,
+                                      ImageSizes  $imageSizes = ImageSizes::HALF_LARGE_SCREEN): WebPageLink
     {
         $templateName = $page->template()->name();
 
@@ -3076,7 +3083,7 @@ abstract class KirbyBaseHelper
             return $webPageLink;
         }
         if ($getImages && $this->isPageFieldNotEmpty($page, 'panelImage')) {
-            $panelImage = $this->getImage($page, 'panelImage', 400, 300, 80, ImageType::PANEL);
+            $panelImage = $this->getImage($page, 'panelImage', 400, 300, 80, ImageType::PANEL, '', $imageSizes);
             $panelImage->setClass('img-fix-size img-fix-size--four-three');
             $webPageLink->setImage($panelImage);
         }
