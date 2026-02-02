@@ -4629,10 +4629,12 @@ abstract class KirbyBaseHelper
     }
 
     /**
-     * Adds span class="highlight" to individual words in the term
-     * @param string $text
-     * @param string $term
-     * @return string
+     * Adds span class="highlight" to individual words in the term.
+     * Only highlights text content, not text inside HTML tags/attributes.
+     *
+     * @param string $text The HTML text to process
+     * @param string $term The search term (may include quoted phrases)
+     * @return string The text with highlights applied
      */
     private function highlightTerm(string $text, string $term): string
     {
@@ -4648,21 +4650,51 @@ abstract class KirbyBaseHelper
         }
         $words = array_filter($words);
 
-        // Highlight exact phrases first
+        // Highlight exact phrases first (only in text outside HTML tags)
         foreach ($phrases as $phrase) {
             $escaped = preg_quote($phrase, '/');
-            $text = preg_replace("/($escaped)/i", '<span class="highlight">$1</span>', $text) ?? $text;
+            $text = $this->highlightInTextOnly($text, "/($escaped)/i");
         }
 
         // Highlight individual words (skip very short words and stop words)
         foreach ($words as $word) {
             if (strlen($word) > 2 && !in_array(strtolower($word), self::STOP_WORDS)) {
                 $escaped = preg_quote($word, '/');
-                $text = preg_replace("/(\b$escaped\b)/i", '<span class="highlight">$1</span>', $text) ?? $text;
+                $text = $this->highlightInTextOnly($text, "/(\b$escaped\b)/i");
             }
         }
 
         return $text;
+    }
+
+    /**
+     * Apply highlighting only to text content, skipping HTML tags and attributes.
+     *
+     * @param string $text The HTML text to process
+     * @param string $pattern The regex pattern to match (should have a capture group)
+     * @return string The text with highlights applied only to text content
+     */
+    private function highlightInTextOnly(string $text, string $pattern): string
+    {
+        // Split text into HTML tags and text content
+        // This regex captures HTML tags (including their attributes) as separate parts
+        $parts = preg_split('/(<[^>]+>)/', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
+        if ($parts === false) {
+            return $text;
+        }
+
+        $result = '';
+        foreach ($parts as $part) {
+            // If this part is an HTML tag (starts with <), leave it unchanged
+            if (str_starts_with($part, '<')) {
+                $result .= $part;
+            } else {
+                // This is text content - apply highlighting
+                $result .= preg_replace($pattern, '<span class="highlight">$1</span>', $part) ?? $part;
+            }
+        }
+
+        return $result;
     }
 
     /**
