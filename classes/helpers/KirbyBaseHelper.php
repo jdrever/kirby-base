@@ -3501,6 +3501,12 @@ abstract class KirbyBaseHelper
         $srcSet = $image->srcset($srcSetType);
         $webpSrcSet = $image->srcset($srcSetType . '-webp');
 
+        // Fallback to 'panel' srcset if the requested srcset type returns empty
+        if (empty($srcSet) && $srcSetType !== 'panel') {
+            $srcSet = $image->srcset('panel');
+            $webpSrcSet = $image->srcset('panel-webp');
+        }
+
         // AVIF srcset may fail if server doesn't support AVIF encoding
         $avifSrcSet = '';
         try {
