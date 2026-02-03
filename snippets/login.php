@@ -81,5 +81,12 @@ $loginDetails = $currentPage->getLoginDetails();
                 passwordInput.setAttribute('type', 'password');
             }
         });
+
+        // Prevent double-submission of login form
+        document.querySelector('.login-form').addEventListener('submit', function() {
+            const submitButton = this.querySelector('input[name="loginButton"]');
+            submitButton.disabled = true;
+            submitButton.value = 'Logging in...';
+        });
     });
 </script>
