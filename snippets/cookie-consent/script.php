@@ -68,33 +68,38 @@
 
     /**
      * Apply the consent state to the page
+     * CSS defaults: banner hidden, content shown, placeholder hidden
+     * JS shows banner if no choice made, swaps content/placeholder if not accepted
      * @param {string|null} status
      */
     function applyConsentState(status) {
-        // Hide main consent banner if any choice has been made
-        if (status === 'accepted' || status === 'rejected') {
+        // Show main consent banner only if no choice has been made yet
+        if (!status) {
             document.querySelectorAll('[data-cookie-consent-banner]').forEach(el => {
-                el.style.display = 'none'
+                el.style.display = ''
             })
         }
 
         // Handle consent-required content blocks
+        // If not accepted, show placeholder and hide content
         document.querySelectorAll('[data-requires-consent]').forEach(container => {
             const placeholder = container.querySelector('[data-consent-placeholder]')
             const content = container.querySelector('[data-consent-content]')
 
             if (placeholder && content) {
                 if (status === 'accepted') {
+                    // CSS defaults handle this, but be explicit
                     placeholder.style.display = 'none'
                     content.style.display = ''
                 } else {
+                    // No consent or rejected - show placeholder, hide content
                     placeholder.style.display = ''
                     content.style.display = 'none'
                 }
             }
         })
 
-        // Update reject button visibility in inline consent forms
+        // Hide reject button if already rejected (can only accept now)
         if (status === 'rejected') {
             document.querySelectorAll('[data-consent-reject-btn]').forEach(btn => {
                 btn.style.display = 'none'
