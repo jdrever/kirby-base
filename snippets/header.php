@@ -33,6 +33,7 @@ endif;
     <?php snippet('base/robots-meta-tag') ?>
     <?php snippet('colour-mode/script') ?>
     <?php snippet('cookie-consent/script') ?>
+    <?php snippet('user-status/script') ?>
     <?php snippet('base/styles') ?>
 <?php /** @noinspection PhpUndefinedMethodInspection */
 if ($lowerHead = $slots->lowerHead()) : ?>
