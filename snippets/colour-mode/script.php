@@ -1,14 +1,38 @@
 <script>
     ;(function () {
-        const STORAGE_KEY = 'colourMode'
+        const COOKIE_NAME = 'colourMode'
+        const COOKIE_DAYS = 365
         const htmlElement = document.documentElement
+
+        /**
+         * Get a cookie value by name
+         * @param {string} name
+         * @returns {string|null}
+         */
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'))
+            return match ? decodeURIComponent(match[2]) : null
+        }
+
+        /**
+         * Set a cookie with expiry
+         * @param {string} name
+         * @param {string} value
+         * @param {number} days
+         */
+        function setCookie(name, value, days) {
+            const date = new Date()
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000))
+            const expires = 'expires=' + date.toUTCString()
+            document.cookie = name + '=' + encodeURIComponent(value) + ';' + expires + ';path=/;SameSite=Lax'
+        }
 
         /**
          * Get the stored colour mode preference, defaulting to 'auto'
          * @returns {string}
          */
         function getStoredMode() {
-            return localStorage.getItem(STORAGE_KEY) || 'auto'
+            return getCookie(COOKIE_NAME) || 'auto'
         }
 
         /**
@@ -41,7 +65,7 @@
          * @param {string} mode
          */
         function setColourMode(mode) {
-            localStorage.setItem(STORAGE_KEY, mode)
+            setCookie(COOKIE_NAME, mode, COOKIE_DAYS)
             applyTheme(mode)
             updateSelectorUI(mode)
         }

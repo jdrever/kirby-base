@@ -276,7 +276,6 @@ abstract class KirbyBaseHelper
                 $webPage->setOpenGraphImage($this->site->url() . '/assets/images/BSBI-long-colour.svg');
             }
 
-            $webPage->setColourMode($this->getColourMode());
             $webPage->setLanguages($this->getLanguages());
 
             $webPage->setRequiresCookieConsent($this->requiresCookieConstent());
@@ -5535,26 +5534,6 @@ abstract class KirbyBaseHelper
     #endregion
 
     #region MISC
-
-    /**
-     * gets the colour mode (getting/setting a colourMode cookie as required)
-     * @return string
-     * @throws KirbyRetrievalException
-     */
-    protected function getColourMode(): string
-    {
-        $colourMode = get('colourMode') ?: Cookie::get('colourMode') ?: 'auto';
-
-        if (!is_string($colourMode)) {
-            throw new KirbyRetrievalException('site controller: $colourMode is not set to a string');
-        }
-
-        if (get('colourMode')) {
-            $this->setCookie('colourMode', $colourMode);
-        }
-        return $colourMode;
-    }
-
 
     /**
      * @param string $fullClassName
