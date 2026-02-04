@@ -1,10 +1,7 @@
-<?php /** @noinspection PhpUnhandledExceptionInspection */
+<?php
 
 declare(strict_types=1);
 
-if (!isset($currentPage)) :
-    throw new Exception('$currentPage not provided');
-endif;
-
+// Output a static, cacheable default - JS will hydrate from localStorage
 ?>
-data-bs-theme="<?=htmlspecialchars($currentPage->getColourMode(), ENT_QUOTES, 'UTF-8')?>"
+data-bs-theme="auto"
