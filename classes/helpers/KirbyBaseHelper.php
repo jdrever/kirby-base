@@ -36,6 +36,8 @@ use DateTimeZone;
 use Kirby\Cms\App;
 use Kirby\Cms\Block;
 use Kirby\Cms\Blocks;
+use Kirby\Cms\Responder;
+use Kirby\Cms\Response;
 use Kirby\Data\Data;
 use Kirby\Data\Yaml;
 use Kirby\Toolkit\Collection;
@@ -5456,25 +5458,21 @@ abstract class KirbyBaseHelper
      * @param Page $page The page to set cache headers for
      * @param int $cdnMaxAge Max age in seconds for CDN caching (default 1 hour)
      * @param int $browserMaxAge Max age in seconds for browser caching (default 5 minutes)
-     * @return void
+     * @return Responder
      */
-    public function setCacheHeaders(Page $page, int $cdnMaxAge = 3600, int $browserMaxAge = 300): void
+    public function setCacheHeaders(Page $page, int $cdnMaxAge = 3600, int $browserMaxAge = 300): Responder
     {
-        return;
-        // Don't set headers if already sent
-        if (headers_sent()) {
-            return;
-        }
+        $responder = kirby()->response();
 
         if ($this->isPageCacheable($page)) {
-            // Public page - allow caching
-            header("Cache-Control: public, s-maxage=$cdnMaxAge, max-age=$browserMaxAge");
-        } else {
-            // Protected page - prevent all caching
-            header('Cache-Control: private, no-store, no-cache, must-revalidate');
-            header('Pragma: no-cache');
-            header('Expires: 0');
+            return $responder->header('Cache-Control', "public, s-maxage=$cdnMaxAge, max-age=$browserMaxAge");
         }
+
+        return $responder->headers([
+            'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
+            'Pragma'        => 'no-cache',
+            'Expires'       => '0'
+        ]);
     }
     #endregion
 
