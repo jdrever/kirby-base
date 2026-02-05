@@ -68,6 +68,8 @@ abstract class KirbyBaseHelper
         'this', 'that', 'these', 'those', 'it', 'its'
     ];
 
+    protected const string ASSETS_PATH = '/media/plugins/open-foundations/kirby-base/';
+
     #region CONSTRUCTOR
     /**
      * The Kirby object

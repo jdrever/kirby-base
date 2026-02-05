@@ -555,10 +555,10 @@ class BaseWebPage extends BaseModel
      * @param string $script
      * @return self
      */
-    public function addScript(string $script): self
+    public function addScript(string $script, string $path = '/assets/js/', $fileType='.js'): self
     {
         if (!in_array($script, $this->customScripts)) {
-            $this->customScripts[] = $script;
+            $this->customScripts[] = $path.$script.$fileType;
         }
         return $this;
     }
