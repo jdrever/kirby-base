@@ -2611,6 +2611,12 @@ abstract class KirbyBaseHelper
         return $this->isUserAdminOrEditor($user);
     }
 
+    public function isCurrentUserAdminOrEditorOrHasRoles(array $roles) : bool
+    {
+        $currentRole = $this->getCurrentUserRole();
+        return (in_array($currentRole,$roles)|| $currentRole === 'admin' || $currentRole === 'editor');
+    }
+
     public function isUserAdminOrEditor(\Kirby\Cms\User|null $user): bool
     {
         if ($user && !$user->isKirby() && ($user->role()->name() === 'admin' || $user->role()->name() === 'editor')) {
@@ -2618,6 +2624,9 @@ abstract class KirbyBaseHelper
         }
         return false;
     }
+
+
+
 
     /**
      * @param string $role
