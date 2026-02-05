@@ -5416,7 +5416,18 @@ abstract class KirbyBaseHelper
     public function isPageCacheable(Page $page): bool
     {
         // Don't cache login/auth related pages
-        if (in_array($page->template()->name(), ['login', 'reset_password', 'reset_password_verification'])) {
+        if (in_array($page->template()->name(), [
+            'file_archive',
+            'file_link',
+            'form_submission',
+            'image_bank',
+            'page_link',
+            'login',
+            'reset_password',
+            'reset_password_verification',
+            'search_log',
+            'search_log_item'
+        ])) {
             return false;
         }
 
