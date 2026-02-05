@@ -85,7 +85,7 @@ abstract class KirbyBaseHelper
      */
     protected ?Page $page;
 
-    const string COOKIE_CONSENT_NAME = 'cookieConsentGiven';
+    const string COOKIE_CONSENT_NAME = 'cookieConsent';
 
     /**
      *
@@ -285,25 +285,26 @@ abstract class KirbyBaseHelper
                     $webPage->setIsCookieConsentGiven(true);
                 } elseif ($this->hasCookieConsentRejected()) {
                     $webPage->setIsCookieConsentRejected(true);
-                    $webPage->setCookieConsentCSRFToken($this->getCSFRToken());
-                } else {
-                    $webPage->setCookieConsentCSRFToken($this->getCSFRToken());
                 }
+                // Cookie consent UI is handled client-side via JavaScript
             }
 
             //add scripts for blocks
             if ($webPage->hasBlockofType('video')) {
                 $webPage->addScript('lite-youtube');
             }
-            $session = $this->kirby->session();
 
-
-            /** @noinspection PhpUndefinedMethodInspection */
-            if ($actionStatus = $session->pull('actionStatus')) {
-                /** @var ActionStatus $actionStatus */
-                $webPage->setStatus($actionStatus->getStatus());
-                $webPage->addFriendlyMessage($actionStatus->getFirstFriendlyMessage());
-            } else if ($actionStatus = get('actionStatus')) {
+            // Only access session if a session cookie exists (to avoid breaking page cache)
+            $sessionCookieName = $this->kirby->option('session')['cookieName'] ?? 'kirby_session';
+            if (isset($_COOKIE[$sessionCookieName])) {
+                $session = $this->kirby->session();
+                /** @noinspection PhpUndefinedMethodInspection */
+                if ($actionStatus = $session->pull('actionStatus')) {
+                    /** @var ActionStatus $actionStatus */
+                    $webPage->setStatus($actionStatus->getStatus());
+                    $webPage->addFriendlyMessage($actionStatus->getFirstFriendlyMessage());
+                }
+            } elseif ($actionStatus = get('actionStatus')) {
                 $webPage->setStatus($actionStatus);
                 $webPage->addFriendlyMessage(get('friendlyMessage', 'Unknown status'));
             }
@@ -314,6 +315,9 @@ abstract class KirbyBaseHelper
                 $webPage->setQuery($query);
                 $webPage = $this->highlightSearchQuery($webPage, $query);
             }
+
+            // Set HTTP cache headers based on page permissions
+            $this->setCacheHeaders($page);
         } catch (KirbyRetrievalException $e) {
             $webPage = $this->handlePageError($e);
         }
@@ -2458,7 +2462,8 @@ abstract class KirbyBaseHelper
     {
         $user = new User('user');
 
-        $userLoggedIn = $this->kirby->user();
+        // Only access user if session cookie exists to avoid starting a session (which prevents caching)
+        $userLoggedIn = $this->hasSessionCookie() ? $this->kirby->user() : null;
         $userId = ($userLoggedIn) ? $userLoggedIn->id() : '';
         $userName = ($userLoggedIn) ? $userLoggedIn->userName() : '';
         $role = ($userLoggedIn) ? $userLoggedIn->role()->name() : '';
@@ -2490,16 +2495,24 @@ abstract class KirbyBaseHelper
      */
     protected function getCurrentUserName(): string
     {
+        // Only access user if session cookie exists to avoid starting a session (which prevents caching)
+        if (!$this->hasSessionCookie()) {
+            return '';
+        }
         return $this->kirby->user() ? $this->kirby->user()->name() : '';
     }
 
     /**
-     * gets the current Kirby username - returns blank string if no user
+     * gets the current Kirby user role - returns blank string if no user
      * @return string
      * @noinspection PhpUnused
      */
     protected function getCurrentUserRole(): string
     {
+        // Only access user if session cookie exists to avoid starting a session (which prevents caching)
+        if (!$this->hasSessionCookie()) {
+            return '';
+        }
         return $this->kirby->user() ? $this->kirby->user()->role()->name() : '';
     }
 
@@ -2523,7 +2536,8 @@ abstract class KirbyBaseHelper
             return true;
         }
 
-        $user = $this->kirby->user();
+        // Only access user if session cookie exists to avoid starting a session (which prevents caching)
+        $user = $this->hasSessionCookie() ? $this->kirby->user() : null;
 
         if ($this->isCurrentUserAdminOrEditor()) {
             return true;
@@ -2574,8 +2588,25 @@ abstract class KirbyBaseHelper
         return false;
     }
 
+    /**
+     * Checks if a Kirby session cookie exists.
+     * Use this before calling kirby()->user() to avoid starting a session
+     * which would prevent page caching.
+     *
+     * @return bool
+     */
+    protected function hasSessionCookie(): bool
+    {
+        $cookieName = $this->kirby->option('session')['cookieName'] ?? 'kirby_session';
+        return isset($_COOKIE[$cookieName]);
+    }
+
     public function isCurrentUserAdminOrEditor(): bool
     {
+        // Don't start a session just to check user - if no session cookie, no user is logged in
+        if (!$this->hasSessionCookie()) {
+            return false;
+        }
         $user = $this->kirby->user();
         return $this->isUserAdminOrEditor($user);
     }
@@ -2594,6 +2625,10 @@ abstract class KirbyBaseHelper
      */
     public function doesCurrentUserHaveRole(string $role): bool
     {
+        // Don't start a session just to check user - if no session cookie, no user is logged in
+        if (!$this->hasSessionCookie()) {
+            return false;
+        }
         $user = $this->kirby->user();
         if ($user && $user->role()->name() === $role) {
             return true;
@@ -2607,6 +2642,10 @@ abstract class KirbyBaseHelper
      */
     protected function isUserLoggedIn(): bool
     {
+        // Don't start a session just to check user - if no session cookie, no user is logged in
+        if (!$this->hasSessionCookie()) {
+            return false;
+        }
         return $this->kirby->user() != null;
     }
 
@@ -3837,22 +3876,42 @@ abstract class KirbyBaseHelper
     }
 
     /**
-     * @param string $key
-     * @return bool
+     * Check if a cookie exists.
+     * Uses $_COOKIE directly to avoid triggering Kirby's cache tracking.
+     *
+     * @param string $key The cookie name
+     * @return bool True if the cookie exists
      */
     protected function hasCookie(string $key): bool
     {
-        return Cookie::exists($key);
+        return isset($_COOKIE[$key]);
     }
 
     /**
-     * @param string $key
-     * @param string $fallback
-     * @return string
+     * Gets a cookie value.
+     * Uses $_COOKIE directly to avoid triggering Kirby's cache tracking.
+     *
+     * @param string $key The cookie name
+     * @param string $fallback Default value if cookie doesn't exist
+     * @return string The cookie value or fallback
      */
     protected function getCookieAsString(string $key, string $fallback = ''): string
     {
-        return $this->asString(Cookie::get($key, $fallback));
+        return $this->asString($_COOKIE[$key] ?? $fallback);
+    }
+
+    /**
+     * Gets a cookie value directly from $_COOKIE without triggering Kirby's
+     * cache tracking. Use this for cookies that don't change the page content
+     * (e.g., cookie consent that only affects client-side JS behavior).
+     *
+     * @param string $key The cookie name
+     * @param string $fallback Default value if cookie doesn't exist
+     * @return string The cookie value or fallback
+     */
+    protected function getCookieCacheSafe(string $key, string $fallback = ''): string
+    {
+        return $this->asString($_COOKIE[$key] ?? $fallback);
     }
 
     /**
@@ -3864,10 +3923,12 @@ abstract class KirbyBaseHelper
      */
     public function processCookieConsent(): void
     {
-        //TODO: proper handling of CSRF expiry
+        // Note: Cookie consent is now handled client-side via JavaScript.
+        // This server-side method is kept for backwards compatibility but is largely unused.
+        // The JavaScript sets 'accepted' or 'rejected' values directly.
         if (csrf(get('csrf')) === true) {
             $consent = $this->getRequestAsString('consent');
-            $cookieValue = ($consent === 'accepted') ? 'yes' : 'no';
+            $cookieValue = ($consent === 'accepted') ? 'accepted' : 'rejected';
             $this->setCookie(self::COOKIE_CONSENT_NAME, $cookieValue, 365);
             $referringPage = $this->getRequestAsString('referringPage');
             if (!empty($referringPage)) {
@@ -3887,22 +3948,26 @@ abstract class KirbyBaseHelper
 
     /**
      * Checks if cookie consent has been given (cookie value is 'yes').
+     * Uses cache-safe cookie reading since the consent state only affects
+     * client-side JS behavior, not the page HTML content.
      *
      * @return bool
      */
     public function hasCookieConsent(): bool
     {
-        return $this->getCookieAsString(self::COOKIE_CONSENT_NAME) === 'yes';
+        return $this->getCookieCacheSafe(self::COOKIE_CONSENT_NAME) === 'accepted';
     }
 
     /**
      * Checks if cookie consent has been explicitly rejected (cookie value is 'no').
+     * Uses cache-safe cookie reading since the consent state only affects
+     * client-side JS behavior, not the page HTML content.
      *
      * @return bool
      */
     public function hasCookieConsentRejected(): bool
     {
-        return $this->getCookieAsString(self::COOKIE_CONSENT_NAME) === 'no';
+        return $this->getCookieCacheSafe(self::COOKIE_CONSENT_NAME) === 'rejected';
     }
 
     #endregion
@@ -4082,7 +4147,8 @@ abstract class KirbyBaseHelper
         $details = "An exception was thrown in your application:<br><br>";
         $details .= $this->getExceptionDetail($exception);
 
-        $userLoggedIn = $this->kirby->user();
+        // Only access user if session cookie exists to avoid starting a session (which prevents caching)
+        $userLoggedIn = $this->hasSessionCookie() ? $this->kirby->user() : null;
         $userId = ($userLoggedIn) ? $userLoggedIn->id() : '';
 
         // Capture previous exceptions if they exist
@@ -4585,8 +4651,10 @@ abstract class KirbyBaseHelper
 
         try {
             $searchIndex = new SearchIndexHelper();
-            $isMemberOrAdmin = $this->kirby->user() &&
-                in_array($this->kirby->user()->role()->name(), ['member', 'vice_county', 'admin', 'editor']);
+            // Only access user if session cookie exists to avoid starting a session (which prevents caching)
+            $user = $this->hasSessionCookie() ? $this->kirby->user() : null;
+            $isMemberOrAdmin = $user &&
+                in_array($user->role()->name(), ['member', 'vice_county', 'admin', 'editor']);
 
             // Get all matching page IDs sorted by relevance
             $pageIds = $searchIndex->searchAllIds($query, $isMemberOrAdmin, $templates);
@@ -5324,6 +5392,78 @@ abstract class KirbyBaseHelper
             }
         }
         return 'Success';
+    }
+
+    /**
+     * Determines if a page should be cached (by Kirby and CDN).
+     * Pages with role restrictions or password protection should not be cached.
+     *
+     * @param Page $page The page to check
+     * @return bool True if the page can be cached, false if it should not be cached
+     */
+    public function isPageCacheable(Page $page): bool
+    {
+        // Don't cache login/auth related pages
+        if (in_array($page->template()->name(), ['login', 'reset_password', 'reset_password_verification'])) {
+            return false;
+        }
+
+        try {
+            // Don't cache if site requires roles (whole site is members-only)
+            $siteRoles = $this->getSiteFieldAsString('requiredRoles');
+            if (!empty($siteRoles)) {
+                return false;
+            }
+
+            // Don't cache pages with password protection
+            $password = $this->getPageFieldAsString($page, 'password');
+            if (!empty($password)) {
+                return false;
+            }
+
+            // Don't cache if page or any ancestor has requiredRoles
+            $checkPage = $page;
+            while ($checkPage) {
+                $requiredRoles = $this->getPageFieldAsArray($checkPage, 'requiredRoles');
+                if (!empty($requiredRoles)) {
+                    return false;
+                }
+                $checkPage = $checkPage->parent();
+            }
+        } catch (KirbyRetrievalException) {
+            // If we can't determine cacheability, err on the side of caution
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Sets appropriate HTTP cache headers based on page cacheability.
+     * For protected pages: prevents caching by CDN and browsers.
+     * For public pages: allows CDN and browser caching with configurable TTLs.
+     *
+     * @param Page $page The page to set cache headers for
+     * @param int $cdnMaxAge Max age in seconds for CDN caching (default 1 hour)
+     * @param int $browserMaxAge Max age in seconds for browser caching (default 5 minutes)
+     * @return void
+     */
+    public function setCacheHeaders(Page $page, int $cdnMaxAge = 3600, int $browserMaxAge = 300): void
+    {
+        // Don't set headers if already sent
+        if (headers_sent()) {
+            return;
+        }
+
+        if ($this->isPageCacheable($page)) {
+            // Public page - allow caching
+            header("Cache-Control: public, s-maxage=$cdnMaxAge, max-age=$browserMaxAge");
+        } else {
+            // Protected page - prevent all caching
+            header('Cache-Control: private, no-store, no-cache, must-revalidate');
+            header('Pragma: no-cache');
+            header('Expires: 0');
+        }
     }
     #endregion
 

@@ -1609,7 +1609,9 @@ trait GenericKirbyHelper
         $details = "An exception was thrown in your application:<br><br>";
         $details .= $this->getExceptionDetail($exception);
 
-        $userLoggedIn = kirby()->user();
+        // Check for session cookie before accessing kirby()->user() to avoid starting a session
+        $cookieName = kirby()->option('session')['cookieName'] ?? 'kirby_session';
+        $userLoggedIn = isset($_COOKIE[$cookieName]) ? kirby()->user() : null;
         $userId = ($userLoggedIn) ? $userLoggedIn->id() : '';
 
         // Capture previous exceptions if they exist
@@ -2051,11 +2053,16 @@ trait GenericKirbyHelper
     }
 
     /**
+     * Gets the current user.
+     * Only accesses Kirby user if a session cookie exists, to avoid starting
+     * a session (which prevents page caching).
+     *
      * @return User
      */
     private function getCurrentUser(): User {
-
-        $userLoggedIn = kirby()->user();
+        // Check for session cookie before accessing kirby()->user() to avoid starting a session
+        $cookieName = kirby()->option('session')['cookieName'] ?? 'kirby_session';
+        $userLoggedIn = isset($_COOKIE[$cookieName]) ? kirby()->user() : null;
         $userId = ($userLoggedIn) ? $userLoggedIn->id() : '';
         $userName = ($userLoggedIn) ? $userLoggedIn->userName() : '';
         $role = ($userLoggedIn) ? $userLoggedIn->role()->name() : '';
@@ -2068,18 +2075,30 @@ trait GenericKirbyHelper
     }
 
     /**
-     * gets the current Kirby username - returns blank string if no user
+     * Gets the current Kirby username - returns blank string if no user.
+     * Only accesses Kirby user if a session cookie exists, to avoid starting a session.
+     *
      * @return string
      */
     private function getCurrentUserName(): string {
+        $cookieName = kirby()->option('session')['cookieName'] ?? 'kirby_session';
+        if (!isset($_COOKIE[$cookieName])) {
+            return '';
+        }
         return kirby()->user() ? kirby()->user()->name() : '';
     }
 
     /**
-     * gets the current Kirby username - returns blank string if no user
+     * Gets the current Kirby user role - returns blank string if no user.
+     * Only accesses Kirby user if a session cookie exists, to avoid starting a session.
+     *
      * @return string
      */
     private function getCurrentUserRole(): string {
+        $cookieName = kirby()->option('session')['cookieName'] ?? 'kirby_session';
+        if (!isset($_COOKIE[$cookieName])) {
+            return '';
+        }
         return kirby()->user() ? kirby()->user()->role()->name() : '';
     }
 
@@ -2121,13 +2140,17 @@ trait GenericKirbyHelper
     #region MISC
 
     /**
-     * gets the colour mode (getting/setting a colourMode cookie as required)
+     * Gets the colour mode preference (getting/setting a colourMode cookie as required).
+     * Uses direct $_COOKIE access for reading to avoid triggering Kirby's cache-blocking
+     * behavior, since colour mode is applied client-side via JS.
+     *
      * @return string
      * @throws KirbyRetrievalException
      */
     public function getColourMode(): string
     {
-        $colourMode = get('colourMode') ?: Cookie::get('colourMode') ?: 'auto';
+        // Use $_COOKIE directly to avoid Kirby's cache tracking (colour mode is applied via JS)
+        $colourMode = get('colourMode') ?: ($_COOKIE['colourMode'] ?? null) ?: 'auto';
 
         if (!is_string($colourMode)) {
             throw new KirbyRetrievalException('site controller: $colourMode is not set to a string');
