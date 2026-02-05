@@ -5415,8 +5415,10 @@ abstract class KirbyBaseHelper
      */
     public function isPageCacheable(Page $page): bool
     {
-        // Don't cache login/auth related pages
-        if (in_array($page->template()->name(), [
+        $excludedTemplates = option('excludeTemplatesFromCache', []);
+
+        // Merge with hardcoded non-cacheable templates
+        $allExcludedTemplates = array_merge($excludedTemplates, [
             'file_archive',
             'file_link',
             'form_submission',
@@ -5427,7 +5429,10 @@ abstract class KirbyBaseHelper
             'reset_password_verification',
             'search_log',
             'search_log_item'
-        ])) {
+        ]);
+
+        // Don't cache login/auth related pages or config-excluded templates
+        if (in_array($page->template()->name(), $allExcludedTemplates)) {
             return false;
         }
 
