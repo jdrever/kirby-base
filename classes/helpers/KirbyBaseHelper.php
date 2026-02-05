@@ -5460,6 +5460,7 @@ abstract class KirbyBaseHelper
      */
     public function setCacheHeaders(Page $page, int $cdnMaxAge = 3600, int $browserMaxAge = 300): void
     {
+        return;
         // Don't set headers if already sent
         if (headers_sent()) {
             return;
