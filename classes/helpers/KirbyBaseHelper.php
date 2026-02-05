@@ -3908,8 +3908,7 @@ abstract class KirbyBaseHelper
      */
     protected function getCookieAsString(string $key, string $fallback = ''): string
     {
-        return $this->asString($_COOKIE[$key] ?? $fallback);
-    }
+        return Cookie::get($key, $fallback);    }
 
     /**
      * Gets a cookie value directly from $_COOKIE without triggering Kirby's
