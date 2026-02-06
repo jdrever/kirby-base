@@ -305,6 +305,11 @@ class SearchIndexHelper
                 page_id TEXT NOT NULL
             );
             CREATE INDEX idx_page_lookup_page_id ON page_lookup(page_id);
+
+            CREATE TABLE all_pages (
+                page_id TEXT PRIMARY KEY,
+                title TEXT NOT NULL DEFAULT ""
+            );
         ');
     }
 
@@ -353,7 +358,10 @@ class SearchIndexHelper
         // Remove existing entry first
         $this->removePage($page->id());
 
-        // Check if page should be indexed
+        // Always update all_pages table regardless of search index eligibility
+        $this->indexAllPagesEntry($page);
+
+        // Check if page should be indexed in the search index
         if (!$this->shouldIndex($page)) {
             return false;
         }
@@ -391,6 +399,9 @@ class SearchIndexHelper
         // Also remove from page_lookup
         $lookupStmt = $this->database->prepare('DELETE FROM page_lookup WHERE page_id = :page_id');
         $lookupStmt->execute(['page_id' => $pageId]);
+
+        // Also remove from all_pages
+        $this->removeAllPagesEntry($pageId);
 
         return $result;
     }
@@ -720,10 +731,10 @@ class SearchIndexHelper
     /**
      * Rebuild the entire search index using the allPages collection
      *
-     * @return int Number of pages indexed
+     * @return array{search_index: int, all_pages: int} Number of pages indexed in each table
      * @throws Throwable If database transaction fails
      */
-    public function rebuildIndex(): int
+    public function rebuildIndex(): array
     {
         // Use transaction for much better performance
         $this->database->beginTransaction();
@@ -772,6 +783,25 @@ class SearchIndexHelper
                 }
             }
 
+            // Rebuild all_pages table with every page on the site
+            $this->ensureAllPagesTable();
+            $this->database->exec('DELETE FROM all_pages');
+            $allPagesCount = 0;
+            $allPagesStmt = $this->database->prepare(
+                'INSERT INTO all_pages (page_id, title) VALUES (:page_id, :title)'
+            );
+            foreach ($this->kirby->site()->index(true) as $page) {
+                try {
+                    $allPagesStmt->execute([
+                        'page_id' => $page->id(),
+                        'title' => (string)($page->content()->title()->value() ?? '')
+                    ]);
+                    $allPagesCount++;
+                } catch (Throwable $e) {
+                    error_log('Failed to index page in all_pages: ' . $page->id() . ': ' . $e->getMessage());
+                }
+            }
+
             // Update metadata
             $metaStmt = $this->database->prepare('INSERT OR REPLACE INTO search_meta (key, value) VALUES (:key, :value)');
             $metaStmt->execute(['key' => 'last_rebuild', 'value' => date('Y-m-d H:i:s')]);
@@ -782,7 +812,142 @@ class SearchIndexHelper
             throw $e;
         }
 
+        return ['search_index' => $count, 'all_pages' => $allPagesCount];
+    }
+
+    /**
+     * Ensure the all_pages table exists (for databases created before this feature)
+     */
+    private function ensureAllPagesTable(): void
+    {
+        $result = $this->database->query("SELECT name FROM sqlite_master WHERE type='table' AND name='all_pages'");
+        if ($result->fetch() === false) {
+            $this->database->exec('
+                CREATE TABLE all_pages (
+                    page_id TEXT PRIMARY KEY,
+                    title TEXT NOT NULL DEFAULT ""
+                );
+            ');
+        }
+    }
+
+    /**
+     * Add or update a page in the all_pages table
+     *
+     * @param Page $page The Kirby page to add
+     * @return bool True if the entry was added/updated
+     */
+    private function indexAllPagesEntry(Page $page): bool
+    {
+        $this->ensureAllPagesTable();
+        $stmt = $this->database->prepare(
+            'INSERT OR REPLACE INTO all_pages (page_id, title) VALUES (:page_id, :title)'
+        );
+        return $stmt->execute([
+            'page_id' => $page->id(),
+            'title' => (string)($page->content()->title()->value() ?? '')
+        ]);
+    }
+
+    /**
+     * Remove a page from the all_pages table
+     *
+     * @param string $pageId The Kirby page ID to remove
+     * @return bool True if deletion was executed
+     */
+    private function removeAllPagesEntry(string $pageId): bool
+    {
+        $this->ensureAllPagesTable();
+        $stmt = $this->database->prepare('DELETE FROM all_pages WHERE page_id = :page_id');
+        return $stmt->execute(['page_id' => $pageId]);
+    }
+
+    /**
+     * Rebuild the all_pages table with every page on the site
+     *
+     * Uses site()->index(true) to get all pages including drafts,
+     * unlike the search_index which only indexes selected templates.
+     *
+     * @return int Number of pages indexed
+     * @throws Throwable If database operations fail
+     */
+    public function rebuildAllPages(): int
+    {
+        $this->ensureAllPagesTable();
+        $this->database->exec('DELETE FROM all_pages');
+
+        $stmt = $this->database->prepare(
+            'INSERT INTO all_pages (page_id, title) VALUES (:page_id, :title)'
+        );
+
+        $count = 0;
+        foreach ($this->kirby->site()->index(true) as $page) {
+            try {
+                $stmt->execute([
+                    'page_id' => $page->id(),
+                    'title' => (string)($page->content()->title()->value() ?? '')
+                ]);
+                $count++;
+            } catch (Throwable $e) {
+                error_log('Failed to index page in all_pages: ' . $page->id() . ': ' . $e->getMessage());
+            }
+        }
+
         return $count;
+    }
+
+    /**
+     * Get all page IDs from the all_pages table
+     *
+     * Returns every page on the site, regardless of template or status.
+     *
+     * @return array<string> Array of all page IDs
+     */
+    public function getAllPageIds(): array
+    {
+        $this->ensureAllPagesTable();
+        $stmt = $this->database->query('SELECT page_id FROM all_pages');
+        return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+    }
+
+    /**
+     * Search the all_pages table by title
+     *
+     * Performs a case-insensitive LIKE search on the title column.
+     * Suitable for panel page searches where all pages should be searchable.
+     *
+     * @param string $query Search query string
+     * @param int $limit Maximum number of results
+     * @param int $offset Offset for pagination
+     * @return array{results: array<string>, total: int} Matching page IDs and total count
+     */
+    public function searchAllPages(string $query, int $limit = 10, int $offset = 0): array
+    {
+        $this->ensureAllPagesTable();
+
+        $query = trim($query);
+        if (empty($query)) {
+            return ['results' => [], 'total' => 0];
+        }
+
+        $likeParam = '%' . $query . '%';
+
+        $countStmt = $this->database->prepare(
+            'SELECT COUNT(*) as total FROM all_pages WHERE title LIKE :query'
+        );
+        $countStmt->execute(['query' => $likeParam]);
+        $total = (int)($countStmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0);
+
+        $stmt = $this->database->prepare(
+            'SELECT page_id FROM all_pages WHERE title LIKE :query ORDER BY title LIMIT :limit OFFSET :offset'
+        );
+        $stmt->bindValue(':query', $likeParam, PDO::PARAM_STR);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        $results = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+
+        return ['results' => $results, 'total' => $total];
     }
 
     /**
