@@ -3865,27 +3865,34 @@ abstract class KirbyBaseHelper
     #region COOKIES
 
     /**
-     * @param string $key
-     * @param string $value
-     * @param int $days
+     * Sets a cookie using PHP's setcookie() directly to avoid triggering
+     * Kirby's cache tracking which would mark the response as private
+     * and prevent page caching.
+     *
+     * @param string $key The cookie name
+     * @param string $value The cookie value
+     * @param int $days Number of days until expiry
      * @return void
      */
     protected function setCookie(string $key, string $value, int $days = 90): void
     {
         //allow insecure cookies on localhost only
         $secure = !(str_starts_with($_SERVER['HTTP_HOST'], 'localhost'));
-        $expiresInMinutes = 60 * 24 * $days;
+        $expires = $days > 0 ? time() + ($days * 24 * 60 * 60) : 0;
 
-        Cookie::set(
-            $key,
-            $value,
-            [
-                'lifetime' => $expiresInMinutes,
-                'path' => '/',
-                'secure' => $secure,
-                'httpOnly' => true
-            ]
-        );
+        // Use PHP's setcookie() directly instead of Kirby's Cookie::set()
+        // to avoid registering the cookie with the Responder's trackUsage(),
+        // which would mark the response as private and prevent page caching.
+        setcookie($key, $value, [
+            'expires'  => $expires,
+            'path'     => '/',
+            'secure'   => $secure,
+            'httponly'  => true,
+            'samesite' => 'Lax'
+        ]);
+
+        // Also set in $_COOKIE so it's available in the current request
+        $_COOKIE[$key] = $value;
     }
 
     /**
@@ -3910,7 +3917,8 @@ abstract class KirbyBaseHelper
      */
     protected function getCookieAsString(string $key, string $fallback = ''): string
     {
-        return Cookie::get($key, $fallback);    }
+        return $this->asString($_COOKIE[$key] ?? $fallback);
+    }
 
     /**
      * Gets a cookie value directly from $_COOKIE without triggering Kirby's
