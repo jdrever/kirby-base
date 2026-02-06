@@ -35,8 +35,6 @@ return [
     'colour-mode/script' => __DIR__ . '/snippets/colour-mode/script.php',
     'colour-mode/tag' => __DIR__ . '/snippets/colour-mode/tag.php',
 
-    //cookie consent
-    'cookie-consent/script' => __DIR__ . '/snippets/cookie-consent/script.php',
 
     //user status (login state, basket count)
     'user-status/script' => __DIR__ . '/snippets/user-status/script.php',
