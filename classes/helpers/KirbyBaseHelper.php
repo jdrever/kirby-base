@@ -2244,6 +2244,10 @@ abstract class KirbyBaseHelper
                             : 'heading' . $headingNumber;
                         $block->setAnchor($anchor);
                     }
+                    if ($pageBlock->type() === 'faq') {
+                        $faqTitle = $this->getBlockFieldAsString($pageBlock, 'title');
+                        $block->setAnchor($faqTitle);
+                    }
                     $contentBlocks->addListItem($block);
                 }
             }
@@ -2983,6 +2987,11 @@ abstract class KirbyBaseHelper
         return $navigation;
     }
 
+    /**
+     * @param BaseWebPage $webPage
+     * @return OnThisPageLinks
+     * @throws KirbyRetrievalException
+     */
     protected function getOnThisPageLinks(BaseWebPage $webPage): OnThisPageLinks
     {
         $onThisPageLinks = new OnThisPageLinks();
@@ -2994,6 +3003,13 @@ abstract class KirbyBaseHelper
         return $onThisPageLinks;
     }
 
+    /**
+     * @param OnThisPageLinks $onThisPageLinks
+     * @param WebPageBlocks $contentBlocks
+     * @param string $linkArea
+     * @return OnThisPageLinks
+     * @throws KirbyRetrievalException
+     */
     private function getOnThisPageLinksFromContentBlocks(OnThisPageLinks $onThisPageLinks, WebPageBlocks $contentBlocks, string $linkArea): OnThisPageLinks
     {
 
@@ -3005,6 +3021,13 @@ abstract class KirbyBaseHelper
                 $anchorLink = $contentBlock->getAnchor();
                 $linkLevel = $contentBlock->getBlockLevel();
                 $onThisPageLink = new OnThisPageLink($linkTitle, $anchorLink, $linkLevel, $linkArea);
+                $onThisPageLinks->addListItem($onThisPageLink);
+            }
+
+            if ($contentBlock->getBlockType() === 'faq') {
+                $faqTitle = $contentBlock->getAnchor();
+                $faqAnchor = str_replace(' ', '', mb_strtolower($faqTitle));
+                $onThisPageLink = new OnThisPageLink($faqTitle, $faqAnchor, 'h2', $linkArea);
                 $onThisPageLinks->addListItem($onThisPageLink);
             }
         }
