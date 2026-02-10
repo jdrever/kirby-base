@@ -38,7 +38,7 @@ if (!isset($foregroundColour)) :
 endif;
 
 if (!isset($checked)) :
-    $checked = (str_contains($selectedValue, $value)) ? 'checked' : '';
+    $checked = (str_contains($selectedValue, $value))||($value === '' && $selectedValue === '') ? 'checked' : '';
 else:
     $checked = $checked ? 'checked' : '';
 endif;

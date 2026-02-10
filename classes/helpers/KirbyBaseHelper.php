@@ -548,6 +548,21 @@ abstract class KirbyBaseHelper
     /**
      * @param string $fieldName
      * @param bool $required
+     * @param string $default
+     * @return string[]
+     * @throws KirbyRetrievalException
+     */
+    public function getCurrentPageFieldAsArray(string $fieldName, bool $required = false): array
+    {
+        if (!isset($this->page)) {
+            throw new KirbyRetrievalException('Current page not found');
+        }
+        return $this->getPageFieldAsArray($this->page, $fieldName, $required);
+    }
+
+    /**
+     * @param string $fieldName
+     * @param bool $required
      * @param bool $default
      * @return bool
      * @throws KirbyRetrievalException
