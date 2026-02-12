@@ -1,4 +1,9 @@
 <?php
+/**
+ * Consent placeholder for blocked content - static HTML, hydrated by JS.
+ * This is the placeholder shown when consent has not been given.
+ * Use with data-consent-placeholder attribute within a data-requires-consent container.
+ */
 
 declare(strict_types=1);
 
@@ -7,15 +12,14 @@ if (!isset($contentType)) :
 endif;
 ?>
 
-<div class="alert alert-light">
+<div class="alert alert-light" data-consent-placeholder>
   <p>This <?= $contentType ?> requires your consent</p>
   <?php if (isset($purpose)) : ?>
     <p><?= $purpose ?></p>
   <?php endif ?>
-  <form action="/cookie-consent" method="post" class="mt-2">
-    <input type="hidden" name="csrf" value="<?= csrf() ?>">
-    <input type="hidden" name="referringPage" value="<?= kirby()->request()->url() ?>">
-    <button type="submit" name="consent" value="accepted" class="btn btn-primary btn-sm">Accept cookies</button>
-  </form>
+  <div class="mt-2">
+    <button type="button" class="btn btn-primary btn-sm" data-consent-accept>Accept cookies</button>
+    <button type="button" class="btn btn-secondary btn-sm" data-consent-reject data-consent-reject-btn>Reject</button>
+  </div>
 </div>
 

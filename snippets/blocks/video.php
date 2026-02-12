@@ -1,6 +1,10 @@
 <?php
 /** @noinspection PhpUnhandledExceptionInspection */
 /** @noinspection PhpUndefinedMethodInspection */
+/**
+ * Video block - renders both consent placeholder and actual content for cacheability.
+ * JS hydrates to show/hide based on localStorage consent state.
+ */
 
 declare(strict_types=1);
 
@@ -9,19 +13,17 @@ use Kirby\Toolkit\Html;
 use BSBI\WebBase\helpers\KirbyInternalHelper;
 
 $helper = new KirbyInternalHelper();
-
-if ($helper->requiresCookieConstent() && !$helper->hasCookieConsent()) :
-    snippet('block-consent', ['purpose' => 'It will display an externally hosted video']);
-    return;
-endif;
+$requiresConsent = $helper->requiresCookieConstent();
 
 /**
  * @var Block $block
  */
 
-?>
-<?php if (str_contains($block->url()->value(), 'youtu')) : ?>
-    <?php
+// Pre-compute video content
+$videoContent = '';
+$isYoutube = str_contains($block->url()->value(), 'youtu');
+
+if ($isYoutube) :
     $ytUrl = str_replace("https://", "", $block->url()->value());
 
     if (!is_string($ytUrl) || empty($ytUrl)) {
@@ -38,21 +40,33 @@ endif;
             throw new Exception('video snippet: $parsedYtUrl is not a string');
         }
         parse_str($parsedYtUrl, $ytUrlVars);
-        $ytId = $ytUrlVars['v'];
+        $ytId = $ytUrlVars['v'] ?? '';
     }
 
     if (!is_string($ytId) || empty($ytId)) {
         throw new Exception('video snippet: $ytId is not set or is not a string');
     }
-    ?>
-    <lite-youtube videoid="<?= $ytId ?>" playlabel="<?= $block->caption()->value() ?>">
-        <a href="<?=$block->url()->value()?>" class="lty-playbtn" title="Play Video">
-            <span class="lyt-visually-hidden">Play Video: <?= $block->caption() ?></span>
-        </a>
-    </lite-youtube>
+endif;
+
+?>
+<?php if ($requiresConsent) : ?>
+<div data-requires-consent>
+    <?php snippet('block-consent', ['contentType' => 'video', 'purpose' => 'It will display an externally hosted video']); ?>
+    <div data-consent-content style="display:none;">
+<?php endif ?>
+<?php if ($isYoutube) : ?>
+        <lite-youtube videoid="<?= $ytId ?>" playlabel="<?= $block->caption()->value() ?>">
+            <a href="<?=$block->url()->value()?>" class="lty-playbtn" title="Play Video">
+                <span class="lyt-visually-hidden">Play Video: <?= $block->caption() ?></span>
+            </a>
+        </lite-youtube>
 <?php elseif ($video = Html::video($block->url())) : ?>
-    <?= $video ?>
+        <?= $video ?>
 <?php endif ?>
 <?php if ($block->caption()->isNotEmpty()) : ?>
-    <p style="font-size:0.7em;"><?= $block->caption() ?></p>
+        <p style="font-size:0.7em;"><?= $block->caption() ?></p>
+<?php endif ?>
+<?php if ($requiresConsent) : ?>
+    </div>
+</div>
 <?php endif;

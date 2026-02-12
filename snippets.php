@@ -35,6 +35,10 @@ return [
     'colour-mode/script' => __DIR__ . '/snippets/colour-mode/script.php',
     'colour-mode/tag' => __DIR__ . '/snippets/colour-mode/tag.php',
 
+
+    //user status (login state, basket count)
+    'user-status/script' => __DIR__ . '/snippets/user-status/script.php',
+
     // form blocks
     'form/button' => __DIR__ . '/snippets/form/button.php',
     'form/textbox' => __DIR__ . '/snippets/form/textbox.php',

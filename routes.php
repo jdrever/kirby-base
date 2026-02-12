@@ -97,9 +97,11 @@ return [
             if ($helper->isCurrentUserAdminOrEditor()) {
                 try {
                     $searchIndex = new SearchIndexHelper();
-                    $count = $searchIndex->rebuildIndex();
+                    $result = $searchIndex->rebuildIndex();
+                    $searchCount = $result['search_index'];
+                    $allPagesCount = $result['all_pages'];
                     return new Response(
-                        "Search index rebuilt successfully. Indexed $count pages.",
+                        "Search index rebuilt successfully. Indexed $searchCount pages for site search, $allPagesCount pages for panel search.",
                         'text/plain',
                         200
                     );

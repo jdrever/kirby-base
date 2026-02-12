@@ -1,23 +1,12 @@
-<?php /** @noinspection PhpUnhandledExceptionInspection */
+<?php
+/**
+ * Show user/logout link - static HTML, hidden by default.
+ * JS will show this element if user is logged in (via user-status/script).
+ */
 
 declare(strict_types=1);
 
-use BSBI\WebBase\models\BaseWebPage;
-
-if (!isset($currentPage)) :
-    throw new Exception('$currentPage not provided');
-endif;
-
-/**
- * @var BaseWebPage $currentPage
- */
-
-if ($currentPage->hasCurrentUser()) :
-    $currentUser = $currentPage->getCurrentUser();
-    $userRole = $currentUser->getRole();
-    if ($currentUser->isLoggedIn()) : ?>
-        <a href="<?= url('logout') ?>" <?php if (isset($class)) : ?> class="<?= $class ?>"<?php endif ?>>
-            <?= t('Logout', 'Logout') ?>
-        </a>
-<?php endif;
-endif ?>
+?>
+<a href="<?= url('logout') ?>" <?php if (isset($class)) : ?> class="<?= $class ?>"<?php endif ?> data-user-logged-in style="display:none;">
+    <?= t('Logout', 'Logout') ?>
+</a>

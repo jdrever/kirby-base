@@ -1,33 +1,92 @@
 <?php /** @noinspection PhpUnhandledExceptionInspection */
 
+use BSBI\WebBase\helpers\SearchIndexHelper;
 use Kirby\Cms\App as Kirby;
+use Kirby\Panel\Ui\Item\PageItem;
+use Kirby\Toolkit\I18n;
 use Kirby\Toolkit\Tpl;
 
-Kirby::plugin(
-    'open-foundations/kirby-base',
-    [
-        'blueprints' => require __DIR__ . '/blueprints.php',
-        'snippets' => require __DIR__ . '/snippets.php',
-        'hooks' => require __DIR__ . '/hooks.php',
-        'routes' => require __DIR__ . '/routes.php',
-        'templates' => [
-            'file_link' => __DIR__ . '/templates/file_link.php',
-            'page_link' => __DIR__ . '/templates/page_link.php',
-            'emails/form-notification.html' => __DIR__ . '/templates/emails/form-notification.html.php',
-            'emails/form-notification.text' => __DIR__ . '/templates/emails/form-notification.text.php',
-            'search_log' => __DIR__ . '/templates/search_log.php',
-            'search_log_item' => __DIR__ . '/templates/search_log_item.php',
-        ],
-        'controllers' => [
-            'file_link' =>  require __DIR__ . '/controllers/file_link.php',
-            'page_link' =>  require __DIR__ . '/controllers/page_link.php',
-        ],
-        'sections' => [
-            'quicklinks' => require __DIR__ . '/sections/quicklinks.php',
-            'searchanalytics' => require __DIR__ . '/sections/searchanalytics.php',
-        ],
-    ]
-);
+$pluginConfig = [
+    'blueprints' => require __DIR__ . '/blueprints.php',
+    'snippets' => require __DIR__ . '/snippets.php',
+    'hooks' => require __DIR__ . '/hooks.php',
+    'routes' => require __DIR__ . '/routes.php',
+    'templates' => [
+        'file_link' => __DIR__ . '/templates/file_link.php',
+        'page_link' => __DIR__ . '/templates/page_link.php',
+        'emails/form-notification.html' => __DIR__ . '/templates/emails/form-notification.html.php',
+        'emails/form-notification.text' => __DIR__ . '/templates/emails/form-notification.text.php',
+        'search_log' => __DIR__ . '/templates/search_log.php',
+        'search_log_item' => __DIR__ . '/templates/search_log_item.php',
+    ],
+    'controllers' => [
+        'file_link' =>  require __DIR__ . '/controllers/file_link.php',
+        'page_link' =>  require __DIR__ . '/controllers/page_link.php',
+    ],
+    'sections' => [
+        'quicklinks' => require __DIR__ . '/sections/quicklinks.php',
+        'searchanalytics' => require __DIR__ . '/sections/searchanalytics.php',
+    ],
+];
+
+// Override panel page search with fast SQLite-backed search when enabled
+if (option('search.panelSearch', false)) {
+    $pluginConfig['areas'] = [
+        'site' => function () {
+            return [
+                'searches' => [
+                    'pages' => [
+                        'label' => I18n::translate('pages'),
+                        'icon'  => 'page',
+                        'query' => function (string|null $query, int $limit, int $page) {
+                            if (empty($query)) {
+                                return ['results' => [], 'pagination' => null];
+                            }
+
+                            try {
+                                $searchIndex = new SearchIndexHelper();
+                                $offset = ($page - 1) * $limit;
+                                $searchResult = $searchIndex->searchAllPages($query, $limit, $offset);
+
+                                $pageIds = $searchResult['results'];
+                                $total = $searchResult['total'];
+
+                                if (empty($pageIds)) {
+                                    return ['results' => [], 'pagination' => null];
+                                }
+
+                                // Load Kirby page objects and filter to listable
+                                $pages = pages($pageIds)->filter('isListable', true);
+
+                                $results = $pages->values(
+                                    fn ($p) => (new PageItem(page: $p, info: '{{ page.id }}'))->props()
+                                );
+
+                                return [
+                                    'results'    => $results,
+                                    'pagination' => [
+                                        'page'   => $page,
+                                        'total'  => $total,
+                                        'limit'  => $limit,
+                                        'pages'  => (int)ceil($total / $limit),
+                                        'offset' => $offset,
+                                    ]
+                                ];
+                            } catch (Throwable $e) {
+                                error_log('Panel search failed, falling back to default: ' . $e->getMessage());
+
+                                // Fall back to default Kirby panel search
+                                return \Kirby\Panel\Controller\Search::pages($query, $limit, $page);
+                            }
+                        }
+                    ]
+                ]
+            ];
+        }
+    ];
+}
+
+Kirby::plugin('open-foundations/kirby-base', $pluginConfig);
 
 if (option('debug') === false) {
 // Set a global exception handler

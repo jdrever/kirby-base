@@ -13,5 +13,5 @@ endif;
  */
 $scripts = $currentPage->getScripts();
 foreach ($scripts as $script) : ?>
-    <script src="/assets/js/<?=$script?>.js"></script>
+    <script src="<?=$script?>"></script>
 <?php endforeach ?>
