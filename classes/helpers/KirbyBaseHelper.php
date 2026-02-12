@@ -5415,7 +5415,15 @@ abstract class KirbyBaseHelper
                     ];
                 }
 
-                $slug = date('M-j-H.i');
+                $slug = date('M-j-H.i.s');
+
+                if ($parentPage->findPageOrDraft($slug)) {
+                    $counter = 1;
+                    while ($parentPage->findPageOrDraft($slug . '-' . $counter)) {
+                        $counter++;
+                    }
+                    $slug = $slug . '-' . $counter;
+                }
 
                 $this->createPage($parentPage,
                     [
