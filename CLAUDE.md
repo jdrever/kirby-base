@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**kirby-base** (`open-foundations/kirby-base`) is a Kirby CMS v5 plugin (v1.6.58) that provides reusable base classes, blueprints, snippets, and helpers for building websites. It is installed as a git submodule into consuming sites at `site/plugins/kirby-base`.
+**kirby-base** (`open-foundations/kirby-base`) is a Kirby CMS v5 plugin (v1.6.58) that provides reusable base classes
+, blueprints, snippets, and helpers for building websites. It is installed as a git submodule into consuming sites at 
+`site/plugins/kirby-base`.
 
 ## Commands
 
@@ -14,8 +16,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Lint (PHP CodeSniffer):** `vendor/bin/phpcs` — enforces PSR-12 + Slevomat standards on the `site/` directory
 - **Fix lint issues:** `vendor/bin/phpcbf`
 
-There is no JavaScript build process or CSS preprocessor configured in this project.  They would be supplied by the web application
-using the plugin.
+There is no JavaScript build process or CSS preprocessor configured in this project.  They would be supplied by the web 
+application using the plugin.
 
 ## Architecture
 
@@ -34,9 +36,11 @@ PSR-4 autoloaded from `classes/`. The class hierarchy is:
 - **`BaseModel`** — foundation for all models, uses `ErrorHandling` and `OptionsHandling` traits
 - **`BaseWebPage`** extends `BaseModel` — core page model with properties for menus, SEO, permissions, etc.
 - **`BaseList`** / **`BaseFilter`** — collection and filtering base classes with pagination support
-- **`KirbyBaseHelper`** (`classes/helpers/`) — large helper class (~6k lines) that bridges Kirby CMS data to model objects. Consuming sites extend this and implement `getBasicPage`/`setBasicPage`.
+- **`KirbyBaseHelper`** (`classes/helpers/`) — large helper class (~6k lines) that bridges Kirby CMS data to 
+model objects. Consuming sites extend this and implement `getBasicPage`/`setBasicPage`.
 - **`SearchIndexHelper`** — SQLite FTS5 full-text search implementation
-- **13 traits** in `classes/traits/` provide mixins for concerns like `GenericKirbyHelper`, `FormProperties`, `ImageHandling`, `LoginProperties`, etc.
+- **13 traits** in `classes/traits/` provide mixins for concerns like `GenericKirbyHelper`, `FormProperties`, 
+`ImageHandling`, `LoginProperties`, etc.
 
 ### Extension Pattern
 
@@ -47,15 +51,18 @@ Consuming sites are expected to:
 
 ### Blueprints (`blueprints/`)
 
-YAML files defining Kirby Panel UI structure: blocks (17 types), fields, files, layouts, pages, sections, and tabs. These are registered in `blueprints.php`.
+YAML files defining Kirby Panel UI structure: blocks (17 types), fields, files, layouts, pages, sections, and tabs. 
+These are registered in `blueprints.php`.
 
 ### Snippets (`snippets/`)
 
-62+ PHP template partials organized by concern: `base/` (header, footer, menu), `blocks/`, `form/`, `search/`, `colour-mode/`, `feedback/`, `user-status/`.
+62+ PHP template partials organized by concern: `base/` (header, footer, menu), `blocks/`, `form/`, `search/`, 
+`colour-mode/`, `feedback/`, `user-status/`.
 
 ### Key Features
 
-- **Search:** SQLite FTS5 search with configurable field weights, stop words, and optional Panel search override (enabled via `search.panelSearch` config option)
+- **Search:** SQLite FTS5 search with configurable field weights, stop words, and optional Panel search override 
+(enabled via `search.panelSearch` config option)
 - **Forms:** Form builder with CSRF and Cloudflare Turnstile CAPTCHA support; submissions stored as Kirby pages
 - **File archive:** Permanent URLs for downloadable files via `file_link` controller/template
 - **Authentication:** Role-based access control and per-page password protection via `permissions` tab blueprint
