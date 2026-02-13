@@ -557,8 +557,9 @@ class BaseWebPage extends BaseModel
      */
     public function addScript(string $script, string $path = '/assets/js/', $fileType='.js'): self
     {
-        if (!in_array($script, $this->customScripts)) {
-            $this->customScripts[] = $path.$script.$fileType;
+        $fullPath = $path . $script . $fileType;
+        if (!in_array($fullPath, $this->customScripts)) {
+            $this->customScripts[] = $fullPath;
         }
         return $this;
     }
