@@ -39,7 +39,7 @@ PSR-4 autoloaded from `classes/`. The class hierarchy is:
 - **`KirbyBaseHelper`** (`classes/helpers/`) — large helper class (~6k lines) that bridges Kirby CMS data to 
 model objects. Consuming sites extend this and implement `getBasicPage`/`setBasicPage`.
 - **`SearchIndexHelper`** — SQLite FTS5 full-text search implementation
-- **13 traits** in `classes/traits/` provide mixins for concerns like `GenericKirbyHelper`, `FormProperties`, 
+- **13 traits** in `classes/traits/` provide mixins for  `FormProperties`, 
 `ImageHandling`, `LoginProperties`, etc.
 
 ### Extension Pattern
