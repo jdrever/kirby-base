@@ -20,6 +20,7 @@ $pluginConfig = [
         'search_log_item' => __DIR__ . '/templates/search_log_item.php',
     ],
     'controllers' => [
+        'image_bank' =>  require __DIR__ . '/controllers/image_bank.php',
         'file_link' =>  require __DIR__ . '/controllers/file_link.php',
         'page_link' =>  require __DIR__ . '/controllers/page_link.php',
     ],
