@@ -8,8 +8,17 @@ use BSBI\WebBase\models\RelatedContent;
 use BSBI\WebBase\models\RelatedContentList;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Tests for the RelatedContent and RelatedContentList models.
+ *
+ * Covers RelatedContent constructor defaults, open-in-new-tab flag,
+ * and RelatedContentList add/retrieve/empty-state behaviour.
+ */
 final class RelatedContentTest extends TestCase
 {
+    /**
+     * Verify the constructor sets title, URL and defaults openInNewTab to false.
+     */
     public function testConstructorSetsProperties(): void
     {
         $content = new RelatedContent('Related Article', '/articles/related');
@@ -19,6 +28,9 @@ final class RelatedContentTest extends TestCase
         $this->assertFalse($content->openInNewTab());
     }
 
+    /**
+     * Verify openInNewTab can be enabled via the constructor.
+     */
     public function testOpenInNewTabCanBeEnabled(): void
     {
         $content = new RelatedContent('External', 'https://example.com', true);
@@ -28,6 +40,9 @@ final class RelatedContentTest extends TestCase
 
     // --- RelatedContentList ---
 
+    /**
+     * Verify related content items can be added and retrieved in order.
+     */
     public function testAddAndRetrieveItems(): void
     {
         $list = new RelatedContentList();
@@ -41,6 +56,9 @@ final class RelatedContentTest extends TestCase
         $this->assertSame($item1, $list->getListItems()[0]);
     }
 
+    /**
+     * Verify a new RelatedContentList is empty by default.
+     */
     public function testEmptyListByDefault(): void
     {
         $list = new RelatedContentList();

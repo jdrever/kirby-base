@@ -10,9 +10,17 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Tests the PrevNextPageProperties trait via an anonymous concrete class.
+ *
+ * Covers set/get roundtrip, fluent setter return value,
+ * and navigation replacement.
  */
 final class PrevNextPagePropertiesTest extends TestCase
 {
+    /**
+     * Create an anonymous class that uses PrevNextPageProperties for testing.
+     *
+     * @return object
+     */
     private function createModel(): object
     {
         return new class {
@@ -20,6 +28,9 @@ final class PrevNextPagePropertiesTest extends TestCase
         };
     }
 
+    /**
+     * Verify PrevNextPageNavigation can be set and retrieved with its state intact.
+     */
     public function testSetAndGetPrevNextPageNavigation(): void
     {
         $model = $this->createModel();
@@ -33,6 +44,9 @@ final class PrevNextPagePropertiesTest extends TestCase
         $this->assertTrue($model->getPrevNextPageNavigation()->hasNavigation());
     }
 
+    /**
+     * Verify setPrevNextPageNavigation() returns the same instance for fluent chaining.
+     */
     public function testSetPrevNextPageNavigationReturnsSelf(): void
     {
         $model = $this->createModel();
@@ -41,6 +55,9 @@ final class PrevNextPagePropertiesTest extends TestCase
         $this->assertSame($model, $model->setPrevNextPageNavigation($nav));
     }
 
+    /**
+     * Verify the navigation object can be replaced with a new instance.
+     */
     public function testNavigationCanBeReplaced(): void
     {
         $model = $this->createModel();

@@ -10,14 +10,25 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Tests the CoreWebPageProperties trait via WebPageLink (a concrete user of the trait).
+ *
+ * Covers pageId, pageType, description, and subPages getters/setters,
+ * including empty-state checks and addSubPage behaviour.
  */
 final class CoreWebPagePropertiesTest extends TestCase
 {
+    /**
+     * Create a WebPageLink for testing CoreWebPageProperties methods.
+     *
+     * @return WebPageLink
+     */
     private function createLink(): WebPageLink
     {
         return new WebPageLink('Test Page', '/test', 'page-1', 'default');
     }
 
+    /**
+     * Verify pageId can be retrieved from constructor and updated via setter.
+     */
     public function testPageIdGetterSetter(): void
     {
         $link = $this->createLink();
@@ -28,6 +39,9 @@ final class CoreWebPagePropertiesTest extends TestCase
         $this->assertSame('page-99', $link->getPageId());
     }
 
+    /**
+     * Verify pageType can be retrieved from constructor and updated via setter.
+     */
     public function testPageTypeGetterSetter(): void
     {
         $link = $this->createLink();
@@ -38,6 +52,9 @@ final class CoreWebPagePropertiesTest extends TestCase
         $this->assertSame('article', $link->getPageType());
     }
 
+    /**
+     * Verify description defaults to empty and can be set.
+     */
     public function testDescriptionGetterSetter(): void
     {
         $link = $this->createLink();
@@ -49,6 +66,9 @@ final class CoreWebPagePropertiesTest extends TestCase
         $this->assertSame('A test page', $link->getDescription());
     }
 
+    /**
+     * Verify subPages reports as empty when initialised with an empty WebPageLinks.
+     */
     public function testSubPagesInitiallyEmpty(): void
     {
         $link = $this->createLink();
@@ -57,6 +77,9 @@ final class CoreWebPagePropertiesTest extends TestCase
         $this->assertFalse($link->hasSubPages());
     }
 
+    /**
+     * Verify addSubPage() adds to the subPages collection and hasSubPages() reflects it.
+     */
     public function testAddSubPageAndHasSubPages(): void
     {
         $link = $this->createLink();

@@ -8,13 +8,28 @@ use BSBI\WebBase\models\User;
 use BSBI\WebBase\models\UserList;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Tests for the UserList model.
+ *
+ * Covers add/retrieve, empty-state behaviour, and descending
+ * sort-by-title inherited from BaseList.
+ */
 final class UserListTest extends TestCase
 {
+    /**
+     * Create a User with a given title for testing.
+     *
+     * @param string $title The user display name
+     * @return User
+     */
     private function createUser(string $title = 'Alice'): User
     {
         return new User($title);
     }
 
+    /**
+     * Verify users can be added and retrieved in insertion order.
+     */
     public function testAddAndRetrieveUsers(): void
     {
         $list = new UserList();
@@ -29,6 +44,9 @@ final class UserListTest extends TestCase
         $this->assertSame($user2, $list->getListItems()[1]);
     }
 
+    /**
+     * Verify a new UserList is empty by default.
+     */
     public function testEmptyByDefault(): void
     {
         $list = new UserList();
@@ -37,6 +55,9 @@ final class UserListTest extends TestCase
         $this->assertFalse($list->hasListItems());
     }
 
+    /**
+     * Verify sortByTitle() sorts users in descending alphabetical order.
+     */
     public function testSortByTitleDescending(): void
     {
         $list = new UserList();

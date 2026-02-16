@@ -8,8 +8,17 @@ use BSBI\WebBase\helpers\KirbyRetrievalException;
 use BSBI\WebBase\models\ActionStatus;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Tests for the ActionStatus model.
+ *
+ * Covers successful/failed status construction, error and friendly
+ * message storage, empty message handling, and exception storage.
+ */
 final class ActionStatusTest extends TestCase
 {
+    /**
+     * Verify a successful ActionStatus has no errors and reports completion.
+     */
     public function testSuccessfulStatus(): void
     {
         $status = new ActionStatus(true);
@@ -19,6 +28,9 @@ final class ActionStatusTest extends TestCase
         $this->assertFalse($status->hasErrors());
     }
 
+    /**
+     * Verify a failed ActionStatus stores both error and friendly messages.
+     */
     public function testFailedStatusWithMessages(): void
     {
         $status = new ActionStatus(false, 'DB error', 'Something went wrong');
@@ -29,6 +41,9 @@ final class ActionStatusTest extends TestCase
         $this->assertSame('Something went wrong', $status->getFirstFriendlyMessage());
     }
 
+    /**
+     * Verify empty error/friendly message strings are not stored in the arrays.
+     */
     public function testEmptyMessagesAreNotStored(): void
     {
         $status = new ActionStatus(false);
@@ -38,6 +53,9 @@ final class ActionStatusTest extends TestCase
         $this->assertFalse($status->hasFriendlyMessages());
     }
 
+    /**
+     * Verify a KirbyRetrievalException can be stored and retrieved.
+     */
     public function testExceptionStorage(): void
     {
         $exception = new KirbyRetrievalException('Not found');

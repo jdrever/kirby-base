@@ -10,9 +10,17 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Tests the PostProperties trait via a minimal anonymous concrete class.
+ *
+ * Covers subtitle, excerpt, postedBy (including 'Unknown' edge case),
+ * publication date, and formatted date output.
  */
 final class PostPropertiesTest extends TestCase
 {
+    /**
+     * Create an anonymous class that uses PostProperties for testing.
+     *
+     * @return object
+     */
     private function createModel(): object
     {
         return new class {
@@ -20,6 +28,9 @@ final class PostPropertiesTest extends TestCase
         };
     }
 
+    /**
+     * Verify subtitle defaults to unset and can be set.
+     */
     public function testSubtitleGetterSetter(): void
     {
         $model = $this->createModel();
@@ -31,6 +42,9 @@ final class PostPropertiesTest extends TestCase
         $this->assertSame('A Subtitle', $model->getSubtitle());
     }
 
+    /**
+     * Verify excerpt defaults to an empty string.
+     */
     public function testExcerptDefaultsToEmpty(): void
     {
         $model = $this->createModel();
@@ -38,6 +52,9 @@ final class PostPropertiesTest extends TestCase
         $this->assertSame('', $model->getExcerpt());
     }
 
+    /**
+     * Verify excerpt can be set and retrieved.
+     */
     public function testExcerptGetterSetter(): void
     {
         $model = $this->createModel();
@@ -46,6 +63,9 @@ final class PostPropertiesTest extends TestCase
         $this->assertSame('A brief summary', $model->getExcerpt());
     }
 
+    /**
+     * Verify postedBy defaults to unset and can be set.
+     */
     public function testPostedByGetterSetter(): void
     {
         $model = $this->createModel();
@@ -57,6 +77,9 @@ final class PostPropertiesTest extends TestCase
         $this->assertSame('Jane Doe', $model->getPostedBy());
     }
 
+    /**
+     * Verify that 'Unknown' is treated as not having a postedBy value.
+     */
     public function testPostedByUnknownTreatedAsNotSet(): void
     {
         $model = $this->createModel();
@@ -65,6 +88,9 @@ final class PostPropertiesTest extends TestCase
         $this->assertFalse($model->hasPostedBy());
     }
 
+    /**
+     * Verify publication date can be set and retrieved as a DateTime instance.
+     */
     public function testPublicationDateGetterSetter(): void
     {
         $model = $this->createModel();
@@ -78,6 +104,9 @@ final class PostPropertiesTest extends TestCase
         $this->assertSame($date, $model->getPublicationDate());
     }
 
+    /**
+     * Verify getFormattedPublicationDate() returns the date in 'j F Y' format.
+     */
     public function testFormattedPublicationDate(): void
     {
         $model = $this->createModel();

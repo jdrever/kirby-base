@@ -9,8 +9,21 @@ use BSBI\WebBase\models\WebPageTagLinkSet;
 use BSBI\WebBase\models\WebPageTagLinks;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Tests for the WebPageTagLinkSet and WebPageTagLinks models.
+ *
+ * Covers WebPageTagLinkSet tag type and links getters/setters,
+ * and WebPageTagLinks list add/retrieve/empty-state behaviour.
+ */
 final class WebPageTagLinksTest extends TestCase
 {
+    /**
+     * Create a WebPageTagLinkSet with sensible defaults for testing.
+     *
+     * @param string $title   The tag set title
+     * @param string $tagType The tag type identifier
+     * @return WebPageTagLinkSet
+     */
     private function createTagLinkSet(string $title = 'Tag', string $tagType = 'category'): WebPageTagLinkSet
     {
         $set = new WebPageTagLinkSet($title);
@@ -20,6 +33,9 @@ final class WebPageTagLinksTest extends TestCase
 
     // --- WebPageTagLinkSet ---
 
+    /**
+     * Verify tag type can be set and retrieved.
+     */
     public function testTagTypeGetterSetter(): void
     {
         $set = $this->createTagLinkSet('Flowers', 'topic');
@@ -27,6 +43,9 @@ final class WebPageTagLinksTest extends TestCase
         $this->assertSame('topic', $set->getTagType());
     }
 
+    /**
+     * Verify hasLinks() returns false when no links have been assigned.
+     */
     public function testHasLinksReturnsFalseWhenNotSet(): void
     {
         $set = $this->createTagLinkSet();
@@ -34,6 +53,9 @@ final class WebPageTagLinksTest extends TestCase
         $this->assertFalse($set->hasLinks());
     }
 
+    /**
+     * Verify links can be set and retrieved.
+     */
     public function testSetAndGetLinks(): void
     {
         $set = $this->createTagLinkSet();
@@ -45,6 +67,9 @@ final class WebPageTagLinksTest extends TestCase
 
     // --- WebPageTagLinks list ---
 
+    /**
+     * Verify tag link sets can be added and retrieved in order.
+     */
     public function testAddAndRetrieveTagLinkSets(): void
     {
         $list = new WebPageTagLinks();
@@ -58,6 +83,9 @@ final class WebPageTagLinksTest extends TestCase
         $this->assertSame($set1, $list->getListItems()[0]);
     }
 
+    /**
+     * Verify a new WebPageTagLinks list is empty by default.
+     */
     public function testEmptyByDefault(): void
     {
         $list = new WebPageTagLinks();

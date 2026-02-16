@@ -7,13 +7,27 @@ namespace BSBI\WebBase\Tests\Unit\models;
 use BSBI\WebBase\models\LoginDetails;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Tests for the LoginDetails model.
+ *
+ * Covers login status, username, login message, CSRF token,
+ * redirect page, and processing state getters and setters.
+ */
 final class LoginDetailsTest extends TestCase
 {
+    /**
+     * Create a LoginDetails instance for testing.
+     *
+     * @return LoginDetails
+     */
     private function createLoginDetails(): LoginDetails
     {
         return new LoginDetails();
     }
 
+    /**
+     * Verify login status can be set and retrieved.
+     */
     public function testLoginStatusGetterSetter(): void
     {
         $details = $this->createLoginDetails();
@@ -22,6 +36,9 @@ final class LoginDetailsTest extends TestCase
         $this->assertTrue($details->getLoginStatus());
     }
 
+    /**
+     * Verify username can be set and retrieved.
+     */
     public function testUserNameGetterSetter(): void
     {
         $details = $this->createLoginDetails();
@@ -30,6 +47,9 @@ final class LoginDetailsTest extends TestCase
         $this->assertSame('alice', $details->getUserName());
     }
 
+    /**
+     * Verify login message can be set and retrieved.
+     */
     public function testLoginMessageGetterSetter(): void
     {
         $details = $this->createLoginDetails();
@@ -38,6 +58,9 @@ final class LoginDetailsTest extends TestCase
         $this->assertSame('Invalid password', $details->getLoginMessage());
     }
 
+    /**
+     * Verify CSRF token can be set and retrieved.
+     */
     public function testCSRFTokenGetterSetter(): void
     {
         $details = $this->createLoginDetails();
@@ -46,6 +69,9 @@ final class LoginDetailsTest extends TestCase
         $this->assertSame('abc123', $details->getCSRFToken());
     }
 
+    /**
+     * Verify redirect page defaults to empty and can be set.
+     */
     public function testRedirectPageGetterSetter(): void
     {
         $details = $this->createLoginDetails();
@@ -57,6 +83,9 @@ final class LoginDetailsTest extends TestCase
         $this->assertSame('/dashboard', $details->getRedirectPage());
     }
 
+    /**
+     * Verify processing state defaults to false and can be toggled.
+     */
     public function testHasBeenProcessedGetterSetter(): void
     {
         $details = $this->createLoginDetails();

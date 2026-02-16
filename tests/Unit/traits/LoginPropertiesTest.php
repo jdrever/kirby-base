@@ -10,9 +10,17 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Tests the LoginProperties trait via an anonymous concrete class.
+ *
+ * Covers set/get roundtrip, replacement, and state preservation
+ * of the LoginDetails object.
  */
 final class LoginPropertiesTest extends TestCase
 {
+    /**
+     * Create an anonymous class that uses LoginProperties for testing.
+     *
+     * @return object
+     */
     private function createModel(): object
     {
         return new class {
@@ -20,6 +28,9 @@ final class LoginPropertiesTest extends TestCase
         };
     }
 
+    /**
+     * Verify LoginDetails can be set and retrieved with its state intact.
+     */
     public function testSetAndGetLoginDetails(): void
     {
         $model = $this->createModel();
@@ -32,6 +43,9 @@ final class LoginPropertiesTest extends TestCase
         $this->assertSame('alice', $model->getLoginDetails()->getUserName());
     }
 
+    /**
+     * Verify LoginDetails can be replaced with a new instance.
+     */
     public function testLoginDetailsCanBeReplaced(): void
     {
         $model = $this->createModel();
@@ -46,6 +60,9 @@ final class LoginPropertiesTest extends TestCase
         $this->assertSame('bob', $model->getLoginDetails()->getUserName());
     }
 
+    /**
+     * Verify the full state of LoginDetails is preserved through the trait.
+     */
     public function testLoginDetailsPreservesState(): void
     {
         $model = $this->createModel();

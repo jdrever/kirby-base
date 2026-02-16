@@ -7,8 +7,24 @@ namespace BSBI\WebBase\Tests\Unit\models;
 use BSBI\WebBase\models\Image;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Tests for the Image model.
+ *
+ * Covers constructor defaults, availability checks, srcset/WebP/AVIF variants,
+ * caption (with and without HTML), sizes, CSS class, loading/decoding strategies,
+ * and fetch priority.
+ */
 final class ImageTest extends TestCase
 {
+    /**
+     * Create an Image with sensible defaults for testing.
+     *
+     * @param string $src    The image source URL
+     * @param string $alt    The alt text
+     * @param int    $width  The image width in pixels
+     * @param int    $height The image height in pixels
+     * @return Image
+     */
     private function createImage(
         string $src = '/img/photo.jpg',
         string $alt = 'A photo',
@@ -20,6 +36,9 @@ final class ImageTest extends TestCase
 
     // --- Constructor defaults ---
 
+    /**
+     * Verify the constructor correctly assigns src, alt, width and height.
+     */
     public function testConstructorSetsBasicProperties(): void
     {
         $image = $this->createImage();
@@ -30,6 +49,9 @@ final class ImageTest extends TestCase
         $this->assertSame(600, $image->getHeight());
     }
 
+    /**
+     * Verify default loading strategy is 'lazy' and decoding is 'async'.
+     */
     public function testDefaultLoadingAndDecoding(): void
     {
         $image = $this->createImage();
@@ -40,12 +62,18 @@ final class ImageTest extends TestCase
 
     // --- isAvailable ---
 
+    /**
+     * Verify isAvailable() returns true when a source URL is set.
+     */
     public function testIsAvailableWhenSrcIsSet(): void
     {
         $image = $this->createImage();
         $this->assertTrue($image->isAvailable());
     }
 
+    /**
+     * Verify isAvailable() returns false when no source URL is provided.
+     */
     public function testIsNotAvailableWhenSrcIsEmpty(): void
     {
         $image = new Image();
@@ -54,6 +82,9 @@ final class ImageTest extends TestCase
 
     // --- Srcset variants ---
 
+    /**
+     * Verify srcset can be set and retrieved.
+     */
     public function testSrcsetGetterSetter(): void
     {
         $image = $this->createImage();
@@ -62,6 +93,9 @@ final class ImageTest extends TestCase
         $this->assertSame('photo-320.jpg 320w, photo-640.jpg 640w', $image->getSrcset());
     }
 
+    /**
+     * Verify WebP srcset can be set and retrieved.
+     */
     public function testWebpSrcsetGetterSetter(): void
     {
         $image = $this->createImage();
@@ -70,6 +104,9 @@ final class ImageTest extends TestCase
         $this->assertSame('photo.webp 800w', $image->getWebpSrcset());
     }
 
+    /**
+     * Verify AVIF srcset can be set, and hasAvifSrcset() reflects its presence.
+     */
     public function testAvifSrcsetGetterSetter(): void
     {
         $image = $this->createImage();
@@ -83,6 +120,9 @@ final class ImageTest extends TestCase
 
     // --- WebP/AVIF single sources ---
 
+    /**
+     * Verify single WebP source can be set, and hasWebpSrc() reflects its presence.
+     */
     public function testWebpSrcGetterSetter(): void
     {
         $image = $this->createImage();
@@ -94,6 +134,9 @@ final class ImageTest extends TestCase
         $this->assertSame('/img/photo.webp', $image->getWebpSrc());
     }
 
+    /**
+     * Verify single AVIF source can be set, and hasAvifSrc() reflects its presence.
+     */
     public function testAvifSrcGetterSetter(): void
     {
         $image = $this->createImage();
@@ -107,6 +150,9 @@ final class ImageTest extends TestCase
 
     // --- Caption ---
 
+    /**
+     * Verify caption can be set and retrieved, including HTML-stripped variant.
+     */
     public function testCaptionGetterSetter(): void
     {
         $image = $this->createImage();
@@ -121,6 +167,9 @@ final class ImageTest extends TestCase
 
     // --- Sizes ---
 
+    /**
+     * Verify sizes attribute can be set, and hasSizes() reflects its presence.
+     */
     public function testSizesGetterSetter(): void
     {
         $image = $this->createImage();
@@ -134,6 +183,9 @@ final class ImageTest extends TestCase
 
     // --- Class ---
 
+    /**
+     * Verify CSS class can be set, and hasClass() reflects its presence.
+     */
     public function testClassGetterSetter(): void
     {
         $image = $this->createImage();
@@ -147,6 +199,9 @@ final class ImageTest extends TestCase
 
     // --- Fetch priority ---
 
+    /**
+     * Verify fetch priority can be set, and hasFetchPriority() reflects its presence.
+     */
     public function testFetchPriorityGetterSetter(): void
     {
         $image = $this->createImage();

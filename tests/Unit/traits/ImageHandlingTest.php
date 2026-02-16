@@ -10,14 +10,25 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Tests the ImageHandling trait via WebPageLink (a concrete user of the trait).
+ *
+ * Covers hasImage default state, setImage/getImage roundtrip,
+ * and fluent setter return value.
  */
 final class ImageHandlingTest extends TestCase
 {
+    /**
+     * Create a WebPageLink for testing ImageHandling methods.
+     *
+     * @return WebPageLink
+     */
     private function createLink(): WebPageLink
     {
         return new WebPageLink('Test', '/test', 'test', 'default');
     }
 
+    /**
+     * Verify hasImage() returns false when no image has been set.
+     */
     public function testHasImageReturnsFalseByDefault(): void
     {
         $link = $this->createLink();
@@ -25,6 +36,9 @@ final class ImageHandlingTest extends TestCase
         $this->assertFalse($link->hasImage());
     }
 
+    /**
+     * Verify an image can be set and retrieved, and hasImage() reflects its presence.
+     */
     public function testSetAndGetImage(): void
     {
         $link = $this->createLink();
@@ -36,6 +50,9 @@ final class ImageHandlingTest extends TestCase
         $this->assertSame($image, $link->getImage());
     }
 
+    /**
+     * Verify setImage() returns the same instance for fluent chaining.
+     */
     public function testSetImageReturnsSelf(): void
     {
         $link = $this->createLink();

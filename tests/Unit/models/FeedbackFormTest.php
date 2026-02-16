@@ -7,13 +7,28 @@ namespace BSBI\WebBase\Tests\Unit\models;
 use BSBI\WebBase\models\FeedbackForm;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Tests for the FeedbackForm model.
+ *
+ * Covers field value/alert defaults, getters and setters,
+ * FormProperties trait integration (CSRF, submission status),
+ * and fluent interface return values.
+ */
 final class FeedbackFormTest extends TestCase
 {
+    /**
+     * Create a FeedbackForm instance for testing.
+     *
+     * @return FeedbackForm
+     */
     private function createForm(): FeedbackForm
     {
         return new FeedbackForm();
     }
 
+    /**
+     * Verify all value and alert fields default to empty strings.
+     */
     public function testFieldsDefaultToEmpty(): void
     {
         $form = $this->createForm();
@@ -26,6 +41,9 @@ final class FeedbackFormTest extends TestCase
         $this->assertSame('', $form->getFeedbackAlert());
     }
 
+    /**
+     * Verify name, email and feedback values can be set and retrieved.
+     */
     public function testValueGettersSetters(): void
     {
         $form = $this->createForm();
@@ -39,6 +57,9 @@ final class FeedbackFormTest extends TestCase
         $this->assertSame('Great site!', $form->getFeedbackValue());
     }
 
+    /**
+     * Verify name, email and feedback alert messages can be set and retrieved.
+     */
     public function testAlertGettersSetters(): void
     {
         $form = $this->createForm();
@@ -52,6 +73,9 @@ final class FeedbackFormTest extends TestCase
         $this->assertSame('Feedback too short', $form->getFeedbackAlert());
     }
 
+    /**
+     * Verify FormProperties trait methods (CSRF token, submission status) are accessible.
+     */
     public function testFormPropertiesAreAccessible(): void
     {
         $form = $this->createForm();
@@ -63,6 +87,9 @@ final class FeedbackFormTest extends TestCase
         $this->assertTrue($form->isSubmissionSuccessful());
     }
 
+    /**
+     * Verify all setters return the same instance for fluent chaining.
+     */
     public function testSettersReturnSelf(): void
     {
         $form = $this->createForm();

@@ -8,8 +8,22 @@ use BSBI\WebBase\models\Language;
 use BSBI\WebBase\models\Languages;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Tests for the Language and Languages models.
+ *
+ * Covers Language code/name/active-page/default getters and setters,
+ * and Languages enable/disable, current language tracking, and
+ * translation status.
+ */
 final class LanguageTest extends TestCase
 {
+    /**
+     * Create a Language with sensible defaults for testing.
+     *
+     * @param string $code The language code (e.g. 'en', 'fr')
+     * @param string $name The display name of the language
+     * @return Language
+     */
     private function createLanguage(string $code = 'en', string $name = 'English'): Language
     {
         $lang = new Language();
@@ -19,6 +33,9 @@ final class LanguageTest extends TestCase
 
     // --- Language ---
 
+    /**
+     * Verify code and name are correctly set and retrieved.
+     */
     public function testCodeGetterSetter(): void
     {
         $lang = $this->createLanguage('fr', 'French');
@@ -27,6 +44,9 @@ final class LanguageTest extends TestCase
         $this->assertSame('French', $lang->getName());
     }
 
+    /**
+     * Verify the active page flag can be toggled.
+     */
     public function testActivePageGetterSetter(): void
     {
         $lang = $this->createLanguage();
@@ -38,6 +58,9 @@ final class LanguageTest extends TestCase
         $this->assertFalse($lang->isActivePage());
     }
 
+    /**
+     * Verify current page URL can be set and retrieved.
+     */
     public function testCurrentPageUrlGetterSetter(): void
     {
         $lang = $this->createLanguage();
@@ -46,6 +69,9 @@ final class LanguageTest extends TestCase
         $this->assertSame('/fr/about', $lang->getCurrentPageUrl());
     }
 
+    /**
+     * Verify the default language flag can be set.
+     */
     public function testIsDefaultGetterSetter(): void
     {
         $lang = $this->createLanguage();
@@ -56,6 +82,9 @@ final class LanguageTest extends TestCase
 
     // --- Languages ---
 
+    /**
+     * Verify Languages is disabled by default.
+     */
     public function testLanguagesDisabledByDefault(): void
     {
         $languages = new Languages();
@@ -63,6 +92,9 @@ final class LanguageTest extends TestCase
         $this->assertFalse($languages->isEnabled());
     }
 
+    /**
+     * Verify Languages can be enabled.
+     */
     public function testLanguagesEnabledGetterSetter(): void
     {
         $languages = new Languages();
@@ -71,6 +103,9 @@ final class LanguageTest extends TestCase
         $this->assertTrue($languages->isEnabled());
     }
 
+    /**
+     * Verify multiple languages can be added and retrieved in order.
+     */
     public function testAddAndRetrieveLanguages(): void
     {
         $languages = new Languages();
@@ -84,6 +119,9 @@ final class LanguageTest extends TestCase
         $this->assertSame($en, $languages->getLanguages()[0]);
     }
 
+    /**
+     * Verify current language, default language flag, and page translation status.
+     */
     public function testCurrentLanguageAndTranslationStatus(): void
     {
         $languages = new Languages();

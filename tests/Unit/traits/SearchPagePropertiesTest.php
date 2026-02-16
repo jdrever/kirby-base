@@ -11,9 +11,17 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Tests the SearchPageProperties trait via an anonymous concrete class.
+ *
+ * Covers search results, special search type, content type options,
+ * selected content type, and search completed flag.
  */
 final class SearchPagePropertiesTest extends TestCase
 {
+    /**
+     * Create an anonymous class that uses SearchPageProperties for testing.
+     *
+     * @return object
+     */
     private function createModel(): object
     {
         return new class {
@@ -21,6 +29,9 @@ final class SearchPagePropertiesTest extends TestCase
         };
     }
 
+    /**
+     * Verify search results default to none (unset).
+     */
     public function testSearchResultsDefaultToNone(): void
     {
         $model = $this->createModel();
@@ -28,6 +39,9 @@ final class SearchPagePropertiesTest extends TestCase
         $this->assertFalse($model->hasSearchResults());
     }
 
+    /**
+     * Verify search results can be set and hasSearchResults() reflects populated results.
+     */
     public function testSearchResultsGetterSetter(): void
     {
         $model = $this->createModel();
@@ -40,6 +54,9 @@ final class SearchPagePropertiesTest extends TestCase
         $this->assertSame(1, $model->getSearchResults()->count());
     }
 
+    /**
+     * Verify special search type defaults to empty and can be set.
+     */
     public function testSpecialSearchTypeGetterSetter(): void
     {
         $model = $this->createModel();
@@ -51,6 +68,9 @@ final class SearchPagePropertiesTest extends TestCase
         $this->assertSame('image_search', $model->getSpecialSearchType());
     }
 
+    /**
+     * Verify content type options default to empty and can be set.
+     */
     public function testContentTypeOptionsGetterSetter(): void
     {
         $model = $this->createModel();
@@ -64,6 +84,9 @@ final class SearchPagePropertiesTest extends TestCase
         $this->assertSame($options, $model->getContentTypeOptions());
     }
 
+    /**
+     * Verify selected content type defaults to empty and can be set.
+     */
     public function testSelectedContentTypeGetterSetter(): void
     {
         $model = $this->createModel();
@@ -74,6 +97,9 @@ final class SearchPagePropertiesTest extends TestCase
         $this->assertSame('article', $model->getSelectedContentType());
     }
 
+    /**
+     * Verify search completed flag defaults to false and can be toggled.
+     */
     public function testSearchCompletedGetterSetter(): void
     {
         $model = $this->createModel();

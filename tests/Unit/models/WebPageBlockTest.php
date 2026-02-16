@@ -7,8 +7,21 @@ namespace BSBI\WebBase\Tests\Unit\models;
 use BSBI\WebBase\models\WebPageBlock;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Tests for the WebPageBlock model.
+ *
+ * Covers constructor initialisation, block type/level/content/anchor
+ * getters and setters, and fluent interface return values.
+ */
 final class WebPageBlockTest extends TestCase
 {
+    /**
+     * Create a WebPageBlock with sensible defaults for testing.
+     *
+     * @param string $type    The block type identifier
+     * @param string $content The HTML content of the block
+     * @return WebPageBlock
+     */
     private function createBlock(string $type = 'text', string $content = '<p>Hello</p>'): WebPageBlock
     {
         return new WebPageBlock($type, $content);
@@ -16,6 +29,9 @@ final class WebPageBlockTest extends TestCase
 
     // --- Constructor ---
 
+    /**
+     * Verify the constructor correctly assigns the block type and content.
+     */
     public function testConstructorSetsTypeAndContent(): void
     {
         $block = $this->createBlock('heading', '<h2>Title</h2>');
@@ -26,6 +42,9 @@ final class WebPageBlockTest extends TestCase
 
     // --- Block level ---
 
+    /**
+     * Verify block level can be set and retrieved.
+     */
     public function testBlockLevelGetterSetter(): void
     {
         $block = $this->createBlock();
@@ -36,6 +55,9 @@ final class WebPageBlockTest extends TestCase
 
     // --- Anchor ---
 
+    /**
+     * Verify anchor can be set and retrieved.
+     */
     public function testAnchorGetterSetter(): void
     {
         $block = $this->createBlock();
@@ -46,6 +68,9 @@ final class WebPageBlockTest extends TestCase
 
     // --- Fluent setters ---
 
+    /**
+     * Verify all setters return the same instance for fluent chaining.
+     */
     public function testSettersReturnSelf(): void
     {
         $block = $this->createBlock();
