@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**kirby-base** (`open-foundations/kirby-base`) is a Kirby CMS v5 plugin (v1.6.58) that provides reusable base classes
+**kirby-base** (`open-foundations/kirby-base`) is a Kirby CMS v5 plugin (v2.0.0) that provides reusable base classes
 , blueprints, snippets, and helpers for building websites. It is installed as a git submodule into consuming sites at 
 `site/plugins/kirby-base`.
 
@@ -39,7 +39,7 @@ PSR-4 autoloaded from `classes/`. The class hierarchy is:
 - **`KirbyBaseHelper`** (`classes/helpers/`) — large helper class (~6k lines) that bridges Kirby CMS data to 
 model objects. Consuming sites extend this and implement `getBasicPage`/`setBasicPage`.
 - **`SearchIndexHelper`** — SQLite FTS5 full-text search implementation
-- **13 traits** in `classes/traits/` provide mixins for concerns like `GenericKirbyHelper`, `FormProperties`, 
+- **13 traits** in `classes/traits/` provide mixins for  `FormProperties`, 
 `ImageHandling`, `LoginProperties`, etc.
 
 ### Extension Pattern

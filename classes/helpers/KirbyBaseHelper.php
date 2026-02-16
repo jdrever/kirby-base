@@ -62,13 +62,8 @@ use Throwable;
 abstract class KirbyBaseHelper
 {
     use OptionsHandling;
-    private const array STOP_WORDS = [
-        'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-        'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been',
-        'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
-        'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'need',
-        'this', 'that', 'these', 'those', 'it', 'its'
-    ];
+    /** @deprecated Use SearchTextHelper::STOP_WORDS instead */
+    private const array STOP_WORDS = SearchTextHelper::STOP_WORDS;
 
     protected const string ASSETS_PATH = '/media/plugins/open-foundations/kirby-base/';
 
@@ -4411,17 +4406,8 @@ abstract class KirbyBaseHelper
     /**
      * Stop words to filter out when extracting keywords from search queries
      */
-    private const array SEARCH_STOP_WORDS = [
-        'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-        'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been',
-        'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
-        'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'need',
-        'this', 'that', 'these', 'those', 'it', 'its', 'i', 'me', 'my', 'we',
-        'our', 'you', 'your', 'he', 'she', 'they', 'them', 'their', 'what',
-        'which', 'who', 'whom', 'how', 'when', 'where', 'why', 'all', 'any',
-        'both', 'each', 'more', 'most', 'other', 'some', 'such', 'no', 'not',
-        'only', 'same', 'so', 'than', 'too', 'very', 'just', 'also', 'now'
-    ];
+    /** @deprecated Use SearchTextHelper::SEARCH_STOP_WORDS instead */
+    private const array SEARCH_STOP_WORDS = SearchTextHelper::SEARCH_STOP_WORDS;
 
     /**
      * Get top search terms by frequency
@@ -4471,33 +4457,16 @@ abstract class KirbyBaseHelper
         }
 
         $logEntries = $searchLog->children()->template('search_log_item');
-        $keywordCounts = [];
+        $queries = [];
 
         foreach ($logEntries as $entry) {
-            $query = strtolower(trim($entry->searchQuery()->value() ?? ''));
-            if ($query === '') {
-                continue;
-            }
-
-            // Split query into words, filter stop words and short words
-            $words = preg_split('/\s+/', $query);
-            foreach ($words as $word) {
-                $word = preg_replace('/[^\p{L}\p{N}]/u', '', $word); // Remove non-alphanumeric
-                if (strlen($word) >= 2 && !in_array($word, self::SEARCH_STOP_WORDS, true)) {
-                    $keywordCounts[$word] = ($keywordCounts[$word] ?? 0) + 1;
-                }
+            $query = $entry->searchQuery()->value() ?? '';
+            if (trim($query) !== '') {
+                $queries[] = $query;
             }
         }
 
-        arsort($keywordCounts);
-        $topKeywords = array_slice($keywordCounts, 0, $limit, true);
-
-        $result = [];
-        foreach ($topKeywords as $keyword => $count) {
-            $result[] = ['keyword' => $keyword, 'count' => $count];
-        }
-
-        return $result;
+        return SearchTextHelper::extractKeywordCounts($queries, SearchTextHelper::SEARCH_STOP_WORDS, $limit);
     }
 
     /**
@@ -4594,84 +4563,34 @@ abstract class KirbyBaseHelper
         $options = array_merge($defaults, $params);
         $collection = clone $collection;
 
+        $defaultWeights = [
+            'id' => 64,
+            'title' => 128,
+            'description' => 64,
+            'keywords' => 64,
+            'maincontent' => 32
+        ];
+
         $scores = [];
-        $results = $collection->filter(function ($item) use ($query, $options, &$scores) {
+        $results = $collection->filter(function ($item) use ($query, $options, $defaultWeights, &$scores) {
 
             $data = $item->content()->toArray();
-            //echo('<p><b>'.$data['title'].'</b></p>');
             $keys = array_keys($data);
             $keys[] = 'id';
-            // apply the default score for pages
-            $options['score'] = array_merge([
-                'id' => 64,
-                'title' => 128,
-                'description' => 64,
-                'keywords' => 64,
-                'maincontent' => 32
-            ], $options['score']);
-
 
             if (empty($options['fields']) === false) {
                 $fields = array_map('strtolower', $options['fields']);
                 $keys = array_intersect($keys, $fields);
             }
 
-
-            $scoring = [
-                'hits' => 0,
-                'score' => 0
-            ];
-
-            // Extract quoted phrases first (e.g., "botanical society")
-            preg_match_all('/"([^"]+)"/', $query, $phraseMatches);
-            $phrases = $phraseMatches[1] ?? [];
-
-            // Get remaining query after removing quoted phrases
-            $remainingQuery = preg_replace('/"[^"]+"/', '', $query);
-            $words = preg_split('/\s+/', trim($remainingQuery ?? ''));
-
-            if ($words === false) {
-                $words = [];
-            }
-
-            // Filter stop words and empty strings
-            $words = $this->filterStopWords(array_filter($words));
-
+            // Build field name => value map for scoring
+            $fieldValues = [];
             foreach ($keys as $key) {
-                $score = $options['score'][$key] ?? 1;
-                $value = (string)$item->$key();
-
-                // Check for quoted phrase matches (highest priority - 10x)
-                foreach ($phrases as $phrase) {
-                    if ($matches = preg_match_all('!' . preg_quote($phrase) . '!i', $value, $r)) {
-                        $scoring['score'] += 10 * $matches * $score;
-                        $scoring['hits'] += $matches;
-                    }
-                }
-
-                // Check for individual word matches
-                $allWords = true;
-                $wordMatches = 0;
-                foreach ($words as $word) {
-                    $escapedWord = preg_quote($word, '/');
-                    $pattern = "/\b" . $escapedWord . "\b/i";
-
-                    if ($matches = preg_match_all($pattern, $value, $r)) {
-                        $wordMatches += $matches;
-                    } else {
-                        $allWords = false;
-                    }
-                }
-
-                // Bonus if all words found in same field
-                if ($allWords && count($words) > 0) {
-                    $scoring['score'] += 5 * $wordMatches * $score;
-                } else {
-                    $scoring['score'] += $wordMatches * $score;
-                }
-                $scoring['hits'] += $wordMatches;
+                $fieldValues[$key] = (string)$item->$key();
             }
-            //var_dump($scoring);
+
+            $fieldWeights = array_merge($defaultWeights, $options['score']);
+            $scoring = SearchTextHelper::scoreFields($fieldValues, $query, $fieldWeights);
 
             $scores[$item->id()] = $scoring;
             return $scoring['hits'] > 0;
@@ -4763,75 +4682,12 @@ abstract class KirbyBaseHelper
      */
     private function highlightTerm(string $text, string $term): string
     {
-        // Extract quoted phrases first
-        preg_match_all('/"([^"]+)"/', $term, $phraseMatches);
-        $phrases = $phraseMatches[1] ?? [];
-
-        // Get remaining words after removing quoted phrases
-        $remainingTerm = preg_replace('/"[^"]+"/', '', $term);
-        $words = preg_split('/\s+/', trim($remainingTerm ?? ''));
-        if ($words === false) {
-            $words = [];
-        }
-        $words = array_filter($words);
-
-        // Highlight exact phrases first (only in text outside HTML tags)
-        foreach ($phrases as $phrase) {
-            $escaped = preg_quote($phrase, '/');
-            $text = $this->highlightInTextOnly($text, "/($escaped)/i");
-        }
-
-        // Highlight individual words (skip very short words and stop words)
-        foreach ($words as $word) {
-            if (strlen($word) > 2 && !in_array(strtolower($word), self::STOP_WORDS)) {
-                $escaped = preg_quote($word, '/');
-                $text = $this->highlightInTextOnly($text, "/(\b$escaped\b)/i");
-            }
-        }
-
-        return $text;
+        return SearchTextHelper::highlightTerm($text, $term);
     }
 
-    /**
-     * Apply highlighting only to text content, skipping HTML tags and attributes.
-     *
-     * @param string $text The HTML text to process
-     * @param string $pattern The regex pattern to match (should have a capture group)
-     * @return string The text with highlights applied only to text content
-     */
-    private function highlightInTextOnly(string $text, string $pattern): string
-    {
-        // Split text into HTML tags and text content
-        // This regex captures HTML tags (including their attributes) as separate parts
-        $parts = preg_split('/(<[^>]+>)/', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
-        if ($parts === false) {
-            return $text;
-        }
-
-        $result = '';
-        foreach ($parts as $part) {
-            // If this part is an HTML tag (starts with <), leave it unchanged
-            if (str_starts_with($part, '<')) {
-                $result .= $part;
-            } else {
-                // This is text content - apply highlighting
-                $result .= preg_replace($pattern, '<span class="highlight">$1</span>', $part) ?? $part;
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * Filters stop words from an array of search terms
-     * @param array $words
-     * @return array
-     */
     private function filterStopWords(array $words): array
     {
-        return array_filter($words, fn($word) =>
-            strlen($word) > 2 && !in_array(strtolower($word), self::STOP_WORDS)
-        );
+        return SearchTextHelper::filterStopWords($words);
     }
 
     /**
