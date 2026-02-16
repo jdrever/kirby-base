@@ -1069,6 +1069,9 @@ abstract class KirbyBaseHelper
                 throw $e;
             }
             return new WebPageLinks();
+        } catch (\TypeError) {
+            // Field value is not a valid page reference (e.g. structure field mistaken for pages field)
+            return new WebPageLinks();
         }
     }
 

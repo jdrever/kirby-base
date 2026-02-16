@@ -117,12 +117,6 @@ return [
         }
     ],
     [
-        'pattern' => 'image-bank',
-        'action' => function () {
-            return site()->errorPage();
-        }
-    ],
-    [
         'pattern' => 'search-stats',
         'method' => 'GET',
         'action' => function () {
