@@ -42,9 +42,14 @@ class SearchIndexHelper
         'this', 'that', 'these', 'those', 'it', 'its'
     ];
 
-    /** @var array<string> Default templates to exclude (minimal generic list) */
+    /** @var array<string> Default templates to exclude from the search index */
     private const array DEFAULT_EXCLUDED_TEMPLATES = [
         'error', 'error-500', 'login', 'search_log', 'search_log_item', 'file_archive', 'form_submission', 'image_bank'
+    ];
+
+    /** @var array<string> Templates to exclude from panel search (all_pages table) */
+    private const array PANEL_EXCLUDED_TEMPLATES = [
+        'search_log', 'search_log_item'
     ];
 
     /** @var array<string, float> Default BM25 field weights */
@@ -784,23 +789,7 @@ class SearchIndexHelper
             }
 
             // Rebuild all_pages table with every page on the site
-            $this->ensureAllPagesTable();
-            $this->database->exec('DELETE FROM all_pages');
-            $allPagesCount = 0;
-            $allPagesStmt = $this->database->prepare(
-                'INSERT INTO all_pages (page_id, title) VALUES (:page_id, :title)'
-            );
-            foreach ($this->kirby->site()->index(true) as $page) {
-                try {
-                    $allPagesStmt->execute([
-                        'page_id' => $page->id(),
-                        'title' => (string)($page->content()->title()->value() ?? '')
-                    ]);
-                    $allPagesCount++;
-                } catch (Throwable $e) {
-                    error_log('Failed to index page in all_pages: ' . $page->id() . ': ' . $e->getMessage());
-                }
-            }
+            $allPagesCount = $this->rebuildAllPages();
 
             // Update metadata
             $metaStmt = $this->database->prepare('INSERT OR REPLACE INTO search_meta (key, value) VALUES (:key, :value)');
@@ -832,13 +821,30 @@ class SearchIndexHelper
     }
 
     /**
+     * Check whether a page should be excluded from the panel search (all_pages table)
+     *
+     * @param Page $page The Kirby page to check
+     * @return bool True if the page should be excluded
+     */
+    private function isExcludedFromPanel(Page $page): bool
+    {
+        return in_array($page->intendedTemplate()->name(), self::PANEL_EXCLUDED_TEMPLATES, true);
+    }
+
+    /**
      * Add or update a page in the all_pages table
      *
+     * Skips pages with templates listed in PANEL_EXCLUDED_TEMPLATES.
+     *
      * @param Page $page The Kirby page to add
-     * @return bool True if the entry was added/updated
+     * @return bool True if the entry was added/updated, false if skipped
      */
     private function indexAllPagesEntry(Page $page): bool
     {
+        if ($this->isExcludedFromPanel($page)) {
+            return false;
+        }
+
         $this->ensureAllPagesTable();
         $stmt = $this->database->prepare(
             'INSERT OR REPLACE INTO all_pages (page_id, title) VALUES (:page_id, :title)'
@@ -867,6 +873,7 @@ class SearchIndexHelper
      *
      * Uses site()->index(true) to get all pages including drafts,
      * unlike the search_index which only indexes selected templates.
+     * Excludes templates listed in PANEL_EXCLUDED_TEMPLATES.
      *
      * @return int Number of pages indexed
      * @throws Throwable If database operations fail
@@ -883,6 +890,9 @@ class SearchIndexHelper
         $count = 0;
         foreach ($this->kirby->site()->index(true) as $page) {
             try {
+                if ($this->isExcludedFromPanel($page)) {
+                    continue;
+                }
                 $stmt->execute([
                     'page_id' => $page->id(),
                     'title' => (string)($page->content()->title()->value() ?? '')
