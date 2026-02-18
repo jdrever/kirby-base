@@ -4055,11 +4055,12 @@ abstract class KirbyBaseHelper
     }
 
     /**
-     * @param $logFile .log is added
-     * @param $message
+     * @param string $logFile .log is added
+     * @param string $message
+     * @param bool $overwrite
      * @return void
      */
-    public function writeToLog($logFile, $message): void {
+    public function writeToLog(string $logFile, string $message, bool $overwrite = false): void {
         $logDir = kirby()->root('logs');
 
         if (!is_dir($logDir)) {
@@ -4071,7 +4072,8 @@ abstract class KirbyBaseHelper
         $date = new DateTime();
         $date = $date->format("y:m:d h:i:s");
 
-        file_put_contents($logFile, $date. ' '. $message, FILE_APPEND);
+        $flags = $overwrite ? 0 : FILE_APPEND;
+        file_put_contents($logFile, $date. ' '. $message, $flags);
     }
 
     /**
