@@ -8,6 +8,80 @@ use Kirby\Toolkit\Tpl;
 
 return [
     [
+        'pattern' => 'form-export/(:all)',
+        'method'  => 'GET',
+        'action'  => function (string $pageId): Response {
+            $helper = new KirbyInternalHelper();
+
+            if (!$helper->isCurrentUserAdminOrEditor()) {
+                return new Response(
+                    'You must be an administrator or editor to export submissions.',
+                    'text/plain',
+                    403
+                );
+            }
+
+            $page = page($pageId);
+            if (!$page) {
+                return new Response('Page not found.', 'text/plain', 404);
+            }
+
+            $submissions = $page->children()->template('form_submission');
+
+            // Pass 1: collect all unique questions across every submission,
+            // preserving the first-seen order so later submissions with
+            // extra questions simply append new columns at the right.
+            $allQuestions = [];
+            $submissionRows = [];
+
+            foreach ($submissions as $submission) {
+                $rowData = ['_title' => $submission->title()->value()];
+
+                foreach ($submission->submission()->toStructure() as $item) {
+                    $question = $item->question()->value();
+                    $answer   = $item->answer()->value();
+
+                    if (!in_array($question, $allQuestions, true)) {
+                        $allQuestions[] = $question;
+                    }
+
+                    $rowData[$question] = $answer;
+                }
+
+                $submissionRows[] = $rowData;
+            }
+
+            // Pass 2: build the CSV in memory.
+            ob_start();
+            $handle = fopen('php://output', 'w');
+
+            // Row 1: form page title (identification row).
+            fputcsv($handle, [$page->title()->value()]);
+
+            // Row 2: column headers.
+            fputcsv($handle, array_merge(['Submission'], $allQuestions));
+
+            // Data rows: one per submission, answers mapped to the correct column.
+            foreach ($submissionRows as $row) {
+                $csvRow = [$row['_title']];
+                foreach ($allQuestions as $question) {
+                    $csvRow[] = $row[$question] ?? '';
+                }
+                fputcsv($handle, $csvRow);
+            }
+
+            fclose($handle);
+            $csv = ob_get_clean();
+
+            $filename = 'submissions-' . $page->slug() . '-' . date('Y-m-d') . '.csv';
+
+            return new Response($csv, 'text/csv', 200, [
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control'       => 'no-cache, no-store, must-revalidate',
+            ]);
+        }
+    ],
+    [
         'pattern' => 'logout',
         'action' => function () {
             if ($user = kirby()->user()) {

@@ -46,6 +46,48 @@ panel.plugin('open-foundations/kirby-base', {
       `
     },
 
+    formsubmissionexport: {
+      data: function () {
+        return {
+          headline: 'Export Submissions',
+          submissionCount: 0,
+          exportUrl: ''
+        }
+      },
+      created: async function() {
+        try {
+          const response = await this.load();
+          this.headline = response.headline;
+          this.submissionCount = response.submissionCount;
+          this.exportUrl = response.exportUrl;
+        } catch (error) {
+          console.error("Failed to load form submission export section:", error);
+        }
+      },
+      template: `
+        <section class="k-section k-formsubmissionexport-section">
+          <header class="k-section-header">
+            <h2 class="k-headline">{{ headline }}</h2>
+          </header>
+          <div style="padding: 0.75rem 0 0.5rem;">
+            <p style="margin-bottom: 0.75rem; color: var(--color-text-dimmed); font-size: 0.875rem;">
+              {{ submissionCount }} submission{{ submissionCount !== 1 ? 's' : '' }} available for export.
+            </p>
+            <a
+              v-if="submissionCount > 0"
+              :href="exportUrl"
+              style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; background: var(--color-blue-500, #2563eb); color: #fff; border-radius: var(--rounded); font-size: 0.875rem; font-weight: 500; text-decoration: none;"
+            >
+              &#8595; Download CSV
+            </a>
+            <k-empty v-else icon="file-text">
+              No submissions to export yet.
+            </k-empty>
+          </div>
+        </section>
+      `
+    },
+
     searchanalytics: {
       data: function () {
         return {

@@ -25,6 +25,7 @@ $pluginConfig = [
         'page_link' =>  require __DIR__ . '/controllers/page_link.php',
     ],
     'sections' => [
+        'formsubmissionexport' => require __DIR__ . '/sections/formsubmissionexport.php',
         'quicklinks' => require __DIR__ . '/sections/quicklinks.php',
         'searchanalytics' => require __DIR__ . '/sections/searchanalytics.php',
     ],
