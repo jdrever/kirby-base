@@ -27,7 +27,7 @@ $loginDetails = $currentPage->getLoginDetails();
 
 <?php if ($loginDetails->hasBeenProcessed()) :?>
     <div class="alert alert-danger" role="alert">
-        <h2><i class="bi bi-exclamation-square-fill"></i> <?= $loginDetails->getLoginMessage() ?></h2>
+        <p><i class="bi bi-exclamation-square-fill"></i> <?= $loginDetails->getLoginMessage() ?></p>
     </div>
 <?php endif ?>
 
