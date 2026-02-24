@@ -1,5 +1,6 @@
 <?php
 
+use BSBI\WebBase\helpers\ContentIndexRegistry;
 use BSBI\WebBase\helpers\KirbyInternalHelper;
 use BSBI\WebBase\helpers\SearchIndexHelper;
 
@@ -28,6 +29,16 @@ function handlePageChange($newPage, $oldPage) {
         $searchIndex->indexPage($newPage);
     } catch (Throwable $e) {
         error_log('Failed to update search index: ' . $e->getMessage());
+    }
+
+    // Update content indexes
+    try {
+        $managers = ContentIndexRegistry::getManagersForTemplate($newPage->template()->name());
+        foreach ($managers as $manager) {
+            $manager->indexPage($newPage, $helper);
+        }
+    } catch (Throwable $e) {
+        error_log('Failed to update content index: ' . $e->getMessage());
     }
 
     return $newPage;
@@ -68,6 +79,16 @@ return [
             error_log('Failed to add page to search index: ' . $e->getMessage());
         }
 
+        // Add to content indexes
+        try {
+            $managers = ContentIndexRegistry::getManagersForTemplate($page->template()->name());
+            foreach ($managers as $manager) {
+                $manager->indexPage($page, $helper);
+            }
+        } catch (Throwable $e) {
+            error_log('Failed to add page to content index: ' . $e->getMessage());
+        }
+
         return $page;
     },
 
@@ -82,6 +103,16 @@ return [
         } catch (Throwable $e) {
             error_log('Failed to update search index after status change: ' . $e->getMessage());
         }
+
+        // Update content indexes
+        try {
+            $managers = ContentIndexRegistry::getManagersForTemplate($newPage->template()->name());
+            foreach ($managers as $manager) {
+                $manager->indexPage($newPage, $helper);
+            }
+        } catch (Throwable $e) {
+            error_log('Failed to update content index after status change: ' . $e->getMessage());
+        }
     },
     'page.delete:before' => function (Kirby\Cms\Page $page) {
         $helper = new KirbyInternalHelper();
@@ -93,6 +124,16 @@ return [
             $searchIndex->removePage($page->id());
         } catch (Throwable $e) {
             error_log('Failed to remove page from search index: ' . $e->getMessage());
+        }
+
+        // Remove from content indexes
+        try {
+            $managers = ContentIndexRegistry::getManagersForTemplate($page->template()->name());
+            foreach ($managers as $manager) {
+                $manager->removePage($page->id());
+            }
+        } catch (Throwable $e) {
+            error_log('Failed to remove page from content index: ' . $e->getMessage());
         }
     },
 

@@ -723,10 +723,10 @@ abstract class KirbyBaseHelper
      * @return bool
      * @throws KirbyRetrievalException
      */
-    protected function getPageFieldAsBool(Page   $page,
-                                          string $fieldName,
-                                          bool   $required = false,
-                                          bool   $default = false): bool
+    public function getPageFieldAsBool(Page   $page,
+                                      string $fieldName,
+                                      bool   $required = false,
+                                      bool   $default = false): bool
     {
         try {
             $pageField = $this->getPageField($page, $fieldName);
@@ -771,7 +771,7 @@ abstract class KirbyBaseHelper
      * @throws KirbyRetrievalException
      * @noinspection PhpUnused
      */
-    protected function getPageFieldAsDateTime(Page $page, string $fieldName, bool $required = false): ?DateTime
+    public function getPageFieldAsDateTime(Page $page, string $fieldName, bool $required = false): ?DateTime
     {
         try {
             $pageField = $this->getPageField($page, $fieldName);
@@ -806,7 +806,7 @@ abstract class KirbyBaseHelper
      * @return string
      * @throws KirbyRetrievalException
      */
-    protected function getPageFieldAsTime(Page $page, string $fieldName, bool $isRequired = false): string
+    public function getPageFieldAsTime(Page $page, string $fieldName, bool $isRequired = false): string
     {
         try {
             $pageField = $this->getPageField($page, $fieldName);
@@ -964,7 +964,7 @@ abstract class KirbyBaseHelper
      * @return string[]
      * @throws KirbyRetrievalException
      */
-    protected function getPageFieldAsArray(Page $page, string $fieldName, bool $required = false): array
+    public function getPageFieldAsArray(Page $page, string $fieldName, bool $required = false): array
     {
         try {
             $pageField = $this->getPageField($page, $fieldName);
@@ -1140,7 +1140,7 @@ abstract class KirbyBaseHelper
      * @return array
      * @throws KirbyRetrievalException
      */
-    protected function getPageFieldAsPageTitles(Page $page, string $fieldName): array
+    public function getPageFieldAsPageTitles(Page $page, string $fieldName): array
     {
         $pages = $this->getPageFieldAsPages($page, $fieldName);
         if ($pages) {
@@ -1286,7 +1286,7 @@ abstract class KirbyBaseHelper
      * @param string $fieldName
      * @return bool
      */
-    protected function isPageFieldNotEmpty(Page $page, string $fieldName): bool
+    public function isPageFieldNotEmpty(Page $page, string $fieldName): bool
     {
         try {
             $pageField = $this->getPageField($page, $fieldName);
@@ -1324,7 +1324,7 @@ abstract class KirbyBaseHelper
      * @return Field
      * @throws KirbyRetrievalException
      */
-    protected function getPageField(Page $page, string $fieldName): Field
+    public function getPageField(Page $page, string $fieldName): Field
     {
         try {
             $pageField = $page->content()->get($fieldName);
@@ -1571,9 +1571,9 @@ abstract class KirbyBaseHelper
      * @return string
      * @throws KirbyRetrievalException
      */
-    protected function getStructureFieldAsString(StructureObject $structure,
-                                                 string          $fieldName,
-                                                 bool            $required = false): string
+    public function getStructureFieldAsString(StructureObject $structure,
+                                              string          $fieldName,
+                                              bool            $required = false): string
     {
         try {
             $structureField = $this->getStructureField($structure, $fieldName);
@@ -3318,6 +3318,97 @@ abstract class KirbyBaseHelper
         }
 
         return $modelList;
+    }
+
+    /**
+     * Build a model list from a content index query instead of loading Kirby pages.
+     *
+     * This is the fast path: rows are read from SQLite and hydrated directly into
+     * model objects via hydrateModelFromIndexRow(), bypassing Kirby's flat-file reads.
+     *
+     * @param string $modelListClass The BaseList subclass to instantiate
+     * @param ContentIndexQuery $query A pre-built query (filters already applied)
+     * @param BaseFilter|null $filter Optional filter to attach to the list for description display
+     * @return BaseList The populated model list with optional pagination
+     * @throws KirbyRetrievalException If the model list class is invalid or hydration fails
+     */
+    protected function getSpecificModelListFromIndex(
+        string            $modelListClass,
+        ContentIndexQuery $query,
+        ?BaseFilter       $filter = null,
+    ): BaseList {
+        if (!(is_a($modelListClass, BaseList::class, true))) {
+            throw new KirbyRetrievalException("Model list class must extend BaseList.");
+        }
+
+        /** @var BaseList $modelList */
+        $modelList = new $modelListClass();
+        $modelClassName = $modelList->getItemType();
+
+        if ($filter !== null) {
+            $modelList->setFilters($filter);
+        }
+
+        // Handle pagination if the list supports it
+        if ($modelList->usePagination() && ($filter === null || !$filter->doStopPagination())) {
+            $totalCount = $query->count();
+            $perPage = $modelList->getPaginatePerPage();
+            $currentPage = max(1, (int)($this->kirby->request()->get('page', 1)));
+            $totalPages = max(1, (int)ceil($totalCount / $perPage));
+            $offset = ($currentPage - 1) * $perPage;
+
+            $query->limit($perPage)->offset($offset);
+
+            $pagination = new Pagination();
+            $pagination->setCurrentPage($currentPage);
+            $pagination->setPageCount($totalPages);
+            $pagination->setHasPreviousPage($currentPage > 1);
+            $pagination->setHasNextPage($currentPage < $totalPages);
+
+            if ($currentPage > 1) {
+                $pagination->setPreviousPageUrl('?page=' . ($currentPage - 1));
+            } else {
+                $pagination->setPreviousPageUrl('');
+            }
+            if ($currentPage < $totalPages) {
+                $pagination->setNextPageUrl('?page=' . ($currentPage + 1));
+            } else {
+                $pagination->setNextPageUrl('');
+            }
+
+            for ($i = 1; $i <= $totalPages; $i++) {
+                $pagination->addPageUrl('?page=' . $i);
+            }
+
+            $modelList->setPagination($pagination);
+        }
+
+        $rows = $query->get();
+
+        foreach ($rows as $row) {
+            $model = $this->hydrateModelFromIndexRow($row, $modelClassName);
+            $modelList->addListItem($model);
+        }
+
+        return $modelList;
+    }
+
+    /**
+     * Hydrate a model object from an index row.
+     *
+     * Override this method in site-specific KirbyHelper to handle specific model types.
+     * The default implementation throws an exception.
+     *
+     * @param array<string, mixed> $row The database row as an associative array
+     * @param string $modelClass The fully qualified model class name
+     * @return BaseModel The hydrated model instance
+     * @throws KirbyRetrievalException Always, unless overridden
+     */
+    protected function hydrateModelFromIndexRow(array $row, string $modelClass): BaseModel
+    {
+        throw new KirbyRetrievalException(
+            "hydrateModelFromIndexRow() must be overridden to support model class: $modelClass"
+        );
     }
 
     /**

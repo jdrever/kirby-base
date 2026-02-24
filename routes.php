@@ -1,5 +1,6 @@
 <?php
 
+use BSBI\WebBase\helpers\ContentIndexRegistry;
 use BSBI\WebBase\helpers\KirbyInternalHelper;
 use BSBI\WebBase\helpers\SearchIndexHelper;
 use Kirby\Cms\Page;
@@ -199,6 +200,73 @@ return [
                 try {
                     $searchIndex = new SearchIndexHelper();
                     $stats = $searchIndex->getStats();
+                    return new Response(
+                        json_encode($stats, JSON_PRETTY_PRINT),
+                        'application/json',
+                        200
+                    );
+                } catch (Exception $e) {
+                    return new Response(
+                        json_encode(['error' => $e->getMessage()]),
+                        'application/json',
+                        500
+                    );
+                }
+            }
+            return new Response('You must be an administrator to access this page.', 'text/plain', 403);
+        }
+    ],
+    [
+        'pattern' => 'content-index-rebuild',
+        'method' => 'GET',
+        'action' => function () {
+            $helper = new KirbyInternalHelper();
+            if ($helper->isCurrentUserAdminOrEditor()) {
+                try {
+                    $name = kirby()->request()->get('name', '');
+                    $results = [];
+
+                    if (!empty($name)) {
+                        $manager = ContentIndexRegistry::get($name);
+                        if ($manager === null) {
+                            return new Response("Content index '$name' not found.", 'text/plain', 404);
+                        }
+                        $count = $manager->rebuildIndex($helper);
+                        $results[$name] = $count;
+                    } else {
+                        foreach (ContentIndexRegistry::all() as $indexName => $manager) {
+                            $count = $manager->rebuildIndex($helper);
+                            $results[$indexName] = $count;
+                        }
+                    }
+
+                    $output = "Content index rebuild complete:\n";
+                    foreach ($results as $indexName => $count) {
+                        $output .= "  $indexName: $count pages indexed\n";
+                    }
+                    return new Response($output, 'text/plain', 200);
+                } catch (Exception $e) {
+                    return new Response(
+                        'Failed to rebuild content index: ' . $e->getMessage(),
+                        'text/plain',
+                        500
+                    );
+                }
+            }
+            return new Response('You must be an administrator to access this page.', 'text/plain', 403);
+        }
+    ],
+    [
+        'pattern' => 'content-index-stats',
+        'method' => 'GET',
+        'action' => function () {
+            $helper = new KirbyInternalHelper();
+            if ($helper->isCurrentUserAdminOrEditor()) {
+                try {
+                    $stats = [];
+                    foreach (ContentIndexRegistry::all() as $manager) {
+                        $stats[] = $manager->getStats();
+                    }
                     return new Response(
                         json_encode($stats, JSON_PRETTY_PRINT),
                         'application/json',

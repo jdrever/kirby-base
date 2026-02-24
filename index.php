@@ -1,5 +1,7 @@
 <?php /** @noinspection PhpUnhandledExceptionInspection */
 
+use BSBI\WebBase\helpers\ContentIndexDefinition;
+use BSBI\WebBase\helpers\ContentIndexRegistry;
 use BSBI\WebBase\helpers\SearchIndexHelper;
 use Kirby\Cms\App as Kirby;
 use Kirby\Panel\Ui\Item\PageItem;
@@ -89,6 +91,18 @@ if (option('search.panelSearch', false)) {
 }
 
 Kirby::plugin('open-foundations/kirby-base', $pluginConfig);
+
+// Register content indexes from site configuration
+$contentIndexes = option('contentIndexes', []);
+foreach ($contentIndexes as $definition) {
+    if ($definition instanceof ContentIndexDefinition) {
+        try {
+            ContentIndexRegistry::register($definition);
+        } catch (Throwable $e) {
+            error_log('Failed to register content index "' . $definition->getName() . '": ' . $e->getMessage());
+        }
+    }
+}
 
 if (option('debug') === false) {
 // Set a global exception handler
