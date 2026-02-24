@@ -30,6 +30,8 @@ $pluginConfig = [
         'formsubmissionexport' => require __DIR__ . '/sections/formsubmissionexport.php',
         'quicklinks' => require __DIR__ . '/sections/quicklinks.php',
         'searchanalytics' => require __DIR__ . '/sections/searchanalytics.php',
+        'searchindexstats' => require __DIR__ . '/sections/searchindexstats.php',
+        'contentindexstats' => require __DIR__ . '/sections/contentindexstats.php',
     ],
 ];
 

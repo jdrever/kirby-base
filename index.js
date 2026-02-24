@@ -88,6 +88,107 @@ panel.plugin('open-foundations/kirby-base', {
       `
     },
 
+    searchindexstats: {
+      data: function () {
+        return {
+          headline: null,
+          stats: { total_pages: 0, last_rebuild: null }
+        }
+      },
+      created: async function() {
+        try {
+          const response = await this.load();
+          this.headline = response.headline;
+          this.stats = response.stats || this.stats;
+        } catch (error) {
+          console.error("Failed to load search index stats section:", error);
+        }
+      },
+      template: `
+        <section class="k-section k-searchindexstats-section">
+          <header class="k-section-header">
+            <h2 class="k-headline">{{ headline }}</h2>
+          </header>
+
+          <div style="padding: 0.75rem 0 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 1.5rem; padding: 0.75rem 1rem; background: var(--color-background); border-radius: var(--rounded);">
+              <div>
+                <strong>Search</strong>
+              </div>
+              <div style="color: var(--color-text-dimmed); font-size: 0.875rem;">
+                {{ stats.total_pages }} pages indexed
+              </div>
+              <div style="color: var(--color-text-dimmed); font-size: 0.875rem;">
+                Last rebuilt: {{ stats.last_rebuild || 'Never' }}
+              </div>
+              <div style="margin-left: auto;">
+                <a
+                  href="/search-rebuild"
+                  target="_blank"
+                  style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.4rem 0.75rem; background: var(--color-black); color: var(--color-white); text-decoration: none; border-radius: var(--rounded); font-size: 0.8rem;"
+                >Rebuild</a>
+              </div>
+            </div>
+          </div>
+
+        </section>
+      `
+    },
+
+    contentindexstats: {
+      data: function () {
+        return {
+          headline: null,
+          indexes: []
+        }
+      },
+      created: async function() {
+        try {
+          const response = await this.load();
+          this.headline = response.headline;
+          this.indexes = response.indexes || [];
+        } catch (error) {
+          console.error("Failed to load content index stats section:", error);
+        }
+      },
+      template: `
+        <section class="k-section k-contentindexstats-section">
+          <header class="k-section-header">
+            <h2 class="k-headline">{{ headline }}</h2>
+          </header>
+
+          <div v-if="indexes.length > 0" style="padding: 0.75rem 0 0.5rem;">
+            <div v-for="idx in indexes" :key="idx.name" style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 0.75rem; padding: 0.75rem 1rem; background: var(--color-background); border-radius: var(--rounded);">
+              <div>
+                <strong style="text-transform: capitalize;">{{ idx.name }}</strong>
+              </div>
+              <div style="color: var(--color-text-dimmed); font-size: 0.875rem;">
+                {{ idx.total_rows }} pages indexed
+              </div>
+              <div style="color: var(--color-text-dimmed); font-size: 0.875rem;">
+                Last rebuilt: {{ idx.last_rebuild || 'Never' }}
+              </div>
+              <div style="margin-left: auto;">
+                <a
+                  :href="'/content-index-rebuild?name=' + idx.name"
+                  target="_blank"
+                  style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.4rem 0.75rem; background: var(--color-black); color: var(--color-white); text-decoration: none; border-radius: var(--rounded); font-size: 0.8rem;"
+                >Rebuild</a>
+              </div>
+            </div>
+          </div>
+
+          <k-empty
+            v-else
+            icon="database"
+          >
+            No content indexes registered.
+          </k-empty>
+
+        </section>
+      `
+    },
+
     searchanalytics: {
       data: function () {
         return {
