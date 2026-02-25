@@ -1124,7 +1124,7 @@ abstract class KirbyBaseHelper
      * @throws KirbyRetrievalException
      * @noinspection PhpUnused
      */
-    protected function getPageFieldAsPageTitle(Page $page, string $fieldName): string
+    public function getPageFieldAsPageTitle(Page $page, string $fieldName): string
     {
         $pages = $this->getPageFieldAsPages($page, $fieldName);
         $page = $pages->first();
