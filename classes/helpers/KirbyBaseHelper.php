@@ -5025,6 +5025,29 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * Filter pages where a page-reference field contains any of the given values (OR logic).
+     * Returns pages where the referenced page's field title matches at least one of the provided values.
+     *
+     * @param Collection $pages the collection to filter
+     * @param string $fieldName the field on the page that contains page references
+     * @param string $pageFieldName the field on the referenced page to check (e.g. 'page' or 'country')
+     * @param string[] $values the values to match against (OR logic)
+     * @return Collection the filtered collection
+     */
+    public function filterByContainsPageTitleAny(Collection $pages, string $fieldName, string $pageFieldName, array $values): Collection
+    {
+        return $pages->filter(function ($page) use ($fieldName, $pageFieldName, $values) {
+            $fieldPages = $page->{$fieldName}()->toPages();
+            foreach ($fieldPages as $fieldPage) {
+                if ($this->isPageFieldNotEmpty($fieldPage, $pageFieldName) && in_array($this->getPageFieldAsPageTitle($fieldPage, $pageFieldName), $values, true)) {
+                    return true;
+                }
+            }
+            return false;
+        });
+    }
+
+    /**
      * @param Page $kirbyPage
      * @param string $tagType
      * @param string $fieldName
