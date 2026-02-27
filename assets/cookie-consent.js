@@ -1,5 +1,6 @@
 ;(function() {
   const COOKIE_NAME = 'cookieConsent'
+  const LEGACY_COOKIE_NAME = 'cookieConsentGiven'
   const COOKIE_DAYS = 365
 
   /**
@@ -26,11 +27,32 @@
   }
 
   /**
-   * Get consent status from cookie
+   * Delete a cookie by name
+   * @param {string} name
+   */
+  function deleteCookie(name) {
+    document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;SameSite=Lax'
+  }
+
+  /**
+   * Get consent status from cookie, including legacy cookie name and values.
+   * Recognises legacy cookie 'cookieConsentGiven' with values 'true', 'yes', '1'
+   * (mapped to 'accepted') and 'no' (mapped to 'rejected').
    * @returns {'accepted'|'rejected'|null}
    */
   function getConsentStatus() {
-    return getCookie(COOKIE_NAME)
+    var value = getCookie(COOKIE_NAME)
+    if (!value) {
+      var legacy = getCookie(LEGACY_COOKIE_NAME)
+      if (legacy) {
+        if (['true', 'yes', '1'].indexOf(legacy) !== -1) {
+          value = 'accepted'
+        } else if (legacy === 'no') {
+          value = 'rejected'
+        }
+      }
+    }
+    return value
   }
 
   /**
@@ -39,6 +61,7 @@
    */
   function setConsentStatus(status) {
     setCookie(COOKIE_NAME, status, COOKIE_DAYS)
+    deleteCookie(LEGACY_COOKIE_NAME)
     applyConsentState(status)
   }
 
@@ -65,12 +88,10 @@
    * @param {string|null} status
    */
   function applyConsentState(status) {
-    // Show main consent banner only if no choice has been made yet
-    if (!status) {
-      document.querySelectorAll('[data-cookie-consent-banner]').forEach(el => {
-        el.style.display = ''
-      })
-    }
+    // Show banner if no choice made, hide it once a choice is recorded
+    document.querySelectorAll('[data-cookie-consent-banner]').forEach(el => {
+      el.style.display = status ? 'none' : 'block'
+    })
 
     // Handle consent-required content blocks
     // If not accepted, show placeholder and hide content

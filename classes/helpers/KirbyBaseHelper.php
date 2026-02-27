@@ -85,6 +85,7 @@ abstract class KirbyBaseHelper
     protected ?Page $page;
 
     const string COOKIE_CONSENT_NAME = 'cookieConsent';
+    const string LEGACY_COOKIE_CONSENT_NAME = 'cookieConsentGiven';
 
     /**
      *
@@ -4023,6 +4024,25 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * Deletes a cookie by setting its expiry in the past.
+     *
+     * @param string $key The cookie name
+     * @return void
+     */
+    protected function deleteCookie(string $key): void
+    {
+        $secure = !(str_starts_with($_SERVER['HTTP_HOST'], 'localhost'));
+        setcookie($key, '', [
+            'expires'  => time() - 3600,
+            'path'     => '/',
+            'secure'   => $secure,
+            'httponly'  => true,
+            'samesite' => 'Lax'
+        ]);
+        unset($_COOKIE[$key]);
+    }
+
+    /**
      * Check if a cookie exists.
      * Uses $_COOKIE directly to avoid triggering Kirby's cache tracking.
      *
@@ -4063,8 +4083,8 @@ abstract class KirbyBaseHelper
 
     /**
      * Processes cookie consent form submission (accept or reject).
-     * Sets the cookie 'cookieConsentGiven' to 'yes' or 'no' and redirects to the
-     * page passed in the request as referringPage, otherwise redirects to the home page.
+     * Sets the cookie consent value to 'accepted' or 'rejected' and deletes
+     * any legacy cookie. Redirects to the referring page or the home page.
      *
      * @return void
      */
@@ -4077,6 +4097,7 @@ abstract class KirbyBaseHelper
             $consent = $this->getRequestAsString('consent');
             $cookieValue = ($consent === 'accepted') ? 'accepted' : 'rejected';
             $this->setCookie(self::COOKIE_CONSENT_NAME, $cookieValue, 365);
+            $this->deleteCookie(self::LEGACY_COOKIE_CONSENT_NAME);
             $referringPage = $this->getRequestAsString('referringPage');
             if (!empty($referringPage)) {
                 go($referringPage);
@@ -4094,7 +4115,9 @@ abstract class KirbyBaseHelper
     }
 
     /**
-     * Checks if cookie consent has been given (cookie value is 'yes').
+     * Checks if cookie consent has been given.
+     * Recognises current value ('accepted') and legacy values ('yes', 'true', '1')
+     * from earlier cookie name ('cookieConsentGiven') and value formats.
      * Uses cache-safe cookie reading since the consent state only affects
      * client-side JS behavior, not the page HTML content.
      *
@@ -4102,11 +4125,16 @@ abstract class KirbyBaseHelper
      */
     public function hasCookieConsent(): bool
     {
-        return $this->getCookieCacheSafe(self::COOKIE_CONSENT_NAME) === 'accepted';
+        $value = $this->getCookieCacheSafe(self::COOKIE_CONSENT_NAME);
+        if ($value === '') {
+            $value = $this->getCookieCacheSafe(self::LEGACY_COOKIE_CONSENT_NAME);
+        }
+        return in_array($value, ['accepted', 'yes', 'true', '1'], true);
     }
 
     /**
-     * Checks if cookie consent has been explicitly rejected (cookie value is 'no').
+     * Checks if cookie consent has been explicitly rejected.
+     * Recognises current value ('rejected') and legacy value ('no').
      * Uses cache-safe cookie reading since the consent state only affects
      * client-side JS behavior, not the page HTML content.
      *
@@ -4114,7 +4142,11 @@ abstract class KirbyBaseHelper
      */
     public function hasCookieConsentRejected(): bool
     {
-        return $this->getCookieCacheSafe(self::COOKIE_CONSENT_NAME) === 'rejected';
+        $value = $this->getCookieCacheSafe(self::COOKIE_CONSENT_NAME);
+        if ($value === '') {
+            $value = $this->getCookieCacheSafe(self::LEGACY_COOKIE_CONSENT_NAME);
+        }
+        return in_array($value, ['rejected', 'no'], true);
     }
 
     #endregion
