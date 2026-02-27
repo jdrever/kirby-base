@@ -92,7 +92,8 @@ panel.plugin('open-foundations/kirby-base', {
       data: function () {
         return {
           headline: null,
-          stats: { total_pages: 0, last_rebuild: null }
+          stats: { total_pages: 0, last_rebuild: null },
+          rebuilding: false
         }
       },
       created: async function() {
@@ -102,6 +103,20 @@ panel.plugin('open-foundations/kirby-base', {
           this.stats = response.stats || this.stats;
         } catch (error) {
           console.error("Failed to load search index stats section:", error);
+        }
+      },
+      methods: {
+        rebuild: async function() {
+          this.rebuilding = true;
+          try {
+            await fetch('/search-rebuild');
+            const response = await this.load();
+            this.stats = response.stats || this.stats;
+          } catch (error) {
+            console.error("Failed to rebuild search index:", error);
+          } finally {
+            this.rebuilding = false;
+          }
         }
       },
       template: `
@@ -122,15 +137,19 @@ panel.plugin('open-foundations/kirby-base', {
                 Last rebuilt: {{ stats.last_rebuild || 'Never' }}
               </div>
               <div style="margin-left: auto;">
-                <a
-                  href="/search-rebuild"
-                  target="_blank"
-                  style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.4rem 0.75rem; background: var(--color-black); color: var(--color-white); text-decoration: none; border-radius: var(--rounded); font-size: 0.8rem;"
-                >Rebuild</a>
+                <button
+                  @click="rebuild"
+                  :disabled="rebuilding"
+                  style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.4rem 0.75rem; background: var(--color-black); color: var(--color-white); border: none; cursor: pointer; border-radius: var(--rounded); font-size: 0.8rem;"
+                >
+                  <span v-if="rebuilding" style="display: inline-block; width: 0.8rem; height: 0.8rem; border: 2px solid var(--color-white); border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite;"></span>
+                  {{ rebuilding ? 'Rebuilding...' : 'Rebuild' }}
+                </button>
               </div>
             </div>
           </div>
 
+          <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
         </section>
       `
     },
@@ -139,7 +158,8 @@ panel.plugin('open-foundations/kirby-base', {
       data: function () {
         return {
           headline: null,
-          indexes: []
+          indexes: [],
+          rebuildingIndex: null
         }
       },
       created: async function() {
@@ -149,6 +169,20 @@ panel.plugin('open-foundations/kirby-base', {
           this.indexes = response.indexes || [];
         } catch (error) {
           console.error("Failed to load content index stats section:", error);
+        }
+      },
+      methods: {
+        rebuild: async function(indexName) {
+          this.rebuildingIndex = indexName;
+          try {
+            await fetch('/content-index-rebuild?name=' + encodeURIComponent(indexName));
+            const response = await this.load();
+            this.indexes = response.indexes || [];
+          } catch (error) {
+            console.error("Failed to rebuild content index:", error);
+          } finally {
+            this.rebuildingIndex = null;
+          }
         }
       },
       template: `
@@ -169,11 +203,14 @@ panel.plugin('open-foundations/kirby-base', {
                 Last rebuilt: {{ idx.last_rebuild || 'Never' }}
               </div>
               <div style="margin-left: auto;">
-                <a
-                  :href="'/content-index-rebuild?name=' + idx.name"
-                  target="_blank"
-                  style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.4rem 0.75rem; background: var(--color-black); color: var(--color-white); text-decoration: none; border-radius: var(--rounded); font-size: 0.8rem;"
-                >Rebuild</a>
+                <button
+                  @click="rebuild(idx.name)"
+                  :disabled="rebuildingIndex === idx.name"
+                  style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.4rem 0.75rem; background: var(--color-black); color: var(--color-white); border: none; cursor: pointer; border-radius: var(--rounded); font-size: 0.8rem;"
+                >
+                  <span v-if="rebuildingIndex === idx.name" style="display: inline-block; width: 0.8rem; height: 0.8rem; border: 2px solid var(--color-white); border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite;"></span>
+                  {{ rebuildingIndex === idx.name ? 'Rebuilding...' : 'Rebuild' }}
+                </button>
               </div>
             </div>
           </div>
