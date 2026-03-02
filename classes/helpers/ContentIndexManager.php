@@ -257,6 +257,56 @@ class ContentIndexManager
 
         if ($needsCreate) {
             $this->createSchema();
+        } else {
+            $this->migrateSchemaIfNeeded();
+        }
+    }
+
+    /**
+     * Ensure the existing table schema matches the definition, adding missing columns.
+     *
+     * Uses PRAGMA table_info to discover actual columns and compares against the
+     * definition. Missing columns are added via ALTER TABLE. If column order or types
+     * have changed the table is dropped and recreated (data must be rebuilt).
+     */
+    private function migrateSchemaIfNeeded(): void
+    {
+        $definedColumns = $this->definition->getColumns();
+        $expectedNames = array_merge(['page_id'], array_keys($definedColumns));
+
+        $stmt = $this->database->query("PRAGMA table_info({$this->tableName})");
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (empty($rows)) {
+            // Table does not exist yet
+            $this->createSchema();
+            return;
+        }
+
+        $actualNames = array_map(fn(array $row) => $row['name'], $rows);
+
+        if ($actualNames === $expectedNames) {
+            return;
+        }
+
+        // Try to add missing columns non-destructively
+        $missingColumns = array_diff($expectedNames, $actualNames);
+        $extraColumns = array_diff($actualNames, $expectedNames);
+
+        if (!empty($extraColumns) || empty($missingColumns)) {
+            // Columns were removed or reordered — must recreate
+            $this->database->exec("DROP TABLE IF EXISTS {$this->tableName}");
+            $this->createSchema();
+            return;
+        }
+
+        // Only additions — safe to ALTER TABLE
+        foreach ($missingColumns as $columnName) {
+            if ($columnName === 'page_id') {
+                continue;
+            }
+            $type = $definedColumns[$columnName] ?? 'TEXT NOT NULL DEFAULT ""';
+            $this->database->exec("ALTER TABLE {$this->tableName} ADD COLUMN {$columnName} {$type}");
         }
     }
 
