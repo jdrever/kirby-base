@@ -1478,6 +1478,18 @@ abstract class KirbyBaseHelper
 
     /**
      * @param string $fieldName
+     * @return string
+     * @throws KirbyRetrievalException
+     */
+    protected function getSiteFieldAsKirbyText(string $fieldName): string
+    {
+        $siteField = $this->getSiteField($fieldName);
+        /** @noinspection PhpUndefinedMethodInspection */
+        return $siteField->kti()->toString();
+    }
+
+    /**
+     * @param string $fieldName
      * @return File
      * @throws KirbyRetrievalException
      */
