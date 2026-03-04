@@ -5060,6 +5060,31 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * Filter pages where a page-reference field contains pages whose own title
+     * matches any of the given values (OR logic).
+     *
+     * Unlike filterByContainsPageTitleAny which checks a sub-field on the
+     * referenced pages, this checks the referenced pages' own title.
+     *
+     * @param Collection $pages the collection to filter
+     * @param string $fieldName the field on the page that contains page references
+     * @param string[] $values the titles to match against (OR logic)
+     * @return Collection the filtered collection
+     */
+    public function filterByLinkedPageTitleAny(Collection $pages, string $fieldName, array $values): Collection
+    {
+        return $pages->filter(function ($page) use ($fieldName, $values) {
+            $fieldPages = $page->{$fieldName}()->toPages();
+            foreach ($fieldPages as $fieldPage) {
+                if (in_array($fieldPage->title()->toString(), $values, true)) {
+                    return true;
+                }
+            }
+            return false;
+        });
+    }
+
+    /**
      * @param Page $kirbyPage
      * @param string $tagType
      * @param string $fieldName
