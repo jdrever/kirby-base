@@ -3661,9 +3661,6 @@ abstract class KirbyBaseHelper
         }
     }
 
-    /** @deprecated Use SearchTextHelper::SEARCH_STOP_WORDS instead */
-    private const array SEARCH_STOP_WORDS = SearchTextHelper::SEARCH_STOP_WORDS;
-
     /**
      * Get top search terms by frequency
      *
@@ -3767,11 +3764,6 @@ abstract class KirbyBaseHelper
     protected function highlightSearchQuery(BaseWebPage $page, string $query): BaseWebPage
     {
         return $this->searchService->highlightSearchQuery($page, $query);
-    }
-
-    private function filterStopWords(array $words): array
-    {
-        return SearchTextHelper::filterStopWords($words);
     }
 
     #endregion
