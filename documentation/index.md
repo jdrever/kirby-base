@@ -4,7 +4,7 @@
 
 > git submodule add https://github.com/jdrever/kirby-base.git site/plugins/kirby-base
 
-- Create your own Kirby plugin for the additonal code for the site, 
+- Create your own Kirby plugin for the additional code for the site, 
 - including a composer.json file with an entry to require KirbyBase
 
 ```
@@ -15,14 +15,41 @@
 
 ```
 
+# Architecture
+
+## Service Helpers
+
+KirbyBase ships six focused service classes that encapsulate distinct concerns.
+`KirbyBaseHelper` delegates to all of them internally and exposes the same public API
+as before, so consuming sites require no changes.
+
+| Service                  | Responsibility                                                                |
+|--------------------------|-------------------------------------------------------------------------------|
+| `KirbyFieldReader`       | Reading and type-coercing Kirby fields (page, site, structure, block, user)   |
+| `ImageService`           | Resolving images, files, and documents from Kirby fields                      |
+| `NavigationService`      | Building `WebPageLink` / `WebPageLinks` / `CoreLink` model objects            |
+| `SearchService`          | Search query building, SQLite FTS5 search, analytics, and term highlighting   |
+| `CollectionFilterService`| Filtering Kirby `Collection` and `Structure` objects                          |
+| `UserService`            | User model building, permission checks, and user mutation                     |
+
+You can instantiate the services directly in your own code if you want to use them
+without going through `KirbyBaseHelper`:
+
+```php
+$fieldReader = new KirbyFieldReader(kirby(), site());
+$userService = new UserService(kirby(), $fieldReader, fn () => isset($_COOKIE['kirby_session']));
+
+$currentUser = $userService->getCurrentUser();
+```
+
 # Extending KirbyBase
 
 - Create a WebPage model class that extends BaseWebPage. Add the fields each page for your site will need.
 - Then create whatever other specialised WebPage models you need that extend WebPage
-- Create a KirbyHelper class that extends KirbyBaseHelper.  
+- Create a KirbyHelper class that extends KirbyBaseHelper.
   - Implement getBasicPage to return your basic WebPage class.
   - Implement setBasicPage to populate the fields in your WebPage model
-- Then implement settter functions in KirbyHelper for each of the specialised pages
+- Then implement setter functions in KirbyHelper for each of the specialised pages
 
 ## CoreLinks
 
@@ -98,6 +125,53 @@ The login functionality requires a page called login to be in the site root.  It
 display the login form.
 
 
+
+# Testing
+
+## Running the tests
+
+```
+vendor/bin/phpunit
+```
+
+Run a single test file:
+
+```
+vendor/bin/phpunit tests/Unit/helpers/UserServiceTest.php
+```
+
+## Test coverage
+
+Unit tests live in `tests/Unit/` and follow the same namespace structure as the
+classes they cover.
+
+| Test class              | Covers                                                         |
+|-------------------------|----------------------------------------------------------------|
+| `KirbyFieldReaderTest`  | All field-reading methods across page, site, structure, block  |
+| `SearchTextHelperTest`  | Search scoring, highlighting, stop-word filtering              |
+| `UserServiceTest`       | Permission checks, user model building, session-cookie guards  |
+
+## Writing tests for service classes
+
+Each service can be instantiated with a minimal in-memory Kirby App — no
+filesystem content or running web server is needed. The pattern used throughout
+the test suite is:
+
+```php
+self::$kirby = new App([
+    'roots' => ['index' => $tmpDir, 'content' => $contentDir],
+    'roles' => [
+        ['name' => 'admin',  'title' => 'Admin'],
+        ['name' => 'member', 'title' => 'Member'],
+    ],
+]);
+
+$fieldReader = new KirbyFieldReader(self::$kirby, self::$kirby->site());
+$service     = new UserService(self::$kirby, $fieldReader, fn () => false);
+```
+
+Pages are created in-memory with `Page::factory()` and users with
+`\Kirby\Cms\User::factory()`, so no Kirby Panel or content files are required.
 
 # Updates
 
