@@ -1266,7 +1266,7 @@ final class KirbyFieldReader
     {
         if (in_array($block->type(), ['text', 'list'])) {
             /** @noinspection PhpUndefinedMethodInspection */
-            return $block->text()->toHtml()->permalinksToUrls();
+            return $block->text()->toHtml()->permalinksToUrls()->toString();
         }
         return $block->toHtml();
     }
