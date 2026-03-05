@@ -67,6 +67,8 @@ abstract class KirbyBaseHelper
 
     protected const string ASSETS_PATH = '/media/plugins/open-foundations/kirby-base/';
 
+    protected KirbyFieldReader $fieldReader;
+
     #region CONSTRUCTOR
     /**
      * The Kirby object
@@ -95,6 +97,7 @@ abstract class KirbyBaseHelper
         $this->kirby = kirby();
         $this->site = site();
         $this->page = page();
+        $this->fieldReader = new KirbyFieldReader($this->kirby, $this->site);
     }
     #endregion
 
@@ -618,15 +621,7 @@ abstract class KirbyBaseHelper
                                          bool   $required = false,
                                          string $defaultValue = ''): string
     {
-        try {
-            $pageField = $this->getPageField($page, $fieldName);
-            return $pageField->toString();
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return $defaultValue;
-        }
+        return $this->fieldReader->getPageFieldAsString($page, $fieldName, $required, $defaultValue);
     }
 
     /**
@@ -642,12 +637,7 @@ abstract class KirbyBaseHelper
      */
     protected function getPageFieldAsStringWithFallback(Page $page, string $fieldName, string $fallback): string
     {
-        try {
-            $pageField = $this->getPageField($page, $fieldName);
-            return $pageField->isNotEmpty() ? $pageField->toString() : $fallback;
-        } catch (KirbyRetrievalException) {
-            return $fallback;
-        }
+        return $this->fieldReader->getPageFieldAsStringWithFallback($page, $fieldName, $fallback);
     }
 
     /**
@@ -665,8 +655,7 @@ abstract class KirbyBaseHelper
                                                             bool   $required = false,
                                                             string $defaultValue = ''): string
     {
-        $pageFieldAsString = $this->getPageFieldAsString($page, $fieldName, $required, $defaultValue);
-        return esc($pageFieldAsString, 'js');
+        return $this->fieldReader->getPageFieldAsStringForJavascriptUse($page, $fieldName, $required, $defaultValue);
     }
 
 
@@ -680,17 +669,7 @@ abstract class KirbyBaseHelper
      */
     protected function getPageFieldAsInt(Page $page, string $fieldName, bool $required = false, int $default = 0): int
     {
-        try {
-            $pageField = $this->getPageField($page, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $pageField->toInt();
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return $default;
-
-        }
+        return $this->fieldReader->getPageFieldAsInt($page, $fieldName, $required, $default);
     }
 
     /**
@@ -703,17 +682,7 @@ abstract class KirbyBaseHelper
      */
     protected function getPageFieldAsFloat(Page $page, string $fieldName, bool $required = false): float
     {
-        try {
-            $pageField = $this->getPageField($page, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $pageField->toFloat();
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            //TODO: should be better than returning zero if not required.  Maybe return float|null
-            return 0;
-        }
+        return $this->fieldReader->getPageFieldAsFloat($page, $fieldName, $required);
     }
 
     /**
@@ -729,16 +698,7 @@ abstract class KirbyBaseHelper
                                       bool   $required = false,
                                       bool   $default = false): bool
     {
-        try {
-            $pageField = $this->getPageField($page, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $pageField->toBool();
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return $default;
-        }
+        return $this->fieldReader->getPageFieldAsBool($page, $fieldName, $required, $default);
     }
 
     /**
@@ -751,17 +711,7 @@ abstract class KirbyBaseHelper
      */
     protected function getPageFieldAsYesNo(Page $page, string $fieldName, bool $required = false): string
     {
-        try {
-            $pageField = $this->getPageField($page, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return ($pageField->toBool() === true) ? 'Yes' : 'No';
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            //TODO: should be better than returning false if not required.  Maybe return bool|null
-            return 'NO';
-        }
+        return $this->fieldReader->getPageFieldAsYesNo($page, $fieldName, $required);
     }
 
     /**
@@ -774,16 +724,7 @@ abstract class KirbyBaseHelper
      */
     public function getPageFieldAsDateTime(Page $page, string $fieldName, bool $required = false): ?DateTime
     {
-        try {
-            $pageField = $this->getPageField($page, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return (new DateTime())->setTimestamp($pageField->toDate());
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return null;
-        }
+        return $this->fieldReader->getPageFieldAsDateTime($page, $fieldName, $required);
     }
 
     /**
@@ -795,9 +736,7 @@ abstract class KirbyBaseHelper
      */
     protected function getPageFieldAsRequiredDateTime(Page $page, string $fieldName): DateTime
     {
-        $pageField = $this->getPageField($page, $fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        return (new DateTime())->setTimestamp($pageField->toDate());
+        return $this->fieldReader->getPageFieldAsRequiredDateTime($page, $fieldName);
     }
 
     /**
@@ -809,16 +748,7 @@ abstract class KirbyBaseHelper
      */
     public function getPageFieldAsTime(Page $page, string $fieldName, bool $isRequired = false): string
     {
-        try {
-            $pageField = $this->getPageField($page, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $pageField->toDate('g:i a');
-        } catch (KirbyRetrievalException $e) {
-            if ($isRequired) {
-                throw $e;
-            }
-            return '';
-        }
+        return $this->fieldReader->getPageFieldAsTime($page, $fieldName, $isRequired);
     }
 
     /**
@@ -830,16 +760,7 @@ abstract class KirbyBaseHelper
      */
     protected function getPageFieldAsStructure(Page $page, string $fieldName, bool $isRequired = false): Structure
     {
-        try {
-            $pageField = $this->getPageField($page, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $pageField->toStructure();
-        } catch (KirbyRetrievalException $e) {
-            if ($isRequired) {
-                throw $e;
-            }
-            return new Structure();
-        }
+        return $this->fieldReader->getPageFieldAsStructure($page, $fieldName, $isRequired);
     }
 
     /**
@@ -851,17 +772,7 @@ abstract class KirbyBaseHelper
      */
     protected function getPageFieldAsUrl(Page $page, string $fieldName, bool $required = false): string
     {
-        try {
-            $pageField = $this->getPageField($page, $fieldName);
-            //TODO: temporary fix here for PHP 8.1, adding null check
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $pageField->toUrl() ?? '';
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return '';
-        }
+        return $this->fieldReader->getPageFieldAsUrl($page, $fieldName, $required);
     }
 
     /**
@@ -878,29 +789,7 @@ abstract class KirbyBaseHelper
                                                 bool   $required = false,
                                                 int    $excerpt = 0): string
     {
-        try {
-            $pageField = $this->getPageField($page, $fieldName);
-            $blocksHTML = '';
-            /** @noinspection PhpUndefinedMethodInspection */
-            foreach ($pageField->toBlocks() as $block) {
-                if ($excerpt === 0) {
-                    $blocksHTML .= $this->getHTMLfromBlock($block);
-                } else {
-                    if ($block->type() === 'text') {
-                        $blocksHTML .= $this->getHTMLfromBlock($block);
-                    }
-                }
-            }
-            return ($excerpt === 0)
-                ? $blocksHTML
-                : Str::excerpt($blocksHTML, 200);
-
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return '';
-        }
+        return $this->fieldReader->getPageFieldAsBlocksHtml($page, $fieldName, $required, $excerpt);
     }
 
     /**
@@ -916,32 +805,7 @@ abstract class KirbyBaseHelper
                                                        int    $length,
                                                        bool   $required = false): string
     {
-        if ($length <= 0) {
-            return '';
-        }
-
-        try {
-            $pageField = $this->getPageField($page, $fieldName);
-
-            /** @noinspection PhpUndefinedMethodInspection */
-            $allBlocks = $pageField->toBlocks();
-
-            // Filter the blocks collection to only include blocks of type 'text'
-            // We use an arrow function for brevity (requires PHP 7.4+)
-            $textBlocks = $allBlocks->filter(fn($block) => $block->type() === 'text');
-
-            // Convert only the filtered text blocks to HTML
-            $textContent = $textBlocks->toHtml();
-
-            // Return an excerpt of the specified length
-            return Str::excerpt($textContent, $length);
-
-        } catch (\Exception $e) { // Using \Exception as placeholder
-            if ($required) {
-                throw $e;
-            }
-            return '';
-        }
+        return $this->fieldReader->getPageFieldTextBlocksAsExcerpt($page, $fieldName, $length, $required);
     }
 
 
@@ -953,9 +817,7 @@ abstract class KirbyBaseHelper
      */
     protected function getPageFieldAsBlocks(Page $page, string $fieldName): Blocks
     {
-        $pageField = $this->getPageField($page, $fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        return $pageField->toBlocks();
+        return $this->fieldReader->getPageFieldAsBlocks($page, $fieldName);
     }
 
     /**
@@ -967,16 +829,7 @@ abstract class KirbyBaseHelper
      */
     public function getPageFieldAsArray(Page $page, string $fieldName, bool $required = false): array
     {
-        try {
-            $pageField = $this->getPageField($page, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $pageField->split();
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return [];
-        }
+        return $this->fieldReader->getPageFieldAsArray($page, $fieldName, $required);
     }
 
     /**
@@ -989,16 +842,7 @@ abstract class KirbyBaseHelper
      */
     protected function getPageFieldAsKirbyText(Page $page, string $fieldName, bool $required = false): string
     {
-        try {
-            $pageField = $this->getPageField($page, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $pageField->kti()->toString();
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return '';
-        }
+        return $this->fieldReader->getPageFieldAsKirbyText($page, $fieldName, $required);
     }
 
     /**
@@ -1009,9 +853,7 @@ abstract class KirbyBaseHelper
      */
     protected function getPageFieldAsFile(Page $page, string $fieldName): File|null
     {
-        $pageField = $this->getPageField($page, $fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        return $pageField->toFile();
+        return $this->fieldReader->getPageFieldAsFile($page, $fieldName);
     }
 
     /**
@@ -1022,9 +864,7 @@ abstract class KirbyBaseHelper
      */
     protected function getPageFieldAsFiles(Page $page, string $fieldName): Files|null
     {
-        $pageField = $this->getPageField($page, $fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        return $pageField->toFiles();
+        return $this->fieldReader->getPageFieldAsFiles($page, $fieldName);
     }
 
     /**
@@ -1085,16 +925,7 @@ abstract class KirbyBaseHelper
      */
     protected function getPageFieldAsPages(Page $page, string $fieldName, bool $isRequired = false): Pages|null
     {
-        try {
-            $pageField = $this->getPageField($page, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $pageField->toPages();
-        } catch (KirbyRetrievalException) {
-            if ($isRequired) {
-                throw new KirbyRetrievalException('The field ' . $fieldName . ' does not exist');
-            }
-            return null;
-        }
+        return $this->fieldReader->getPageFieldAsPages($page, $fieldName, $isRequired);
     }
 
     /**
@@ -1106,16 +937,7 @@ abstract class KirbyBaseHelper
      */
     protected function getPageFieldAsFirstPage(Page $page, string $fieldName, bool $isRequired = false): Page|null
     {
-        try {
-            $pageField = $this->getPageField($page, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $pageField->toPages()->first();
-        } catch (KirbyRetrievalException) {
-            if ($isRequired) {
-                throw new KirbyRetrievalException('The field ' . $fieldName . ' does not exist');
-            }
-            return null;
-        }
+        return $this->fieldReader->getPageFieldAsFirstPage($page, $fieldName, $isRequired);
     }
 
     /**
@@ -1127,12 +949,7 @@ abstract class KirbyBaseHelper
      */
     public function getPageFieldAsPageTitle(Page $page, string $fieldName): string
     {
-        $pages = $this->getPageFieldAsPages($page, $fieldName);
-        $page = $pages->first();
-        if ($page) {
-            return $page->title()->toString();
-        }
-        return '';
+        return $this->fieldReader->getPageFieldAsPageTitle($page, $fieldName);
     }
 
     /**
@@ -1143,12 +960,7 @@ abstract class KirbyBaseHelper
      */
     public function getPageFieldAsPageTitles(Page $page, string $fieldName): array
     {
-        $pages = $this->getPageFieldAsPages($page, $fieldName);
-        if ($pages) {
-            return $pages->pluck('title');
-        } else {
-            return [];
-        }
+        return $this->fieldReader->getPageFieldAsPageTitles($page, $fieldName);
     }
 
     /**
@@ -1160,12 +972,7 @@ abstract class KirbyBaseHelper
      */
     protected function getPageFieldAsPageUrl(Page $page, string $fieldName): string
     {
-        $pages = $this->getPageFieldAsPages($page, $fieldName);
-        $page = $pages->first();
-        if ($page) {
-            return $page->url();
-        }
-        return '';
+        return $this->fieldReader->getPageFieldAsPageUrl($page, $fieldName);
     }
 
     /**
@@ -1176,12 +983,7 @@ abstract class KirbyBaseHelper
      */
     protected function getPageFieldAsPageId(Page $page, string $fieldName): string
     {
-        $pages = $this->getPageFieldAsPages($page, $fieldName);
-        $page = $pages->first();
-        if ($page) {
-            return $page->id();
-        }
-        return '';
+        return $this->fieldReader->getPageFieldAsPageId($page, $fieldName);
     }
 
     /**
@@ -1192,12 +994,7 @@ abstract class KirbyBaseHelper
      */
     protected function getPageFieldAsPageSlug(Page $page, string $fieldName): string
     {
-        $pages = $this->getPageFieldAsPages($page, $fieldName);
-        $page = $pages->first();
-        if ($page) {
-            return $page->slug();
-        }
-        return '';
+        return $this->fieldReader->getPageFieldAsPageSlug($page, $fieldName);
     }
 
     /**
@@ -1278,8 +1075,7 @@ abstract class KirbyBaseHelper
      */
     protected function getFileModifiedAsDateTime(File $file): DateTime
     {
-        $modified = $file->modified();
-        return (new DateTime())->setTimestamp($modified);
+        return $this->fieldReader->getFileModifiedAsDateTime($file);
     }
 
     /**
@@ -1289,13 +1085,7 @@ abstract class KirbyBaseHelper
      */
     public function isPageFieldNotEmpty(Page $page, string $fieldName): bool
     {
-        try {
-            $pageField = $this->getPageField($page, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $pageField->isNotEmpty();
-        } catch (KirbyRetrievalException) {
-            return false;
-        }
+        return $this->fieldReader->isPageFieldNotEmpty($page, $fieldName);
     }
 
     /**
@@ -1306,16 +1096,7 @@ abstract class KirbyBaseHelper
      */
     protected function getLinkFieldType(Page $page, string $fieldName): string
     {
-        $linkField = $this->getPageField($page, $fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        if ($linkField->toPage()) {
-            return 'page';
-        } /** @noinspection PhpUndefinedMethodInspection */
-        elseif ($linkField->toUrl()) {
-            return 'url';
-        }
-        //TODO: cope with other link types
-        return '';
+        return $this->fieldReader->getLinkFieldType($page, $fieldName);
     }
 
 
@@ -1327,19 +1108,7 @@ abstract class KirbyBaseHelper
      */
     public function getPageField(Page $page, string $fieldName): Field
     {
-        try {
-            $pageField = $page->content()->get($fieldName);
-
-            if (!$pageField instanceof Field) {
-                throw new KirbyRetrievalException('The field ' . $fieldName . ' does not exist');
-            }
-            if ($pageField->isEmpty()) {
-                throw new KirbyRetrievalException('The field ' . $fieldName . ' is empty');
-            }
-            return $pageField;
-        } catch (InvalidArgumentException) {
-            throw new KirbyRetrievalException('The field ' . $fieldName . ' does not exist');
-        }
+        return $this->fieldReader->getPageField($page, $fieldName);
     }
 
     /**
@@ -1351,19 +1120,7 @@ abstract class KirbyBaseHelper
      */
     protected function getPageFieldType(Page $page, string $fieldName): string
     {
-        try {
-            $blueprintFields = $page->blueprint()->fields();
-            if (isset($blueprintFields[$fieldName])) {
-                return $blueprintFields[$fieldName]['type'];
-            } else {
-                throw new InvalidArgumentException(
-                    'The field "' . $fieldName . '" is not defined in the blueprint for page "' . $page->id() . '".'
-                );
-            }
-        } catch (InvalidArgumentException $e) {
-            // Catch the InvalidArgumentException thrown internally or by our check
-            throw new KirbyRetrievalException($e->getMessage(), 0, $e);
-        }
+        return $this->fieldReader->getPageFieldType($page, $fieldName);
     }
 
     /**
@@ -1374,33 +1131,7 @@ abstract class KirbyBaseHelper
      */
     protected function getUserNames(Page $page, string $fieldName): string
     {
-        try {
-            // Get the 'postedBy' field from the current page
-            $postedByField = $page->content()->get($fieldName);
-
-            // Check if the field is not empty
-            if ($postedByField instanceof Field && $postedByField->isNotEmpty()) :
-                // Get the users from the 'postedBy' field
-                /** @noinspection PhpUndefinedMethodInspection */
-                $users = $postedByField->toUsers();
-
-                // Initialise an array to hold usernames
-                $userNamesArray = [];
-
-                // Loop through the users to get their names
-                foreach ($users as $user) :
-                    $userNamesArray[] = $user->name();
-                endforeach;
-
-                // Convert the array of usernames to a string separated by commas
-                $userNames = implode(', ', $userNamesArray);
-            else :
-                $userNames = 'Unknown';
-            endif;
-            return $userNames;
-        } catch (\Exception) {
-            return '';
-        }
+        return $this->fieldReader->getUserNames($page, $fieldName);
     }
 
 
@@ -1417,16 +1148,7 @@ abstract class KirbyBaseHelper
      */
     protected function getSiteFieldAsString(string $fieldName, bool $required = false): string
     {
-        try {
-            $siteField = $this->getSiteField($fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $siteField->toString();
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return '';
-        }
+        return $this->fieldReader->getSiteFieldAsString($fieldName, $required);
     }
 
     /**
@@ -1439,16 +1161,7 @@ abstract class KirbyBaseHelper
      */
     protected function getSiteFieldAsBool(string $fieldName, bool $required = false, bool $default = false): bool
     {
-        try {
-            $siteField = $this->getSiteField($fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $siteField->toBool();
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return $default;
-        }
+        return $this->fieldReader->getSiteFieldAsBool($fieldName, $required, $default);
     }
 
     /**
@@ -1458,9 +1171,7 @@ abstract class KirbyBaseHelper
      */
     protected function getSiteFieldAsStructure(string $fieldName): Structure
     {
-        $siteField = $this->getSiteField($fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        return $siteField->toStructure();
+        return $this->fieldReader->getSiteFieldAsStructure($fieldName);
     }
 
     /**
@@ -1471,9 +1182,7 @@ abstract class KirbyBaseHelper
      */
     protected function getSiteFieldAsPage(string $fieldName): Page
     {
-        $siteField = $this->getSiteField($fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        return $siteField->toPage();
+        return $this->fieldReader->getSiteFieldAsPage($fieldName);
     }
 
     /**
@@ -1483,9 +1192,7 @@ abstract class KirbyBaseHelper
      */
     protected function getSiteFieldAsKirbyText(string $fieldName): string
     {
-        $siteField = $this->getSiteField($fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        return $siteField->kti()->toString();
+        return $this->fieldReader->getSiteFieldAsKirbyText($fieldName);
     }
 
     /**
@@ -1495,9 +1202,7 @@ abstract class KirbyBaseHelper
      */
     protected function getSiteFieldAsFile(string $fieldName): File
     {
-        $siteField = $this->getSiteField($fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        return $siteField->toFile();
+        return $this->fieldReader->getSiteFieldAsFile($fieldName);
     }
 
     /**
@@ -1508,16 +1213,7 @@ abstract class KirbyBaseHelper
      */
     protected function getSiteFieldAsArray(string $fieldName, bool $required = false): array
     {
-        try {
-            $siteField = $this->getSiteField($fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $siteField->split();
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return [];
-        }
+        return $this->fieldReader->getSiteFieldAsArray($fieldName, $required);
     }
 
     /**
@@ -1528,15 +1224,7 @@ abstract class KirbyBaseHelper
      */
     protected function getSiteStructureFieldAsArray(string $fieldName, bool $required = false): array
     {
-        try {
-            $siteFieldAsStructure = $this->getSiteFieldAsStructure($fieldName);
-            return $this->getStructureAsArray($siteFieldAsStructure);
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return [];
-        }
+        return $this->fieldReader->getSiteStructureFieldAsArray($fieldName, $required);
     }
 
     /**
@@ -1546,18 +1234,7 @@ abstract class KirbyBaseHelper
      */
     protected function getSiteField(string $fieldName): Field
     {
-        try {
-            $siteField = $this->site->content()->get($fieldName);
-            if (!$siteField instanceof Field) {
-                throw new KirbyRetrievalException('Site field not found');
-            }
-            if ($siteField->isEmpty()) {
-                throw new KirbyRetrievalException('Site field is empty');
-            }
-            return $siteField;
-        } catch (InvalidArgumentException) {
-            throw new KirbyRetrievalException('Site field not found');
-        }
+        return $this->fieldReader->getSiteField($fieldName);
     }
 
     /**
@@ -1566,11 +1243,7 @@ abstract class KirbyBaseHelper
      */
     protected function isSiteFieldNotEmpty(string $fieldName): bool
     {
-        try {
-            return $this->site->content()->get($fieldName)->isNotEmpty();
-        } catch (InvalidArgumentException) {
-            return false;
-        }
+        return $this->fieldReader->isSiteFieldNotEmpty($fieldName);
     }
 
     #endregion
@@ -1588,17 +1261,7 @@ abstract class KirbyBaseHelper
                                               string          $fieldName,
                                               bool            $required = false): string
     {
-        try {
-            $structureField = $this->getStructureField($structure, $fieldName);
-            return $structureField->toString();
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            } else {
-                return '';
-            }
-
-        }
+        return $this->fieldReader->getStructureFieldAsString($structure, $fieldName, $required);
     }
 
     /**
@@ -1614,16 +1277,7 @@ abstract class KirbyBaseHelper
                                                bool            $required = false,
                                                bool            $default = false): bool
     {
-        try {
-            $structureField = $this->getStructureField($structure, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $structureField->toBool();
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return $default;
-        }
+        return $this->fieldReader->getStructureFieldAsBool($structure, $fieldName, $required, $default);
     }
 
     /**
@@ -1641,17 +1295,7 @@ abstract class KirbyBaseHelper
                                               bool            $required = false,
                                               int             $default = 0): int
     {
-        try {
-            $structureField = $this->getStructureField($structure, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $structureField->toInt();
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            //TODO: should be better than returning zero if not required.  Maybe return int|null
-            return $default;
-        }
+        return $this->fieldReader->getStructureFieldAsInt($structure, $fieldName, $required, $default);
     }
 
     /**
@@ -1669,17 +1313,7 @@ abstract class KirbyBaseHelper
                                                 bool            $required = false,
                                                 float           $default = 0): float
     {
-        try {
-            $structureField = $this->getStructureField($structure, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $structureField->toFloat();
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return $default;
-        }
-
+        return $this->fieldReader->getStructureFieldAsFloat($structure, $fieldName, $required, $default);
     }
 
     /**
@@ -1694,17 +1328,7 @@ abstract class KirbyBaseHelper
                                                     string          $fieldName,
                                                     bool            $required = false): string
     {
-        try {
-            $structureField = $this->getStructureField($structure, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $structureField->kti()->toString();
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return '';
-        }
-
+        return $this->fieldReader->getStructureFieldAsKirbyText($structure, $fieldName, $required);
     }
 
     /**
@@ -1715,13 +1339,7 @@ abstract class KirbyBaseHelper
      */
     protected function getStructureFieldAsLinkUrl(StructureObject $structure, string $fieldName): string
     {
-        $structureField = $this->getStructureField($structure, $fieldName);
-        if ($structureField->isNotEmpty()) {
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $structureField->toUrl();
-        } else {
-            return '';
-        }
+        return $this->fieldReader->getStructureFieldAsLinkUrl($structure, $fieldName);
     }
 
     /**
@@ -1732,14 +1350,7 @@ abstract class KirbyBaseHelper
      */
     protected function getStructureFieldAsPage(StructureObject $structure, string $fieldName): Page
     {
-        $structureField = $this->getStructureField($structure, $fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        $page = $structureField->toPage();
-        if ($page) {
-            return $page;
-        } else {
-            throw new KirbyRetrievalException('The page field ' . $fieldName . ' does not exist');
-        }
+        return $this->fieldReader->getStructureFieldAsPage($structure, $fieldName);
     }
 
     /**
@@ -1750,14 +1361,7 @@ abstract class KirbyBaseHelper
      */
     protected function getStructureFieldAsFile(StructureObject $structure, string $fieldName): File
     {
-        $structureField = $this->getStructureField($structure, $fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        $file = $structureField->toFile();
-        if ($file) {
-            return $file;
-        } else {
-            throw new KirbyRetrievalException('The file field ' . $fieldName . ' does not exist');
-        }
+        return $this->fieldReader->getStructureFieldAsFile($structure, $fieldName);
     }
 
     /**
@@ -1768,14 +1372,7 @@ abstract class KirbyBaseHelper
      */
     protected function getStructureFieldAsFiles(StructureObject $structure, string $fieldName): Files
     {
-        $structureField = $this->getStructureField($structure, $fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        $files = $structureField->toFiles();
-        if ($files) {
-            return $files;
-        } else {
-            throw new KirbyRetrievalException('The file field ' . $fieldName . ' does not exist');
-        }
+        return $this->fieldReader->getStructureFieldAsFiles($structure, $fieldName);
     }
 
     /**
@@ -1787,8 +1384,7 @@ abstract class KirbyBaseHelper
      */
     protected function getStructureFieldAsPageTitle(StructureObject $structure, string $fieldName): string
     {
-        $page = $this->getStructureFieldAsPage($structure, $fieldName);
-        return $page->title()->value();
+        return $this->fieldReader->getStructureFieldAsPageTitle($structure, $fieldName);
     }
 
     /**
@@ -1799,18 +1395,7 @@ abstract class KirbyBaseHelper
      */
     protected function getStructureAsArray(Structure $structure, bool $required = false): array
     {
-        try {
-            $returnArray = [];
-            foreach ($structure as $structureObject) {
-                $returnArray[] = $this->getStructureFieldAsString($structureObject, 'name');
-            }
-            return $returnArray;
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return [];
-        }
+        return $this->fieldReader->getStructureAsArray($structure, $required);
     }
 
     /**
@@ -1822,8 +1407,7 @@ abstract class KirbyBaseHelper
      */
     protected function getStructureFieldAsPageUrl(StructureObject $structure, string $fieldName): string
     {
-        $page = $this->getStructureFieldAsPage($structure, $fieldName);
-        return $page->url();
+        return $this->fieldReader->getStructureFieldAsPageUrl($structure, $fieldName);
     }
 
     /**
@@ -1838,18 +1422,7 @@ abstract class KirbyBaseHelper
      */
     protected function getStructureFieldAsWebPageLink(StructureObject $structure, string $fieldName): WebPageLink
     {
-        $structureField = $this->getStructureField($structure, $fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        $linkPage = $structureField->toPage();
-        if ($linkPage->isNotEmpty()) {
-            return new WebPageLink($linkPage->title()->value(),
-                $linkPage->url(),
-                $linkPage->id(),
-                $linkPage->template()->name());
-        }
-        $webPageLink = new WebPageLink('Not found', '', '', '');
-        $webPageLink->setStatus(false);
-        return $webPageLink;
+        return $this->fieldReader->getStructureFieldAsWebPageLink($structure, $fieldName);
     }
 
     /**
@@ -1922,21 +1495,7 @@ abstract class KirbyBaseHelper
                                                      bool            $required = false,
                                                      int             $excerpt = 0): string
     {
-        try {
-            $structureField = $this->getStructureField($structureObject, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            $blockContent = $structureField->toBlocks()->toHtml();
-
-            return ($excerpt === 0)
-                ? $blockContent
-                : Str::excerpt($blockContent, 200);
-
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return '';
-        }
+        return $this->fieldReader->getStructureFieldAsBlocksHtml($structureObject, $fieldName, $required, $excerpt);
     }
 
     /**
@@ -1979,12 +1538,7 @@ abstract class KirbyBaseHelper
      */
     protected function getStructureField(StructureObject $structure, string $fieldName): Field
     {
-        //TODO: sort out this code to get the value back
-        $structureField = $structure->content()->get($fieldName);
-        if (!$structureField instanceof Field || $structureField->isEmpty()) {
-            throw new KirbyRetrievalException('Structure field not found or empty');
-        }
-        return $structureField;
+        return $this->fieldReader->getStructureField($structure, $fieldName);
     }
 
     /**
@@ -1994,8 +1548,7 @@ abstract class KirbyBaseHelper
      */
     protected function hasStructureField(StructureObject $structure, string $fieldName): bool
     {
-        $structureField = $structure->content()->get($fieldName);
-        return ($structureField->isNotEmpty() && $structureField instanceof Field);
+        return $this->fieldReader->hasStructureField($structure, $fieldName);
     }
 
     #endregion
@@ -2011,13 +1564,7 @@ abstract class KirbyBaseHelper
      */
     protected function getEntriesFieldAsStringArray(Page $page, string $fieldName): array
     {
-        $field = $this->getPageField($page, $fieldName);
-        $fieldAsArray = [];
-        /** @noinspection PhpUndefinedMethodInspection */
-        foreach ($field->toEntries() as $entry) {
-            $fieldAsArray[] = $entry->toString();
-        }
-        return $fieldAsArray;
+        return $this->fieldReader->getEntriesFieldAsStringArray($page, $fieldName);
     }
 
     #endregion
@@ -2033,15 +1580,7 @@ abstract class KirbyBaseHelper
      */
     protected function getBlockFieldAsString(Block $block, string $fieldName, bool $required = false): string
     {
-        try {
-            $blockField = $this->getBlockField($block, $fieldName);
-            return $blockField->toString();
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return '';
-        }
+        return $this->fieldReader->getBlockFieldAsString($block, $fieldName, $required);
     }
 
     /**
@@ -2054,16 +1593,7 @@ abstract class KirbyBaseHelper
      */
     protected function getBlockFieldAsYaml(Block $block, string $fieldName, bool $required = false, array $default = []): array
     {
-        try {
-            $blockField = $this->getBlockField($block, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $blockField->yaml();
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return $default;
-        }
+        return $this->fieldReader->getBlockFieldAsYaml($block, $fieldName, $required, $default);
     }
 
     /**
@@ -2074,9 +1604,7 @@ abstract class KirbyBaseHelper
      */
     protected function getBlockFieldAsStructure(Block $block, string $fieldName): Structure
     {
-        $blockField = $this->getBlockField($block, $fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        return $blockField->toStructure();
+        return $this->fieldReader->getBlockFieldAsStructure($block, $fieldName);
     }
 
     /**
@@ -2089,17 +1617,7 @@ abstract class KirbyBaseHelper
      */
     protected function getBlockFieldAsInt(Block $block, string $fieldName, bool $required = false): int
     {
-        try {
-            $blockField = $this->getBlockField($block, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $blockField->toInt();
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            //TODO: do better than returning zero
-            return 0;
-        }
+        return $this->fieldReader->getBlockFieldAsInt($block, $fieldName, $required);
     }
 
     /**
@@ -2167,16 +1685,7 @@ abstract class KirbyBaseHelper
      */
     protected function getBlockFieldAsBlocks(Block $block, string $fieldName, bool $required = false): Blocks
     {
-        try {
-            $blockField = $this->getBlockField($block, $fieldName);
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $blockField->toBlocks();
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return new Blocks();
-        }
+        return $this->fieldReader->getBlockFieldAsBlocks($block, $fieldName, $required);
     }
 
     /**
@@ -2189,20 +1698,7 @@ abstract class KirbyBaseHelper
      */
     protected function getBlockFieldAsBlocksHtml(Block $block, string $fieldName, bool $required = false): string
     {
-        try {
-            $blockField = $this->getBlockField($block, $fieldName);
-            $blocksHTML = '';
-            /** @noinspection PhpUndefinedMethodInspection */
-            foreach ($blockField->toBlocks() as $block) {
-                $blocksHTML .= $this->getHTMLfromBlock($block);
-            }
-            return $blocksHTML;
-        } catch (KirbyRetrievalException $e) {
-            if ($required) {
-                throw $e;
-            }
-            return '';
-        }
+        return $this->fieldReader->getBlockFieldAsBlocksHtml($block, $fieldName, $required);
     }
 
     /**
@@ -2212,12 +1708,7 @@ abstract class KirbyBaseHelper
      */
     protected function isBlockFieldNotEmpty(Block $block, string $fieldName): bool
     {
-        try {
-            $blockField = $this->getBlockField($block, $fieldName);
-            return $blockField->isNotEmpty();
-        } catch (KirbyRetrievalException) {
-            return false;
-        }
+        return $this->fieldReader->isBlockFieldNotEmpty($block, $fieldName);
     }
 
     /**
@@ -2228,11 +1719,7 @@ abstract class KirbyBaseHelper
      */
     protected function getBlockField(Block $block, string $fieldName): Field
     {
-        $blockField = $block->content()->get($fieldName);
-        if (!$blockField instanceof Field || $blockField->isEmpty()) {
-            throw new KirbyRetrievalException('Block field not found or empty');
-        }
-        return $blockField;
+        return $this->fieldReader->getBlockField($block, $fieldName);
     }
 
     /**
@@ -2243,9 +1730,7 @@ abstract class KirbyBaseHelper
      */
     protected function getBlockFieldAsFile(Block $block, string $fieldName): File|null
     {
-        $blockField = $this->getBlockField($block, $fieldName);
-        /** @noinspection PhpUndefinedMethodInspection */
-        return $blockField->toFile();
+        return $this->fieldReader->getBlockFieldAsFile($block, $fieldName);
     }
 
     /**
@@ -2293,13 +1778,7 @@ abstract class KirbyBaseHelper
      */
     private function getHTMLfromBlock(Block $block): string
     {
-        if (in_array($block->type(), ['text', 'list'])) {
-            /** @noinspection PhpUndefinedMethodInspection */
-            $blockHTML = $block->text()->toHtml()->permalinksToUrls();
-        } else {
-            $blockHTML = $block->toHtml();
-        }
-        return $blockHTML;
+        return $this->fieldReader->getHTMLfromBlock($block);
     }
 
 
@@ -2309,7 +1788,7 @@ abstract class KirbyBaseHelper
 
     protected function isUserFieldNotEmpty(\Kirby\Cms\User $user, string $fieldName): bool
     {
-        return $user->{$fieldName}()->isNotEmpty();
+        return $this->fieldReader->isUserFieldNotEmpty($user, $fieldName);
     }
 
 
@@ -2321,7 +1800,7 @@ abstract class KirbyBaseHelper
      */
     protected function getUserFieldAsString(\Kirby\Cms\User $user, string $fieldName, string $default = ''): string
     {
-        return $user->{$fieldName}()->value() ?? $default;
+        return $this->fieldReader->getUserFieldAsString($user, $fieldName, $default);
     }
 
     /**
@@ -2330,12 +1809,12 @@ abstract class KirbyBaseHelper
      */
     public function getCurrentUserFieldAsString(string $fieldName): string
     {
-        return $this->getUserFieldAsString(kirby()->user(), $fieldName);
+        return $this->fieldReader->getCurrentUserFieldAsString($fieldName);
     }
 
     protected function getUserFieldAsBool(\Kirby\Cms\User $user, string $fieldName, bool $default = false): bool
     {
-        return $user->{$fieldName}()->toBool() ?? $default;
+        return $this->fieldReader->getUserFieldAsBool($user, $fieldName, $default);
     }
 
     /**
@@ -2344,7 +1823,7 @@ abstract class KirbyBaseHelper
      */
     public function getCurrentUserFieldAsBool(string $fieldName): bool
     {
-        return $this->getUserFieldAsBool(kirby()->user(), $fieldName);
+        return $this->fieldReader->getCurrentUserFieldAsBool($fieldName);
     }
 
     protected function getCurrentUserFieldAsUser(string $fieldName): User
@@ -2390,7 +1869,7 @@ abstract class KirbyBaseHelper
      */
     protected function getUserFieldAsSlug(\Kirby\Cms\User $user, string $fieldName, string $default = ''): string
     {
-        return $user->{$fieldName}()->toPage()->slug() ?? $default;
+        return $this->fieldReader->getUserFieldAsSlug($user, $fieldName, $default);
     }
 
     /**
@@ -2400,7 +1879,7 @@ abstract class KirbyBaseHelper
      */
     protected function getCurrentUserFieldAsSlug(string $fieldName, string $default = ''): string
     {
-        return $this->getUserFieldAsSlug(kirby()->user(), $fieldName, $default);
+        return $this->fieldReader->getCurrentUserFieldAsSlug($fieldName, $default);
     }
 
     /**
