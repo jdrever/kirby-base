@@ -2,6 +2,8 @@
 
 namespace BSBI\WebBase\traits;
 
+use BSBI\WebBase\forms\ResolvedFormField;
+use Kirby\Cms\Blocks;
 
 /**
  *
@@ -13,6 +15,12 @@ trait FormProperties {
     private string $csrfToken = '';
 
     private bool $submissionSuccessful = false;
+
+    /** @var ResolvedFormField[] Fixed fields resolved from a BaseFormDefinition */
+    private array $formFields = [];
+
+    /** @var Blocks|null Custom form element blocks added by panel editors */
+    private ?Blocks $customFormBlocks = null;
 
     /**
      * @return string
@@ -67,6 +75,46 @@ trait FormProperties {
     public function setSubmissionSuccessful(bool $submissionSuccessful): static
     {
         $this->submissionSuccessful = $submissionSuccessful;
+        return $this;
+    }
+
+    /**
+     * Returns the resolved fixed form fields set by BaseFormDefinition::getFields().
+     *
+     * @return ResolvedFormField[]
+     */
+    public function getFormFields(): array
+    {
+        return $this->formFields;
+    }
+
+    /**
+     * @param ResolvedFormField[] $formFields
+     * @return static
+     */
+    public function setFormFields(array $formFields): static
+    {
+        $this->formFields = $formFields;
+        return $this;
+    }
+
+    /**
+     * Returns the custom form element blocks added by panel editors.
+     *
+     * @return Blocks|null
+     */
+    public function getCustomFormBlocks(): ?Blocks
+    {
+        return $this->customFormBlocks;
+    }
+
+    /**
+     * @param Blocks $customFormBlocks
+     * @return static
+     */
+    public function setCustomFormBlocks(Blocks $customFormBlocks): static
+    {
+        $this->customFormBlocks = $customFormBlocks;
         return $this;
     }
 }

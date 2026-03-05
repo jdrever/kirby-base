@@ -6,3 +6,14 @@ fields:
   successContent:
     type: blocks
     label: Success content
+  customFormElements:
+    type: blocks
+    label: Custom form elements
+    help: These are appended after any fixed form fields defined for this form type.
+    fieldsets:
+      - form-textbox
+      - form-textarea
+      - form-checkbox-group
+      - form-radio-group
+      - form-likert
+      - form-select

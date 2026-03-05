@@ -4521,13 +4521,17 @@ abstract class KirbyBaseHelper
     #region FORMS
 
     /**
-     * Will also email if a receipient has been given in the
-     * Email Recipient field for the page
-     * @param Page $parentPage
+     * Processes a POST form submission, stores it as a form_submission child page,
+     * and optionally sends an email notification to the configured recipient.
+     *
+     * @param Page   $parentPage The page under which the submission child page is created
+     * @param string $formType   Short identifier for the form type (e.g. 'training_feedback').
+     *                           Stored on the submission for filtering and export.
+     *                           Pass an empty string for generic/untyped forms.
      * @return ActionStatus
      * @throws KirbyRetrievalException
      */
-    protected function createFormSubmission(Page $parentPage): ActionStatus
+    protected function createFormSubmission(Page $parentPage, string $formType = ''): ActionStatus
     {
         if ($this->kirby->request()->is('POST')) {
             if (csrf(get('csrf')) === true) {
@@ -4545,7 +4549,7 @@ abstract class KirbyBaseHelper
 
                     $formSubmission[] = [
                         'question' => $questionTitle,
-                        'answer' => $inputValue,
+                        'answer' => is_array($inputValue) ? implode(', ', $inputValue) : $inputValue,
                     ];
                 }
 
@@ -4559,14 +4563,20 @@ abstract class KirbyBaseHelper
                     $slug = $slug . '-' . $counter;
                 }
 
+                $content = [
+                    'title'      => 'Submission: ' . $slug,
+                    'submission' => Data::encode($formSubmission, 'yaml'),
+                ];
+
+                if ($formType !== '') {
+                    $content['form_type'] = $formType;
+                }
+
                 $this->createPage($parentPage,
                     [
-                        'slug' => $slug,
+                        'slug'     => $slug,
                         'template' => 'form_submission',
-                        'content' => [
-                            'title' => 'Submission: ' . $slug,
-                            'submission' => Data::encode($formSubmission, 'yaml')
-                        ]
+                        'content'  => $content,
                     ],
                     true
                 );

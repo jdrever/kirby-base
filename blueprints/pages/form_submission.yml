@@ -1,6 +1,11 @@
 title: "- Form Submission"
 icon: heart-filled
 fields:
+  form_type:
+    type: text
+    label: Form Type
+    disabled: true
+    help: Set automatically on submission (e.g. training_feedback)
   submission:
     type: structure
     fields:
