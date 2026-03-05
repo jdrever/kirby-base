@@ -70,6 +70,7 @@ abstract class KirbyBaseHelper
     protected KirbyFieldReader $fieldReader;
     protected ImageService $imageService;
     protected NavigationService $navigationService;
+    protected SearchService $searchService;
 
     #region CONSTRUCTOR
     /**
@@ -112,6 +113,11 @@ abstract class KirbyBaseHelper
                 }
                 return $webPageLink;
             }
+        );
+        $this->searchService = new SearchService(
+            $this->site,
+            $this->kirby,
+            fn () => $this->hasSessionCookie(),
         );
     }
     #endregion
@@ -3707,11 +3713,7 @@ abstract class KirbyBaseHelper
      */
     protected function getSearchQuery(): string
     {
-        $query = get('q', '');
-        if (!is_string($query) || empty($query)) {
-            $query = '';
-        }
-        return strip_tags($query);
+        return $this->searchService->getSearchQuery();
     }
 
     /**
@@ -3751,12 +3753,12 @@ abstract class KirbyBaseHelper
                         $doingDefaultSearch = false;
                     }
                 }
-                if ($doingDefaultSearch)  {
+                if ($doingDefaultSearch) {
                     $searchResults = $this->getWebPageLinks($collection);
                 }
                 foreach ($searchResults->getListItems() as $searchResult) {
-                    $highlightedTitle = $this->highlightTerm($searchResult->getTitle(), $query);
-                    $highlightedDescription = $this->highlightTerm($searchResult->getDescription(), $query);
+                    $highlightedTitle = SearchTextHelper::highlightTerm($searchResult->getTitle(), $query);
+                    $highlightedDescription = SearchTextHelper::highlightTerm($searchResult->getDescription(), $query);
                     $searchResult->setTitle($highlightedTitle);
                     $searchResult->setDescription($highlightedDescription);
                     $searchResult->setBreadcrumb($this->getPageBreadcrumbAsString($searchResult->getPageId()));
@@ -3783,7 +3785,8 @@ abstract class KirbyBaseHelper
      * @param string $query
      * @return void
      */
-    private function logSearchQuery(string $query): void {
+    private function logSearchQuery(string $query): void
+    {
         try {
             $searchLog = $this->site->children()->template('search_log')->first();
             if ($searchLog) {
@@ -3791,7 +3794,7 @@ abstract class KirbyBaseHelper
                     'template' => 'search_log_item',
                     'slug' => date('Y-m-d H:i:s'),
                     'content' => [
-                        'title' => $query . ' ('. date('Y-m-d H:i:s'). ')',
+                        'title' => $query . ' (' . date('Y-m-d H:i:s') . ')',
                         'searchQuery' => $query,
                         'searchDate' => date('Y-m-d H:i:s')
                     ]
@@ -3800,12 +3803,8 @@ abstract class KirbyBaseHelper
         } catch (KirbyRetrievalException $e) {
             $this->writeToErrorLog($e->getMessage());
         }
-
     }
 
-    /**
-     * Stop words to filter out when extracting keywords from search queries
-     */
     /** @deprecated Use SearchTextHelper::SEARCH_STOP_WORDS instead */
     private const array SEARCH_STOP_WORDS = SearchTextHelper::SEARCH_STOP_WORDS;
 
@@ -3817,30 +3816,7 @@ abstract class KirbyBaseHelper
      */
     public function getTopSearchTerms(int $limit = 20): array
     {
-        $searchLog = $this->site->children()->template('search_log')->first();
-        if (!$searchLog) {
-            return [];
-        }
-
-        $logEntries = $searchLog->children()->template('search_log_item');
-        $termCounts = [];
-
-        foreach ($logEntries as $entry) {
-            $query = strtolower(trim($entry->searchQuery()->value() ?? ''));
-            if ($query !== '') {
-                $termCounts[$query] = ($termCounts[$query] ?? 0) + 1;
-            }
-        }
-
-        arsort($termCounts);
-        $topTerms = array_slice($termCounts, 0, $limit, true);
-
-        $result = [];
-        foreach ($topTerms as $term => $count) {
-            $result[] = ['term' => $term, 'count' => $count];
-        }
-
-        return $result;
+        return $this->searchService->getTopSearchTerms($limit);
     }
 
     /**
@@ -3851,22 +3827,7 @@ abstract class KirbyBaseHelper
      */
     public function getTopSearchKeywords(int $limit = 20): array
     {
-        $searchLog = $this->site->children()->template('search_log')->first();
-        if (!$searchLog) {
-            return [];
-        }
-
-        $logEntries = $searchLog->children()->template('search_log_item');
-        $queries = [];
-
-        foreach ($logEntries as $entry) {
-            $query = $entry->searchQuery()->value() ?? '';
-            if (trim($query) !== '') {
-                $queries[] = $query;
-            }
-        }
-
-        return SearchTextHelper::extractKeywordCounts($queries, SearchTextHelper::SEARCH_STOP_WORDS, $limit);
+        return $this->searchService->getTopSearchKeywords($limit);
     }
 
     /**
@@ -3876,45 +3837,14 @@ abstract class KirbyBaseHelper
      */
     public function getSearchAnalyticsSummary(): array
     {
-        $searchLog = $this->site->children()->template('search_log')->first();
-        if (!$searchLog) {
-            return [
-                'totalSearches' => 0,
-                'uniqueTerms' => 0,
-                'dateRange' => ['from' => null, 'to' => null]
-            ];
-        }
-
-        $logEntries = $searchLog->children()->template('search_log_item')->sortBy('searchDate', 'asc');
-        $totalSearches = $logEntries->count();
-        $uniqueTerms = [];
-        $firstDate = null;
-        $lastDate = null;
-
-        foreach ($logEntries as $entry) {
-            $query = strtolower(trim($entry->searchQuery()->value() ?? ''));
-            if ($query !== '') {
-                $uniqueTerms[$query] = true;
-            }
-            $date = $entry->searchDate()->value();
-            if ($firstDate === null) {
-                $firstDate = $date;
-            }
-            $lastDate = $date;
-        }
-
-        return [
-            'totalSearches' => $totalSearches,
-            'uniqueTerms' => count($uniqueTerms),
-            'dateRange' => ['from' => $firstDate, 'to' => $lastDate]
-        ];
+        return $this->searchService->getSearchAnalyticsSummary();
     }
 
     /**
      * @param \Kirby\Cms\Pagination|\Kirby\Toolkit\Pagination $paginationFromKirby
      * @return Pagination
      */
-    private function getPagination(\Kirby\Toolkit\Pagination|\Kirby\Cms\Pagination $paginationFromKirby): Pagination
+    protected function getPagination(\Kirby\Toolkit\Pagination|\Kirby\Cms\Pagination $paginationFromKirby): Pagination
     {
         $pagination = new Pagination();
         $pagination->setHasPreviousPage($paginationFromKirby->hasPrevPage());
@@ -3940,66 +3870,11 @@ abstract class KirbyBaseHelper
      */
     protected function getSearchCollection(
         ?string     $query = null,
-        string     $params = 'title|mainContent|description|keywords',
-        int        $perPage = 10,
+        string      $params = 'title|mainContent|description|keywords',
+        int         $perPage = 10,
         ?Collection $collection = null
-    ): Collection
-    {
-        if ($collection === null) {
-            $collection = $this->site->index();
-        }
-
-        // returns an empty collection if there is no search query
-        if (empty(trim($query ?? '')) === true) {
-            return $collection->limit(0);
-        }
-        $params = ['fields' => Str::split($params, '|')];
-
-        $defaults = [
-            'fields' => [],
-            'score' => []
-        ];
-
-        $options = array_merge($defaults, $params);
-        $collection = clone $collection;
-
-        $defaultWeights = [
-            'id' => 64,
-            'title' => 128,
-            'description' => 64,
-            'keywords' => 64,
-            'maincontent' => 32
-        ];
-
-        $scores = [];
-        $results = $collection->filter(function ($item) use ($query, $options, $defaultWeights, &$scores) {
-
-            $data = $item->content()->toArray();
-            $keys = array_keys($data);
-            $keys[] = 'id';
-
-            if (empty($options['fields']) === false) {
-                $fields = array_map('strtolower', $options['fields']);
-                $keys = array_intersect($keys, $fields);
-            }
-
-            // Build field name => value map for scoring
-            $fieldValues = [];
-            foreach ($keys as $key) {
-                $fieldValues[$key] = (string)$item->$key();
-            }
-
-            $fieldWeights = array_merge($defaultWeights, $options['score']);
-            $scoring = SearchTextHelper::scoreFields($fieldValues, $query, $fieldWeights);
-
-            $scores[$item->id()] = $scoring;
-            return $scoring['hits'] > 0;
-        });
-
-        return $results->sort(
-            fn($item) => $scores[$item->id()]['score'],
-            'desc'
-        )->paginate($perPage);
+    ): Collection {
+        return $this->searchService->getSearchCollection($query, $params, $perPage, $collection);
     }
 
     /**
@@ -4007,87 +3882,25 @@ abstract class KirbyBaseHelper
      *
      * @param string|null $query Search query
      * @param int $perPage Results per page
-     * @param string|null $templates Optional comma limited template names to filter results
+     * @param string|null $templates Optional comma-delimited template names to filter results
      * @return Collection
      */
     protected function getSearchCollectionSqlite(
         ?string $query = null,
-        int $perPage = 10,
+        int     $perPage = 10,
         ?string $templates = null
-    ): Collection
-    {
-        if (empty(trim($query ?? ''))) {
-            return $this->site->index()->limit(0);
-        }
-
-        // Check if SQLite search is enabled
-        $useSqlite = option('search.useSqlite', false);
-        if (!$useSqlite) {
-            return $this->getSearchCollection($query, 'title|mainContent|description|keywords', $perPage);
-        }
-
-        try {
-            $searchIndex = new SearchIndexHelper();
-            // Only access user if session cookie exists to avoid starting a session (which prevents caching)
-            $user = $this->hasSessionCookie() ? $this->kirby->user() : null;
-            $isMemberOrAdmin = $user &&
-                in_array($user->role()->name(), ['member', 'vice_county', 'admin', 'editor']);
-
-            // Get all matching page IDs sorted by relevance
-            $pageIds = $searchIndex->searchAllIds($query, $isMemberOrAdmin, $templates);
-
-            if (empty($pageIds)) {
-                return $this->site->index()->limit(0);
-            }
-
-            // Convert to Kirby pages collection and let Kirby handle pagination
-            $pages = pages($pageIds);
-
-            return $pages->paginate($perPage);
-
-        } catch (Throwable $e) {
-            // Log error and fall back to existing search
-            error_log('SQLite search failed: ' . $e->getMessage());
-            return $this->getSearchCollection($query, 'title|mainContent|description|keywords', $perPage);
-        }
+    ): Collection {
+        return $this->searchService->getSearchCollectionSqlite($query, $perPage, $templates);
     }
 
     /**
      * Get the available content type filter options for search
      *
-     * Returns the keys from the search.contentTypeOptions config as an array for use in a select box
-     *
      * @return array Array of content type option names
      */
     protected function getSearchContentTypeOptions(): array
     {
-        $contentTypeOptionsFromConfig = option('search.contentTypeOptions', []);
-
-        $options = [];
-
-        $options[] = $this->createOption('', 'All content');
-        foreach ($contentTypeOptionsFromConfig as $key => $value) {
-            $options[] = $this->createOption($value, $key);
-        }
-        return $options;
-    }
-
-    /**
-     * Adds span class="highlight" to individual words in the term.
-     * Only highlights text content, not text inside HTML tags/attributes.
-     *
-     * @param string $text The HTML text to process
-     * @param string $term The search term (may include quoted phrases)
-     * @return string The text with highlights applied
-     */
-    private function highlightTerm(string $text, string $term): string
-    {
-        return SearchTextHelper::highlightTerm($text, $term);
-    }
-
-    private function filterStopWords(array $words): array
-    {
-        return SearchTextHelper::filterStopWords($words);
+        return $this->searchService->getSearchContentTypeOptions();
     }
 
     /**
@@ -4097,14 +3910,12 @@ abstract class KirbyBaseHelper
      */
     protected function highlightSearchQuery(BaseWebPage $page, string $query): BaseWebPage
     {
-        $mainContentBlocks = $page->getMainContent();
-        foreach ($mainContentBlocks->getListItems() as $block) {
-            if (in_array($block->getBlockType(), ['text', 'heading', 'list', 'note'])) {
-                $highlightedContent = $this->highlightTerm($block->getBlockContent(), $query);
-                $block->setBlockContent($highlightedContent);
-            }
-        }
-        return $page;
+        return $this->searchService->highlightSearchQuery($page, $query);
+    }
+
+    private function filterStopWords(array $words): array
+    {
+        return SearchTextHelper::filterStopWords($words);
     }
 
     #endregion
