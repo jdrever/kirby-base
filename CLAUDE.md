@@ -73,7 +73,7 @@ These are registered in `blueprints.php`.
 - PHP 8.3+ required (`declare(strict_types=1)` everywhere)
 - PSR-12 code style with Slevomat enhancements: full type hints on parameters, returns, and properties
 - PascalCase classes, camelCase methods/properties, snake_case for Kirby template/blueprint names
-- PHPDoc comments for all public methods
+- PHPDoc comments for all public methods/constructors
 
 ## Version Management
 
