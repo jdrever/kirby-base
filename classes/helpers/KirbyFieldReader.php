@@ -6,6 +6,7 @@ namespace BSBI\WebBase\helpers;
 
 use BSBI\WebBase\models\WebPageLink;
 use DateTime;
+use Exception;
 use Kirby\Cms\App;
 use Kirby\Cms\Block;
 use Kirby\Cms\Blocks;
@@ -16,9 +17,11 @@ use Kirby\Cms\Pages;
 use Kirby\Cms\Site;
 use Kirby\Cms\Structure;
 use Kirby\Cms\StructureObject;
+use Kirby\Cms\User;
 use Kirby\Content\Field;
 use Kirby\Exception\InvalidArgumentException;
 use Kirby\Toolkit\Str;
+use Throwable;
 
 /**
  * Provides typed read access to Kirby CMS field values across pages, site,
@@ -26,11 +29,15 @@ use Kirby\Toolkit\Str;
  * objects as parameters; no global state is accessed beyond the injected
  * App and Site instances.
  */
-final class KirbyFieldReader
+final readonly class KirbyFieldReader
 {
+    /**
+     * @param App $kirby
+     * @param Site $site
+     */
     public function __construct(
-        private readonly App  $kirby,
-        private readonly Site $site,
+        private App  $kirby,
+        private Site $site,
     ) {
     }
 
@@ -353,7 +360,7 @@ final class KirbyFieldReader
             /** @noinspection PhpUndefinedMethodInspection */
             $textBlocks = $pageField->toBlocks()->filter(fn($block) => $block->type() === 'text');
             return Str::excerpt($textBlocks->toHtml(), $length);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if ($required) {
                 throw $e;
             }
@@ -576,7 +583,7 @@ final class KirbyFieldReader
     }
 
     /**
-     * Returns a comma-separated string of user names stored in the given field.
+     * Returns a comma-separated string of usernames stored in the given field.
      */
     public function getUserNames(Page $page, string $fieldName): string
     {
@@ -584,15 +591,15 @@ final class KirbyFieldReader
             $postedByField = $page->content()->get($fieldName);
 
             if ($postedByField instanceof Field && $postedByField->isNotEmpty()) {
-                /** @noinspection PhpUndefinedMethodInspection */
                 $userNamesArray = [];
+                /** @noinspection PhpUndefinedMethodInspection */
                 foreach ($postedByField->toUsers() as $user) {
                     $userNamesArray[] = $user->name();
                 }
                 return implode(', ', $userNamesArray);
             }
             return 'Unknown';
-        } catch (\Exception) {
+        } catch (Exception) {
             return '';
         }
     }
@@ -1278,7 +1285,7 @@ final class KirbyFieldReader
     /**
      * Returns true when the user field exists and is not empty.
      */
-    public function isUserFieldNotEmpty(\Kirby\Cms\User $user, string $fieldName): bool
+    public function isUserFieldNotEmpty(User $user, string $fieldName): bool
     {
         return $user->{$fieldName}()->isNotEmpty();
     }
@@ -1286,7 +1293,7 @@ final class KirbyFieldReader
     /**
      * Returns a user field value as a string.
      */
-    public function getUserFieldAsString(\Kirby\Cms\User $user, string $fieldName, string $default = ''): string
+    public function getUserFieldAsString(User $user, string $fieldName, string $default = ''): string
     {
         return $user->{$fieldName}()->value() ?? $default;
     }
@@ -1302,7 +1309,7 @@ final class KirbyFieldReader
     /**
      * Returns a user field value as a boolean.
      */
-    public function getUserFieldAsBool(\Kirby\Cms\User $user, string $fieldName, bool $default = false): bool
+    public function getUserFieldAsBool(User $user, string $fieldName, bool $default = false): bool
     {
         return $user->{$fieldName}()->toBool() ?? $default;
     }
@@ -1318,7 +1325,7 @@ final class KirbyFieldReader
     /**
      * Returns a user field value as the slug of the referenced page.
      */
-    public function getUserFieldAsSlug(\Kirby\Cms\User $user, string $fieldName, string $default = ''): string
+    public function getUserFieldAsSlug(User $user, string $fieldName, string $default = ''): string
     {
         return $user->{$fieldName}()->toPage()->slug() ?? $default;
     }
@@ -1332,13 +1339,13 @@ final class KirbyFieldReader
     }
 
     /**
-     * Returns a user field value as a Kirby Pages collection, or null.
+     * Returns a user field value as a Kirby Pages collection or null.
      */
-    public function getUserFieldAsPages(\Kirby\Cms\User $user, string $fieldName): Pages|null
+    public function getUserFieldAsPages(User $user, string $fieldName): Pages|null
     {
         try {
             return $user->{$fieldName}()->toPages();
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
     }
