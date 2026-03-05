@@ -72,6 +72,7 @@ abstract class KirbyBaseHelper
     protected NavigationService $navigationService;
     protected SearchService $searchService;
     protected CollectionFilterService $collectionFilterService;
+    protected UserService $userService;
 
     #region CONSTRUCTOR
     /**
@@ -121,6 +122,11 @@ abstract class KirbyBaseHelper
             fn () => $this->hasSessionCookie(),
         );
         $this->collectionFilterService = new CollectionFilterService($this->fieldReader);
+        $this->userService = new UserService(
+            $this->kirby,
+            $this->fieldReader,
+            fn () => $this->hasSessionCookie(),
+        );
     }
     #endregion
 
@@ -1930,25 +1936,12 @@ abstract class KirbyBaseHelper
      */
     protected function getUserName(string $userId, string $fallback = 'User not found'): string
     {
-        // Extract the actual user ID from the string
-        if (preg_match('/user:\/\/([a-zA-Z0-9]+)/', $userId, $matches)) {
-            $userId = $matches[1]; // Get the ID (e.g., 'dvw7nX3C')
-
-            // Check if the user exists
-            $user = kirby()->user($userId);
-            if ($user) {
-                return $user->username();
-            } else {
-                return $fallback;
-            }
-        } else {
-            return "User id is malformed";
-        }
+        return $this->userService->getUserName($userId, $fallback);
     }
 
     protected function getCurrentKirbyUser(): \Kirby\Cms\User
     {
-        return kirby()->user();
+        return $this->userService->getCurrentKirbyUser();
     }
 
     /**
@@ -1956,18 +1949,7 @@ abstract class KirbyBaseHelper
      */
     protected function getCurrentUser(): User
     {
-        $user = new User('user');
-
-        // Only access user if session cookie exists to avoid starting a session (which prevents caching)
-        $userLoggedIn = $this->hasSessionCookie() ? $this->kirby->user() : null;
-        $userId = ($userLoggedIn) ? $userLoggedIn->id() : '';
-        $userName = ($userLoggedIn) ? $userLoggedIn->userName() : '';
-        $role = ($userLoggedIn) ? $userLoggedIn->role()->name() : '';
-        $user
-            ->setUserId($userId)
-            ->setUserName($userName)
-            ->setRole($role);
-        return $user;
+        return $this->userService->getCurrentUser();
     }
 
     /**
@@ -1976,12 +1958,7 @@ abstract class KirbyBaseHelper
      */
     protected function getUser(\Kirby\Cms\User $kirbyUser): User
     {
-        $user = new User('user');
-        $user->setUserId($kirbyUser->id())
-            ->setUserName($kirbyUser->username())
-            ->setEmail($kirbyUser->email())
-            ->setRole($kirbyUser->role()->name());
-        return $user;
+        return $this->userService->getUser($kirbyUser);
     }
 
     /**
@@ -1991,11 +1968,7 @@ abstract class KirbyBaseHelper
      */
     protected function getCurrentUserName(): string
     {
-        // Only access user if session cookie exists to avoid starting a session (which prevents caching)
-        if (!$this->hasSessionCookie()) {
-            return '';
-        }
-        return $this->kirby->user() ? $this->kirby->user()->name() : '';
+        return $this->userService->getCurrentUserName();
     }
 
     /**
@@ -2005,83 +1978,18 @@ abstract class KirbyBaseHelper
      */
     protected function getCurrentUserRole(): string
     {
-        // Only access user if session cookie exists to avoid starting a session (which prevents caching)
-        if (!$this->hasSessionCookie()) {
-            return '';
-        }
-        return $this->kirby->user() ? $this->kirby->user()->role()->name() : '';
+        return $this->userService->getCurrentUserRole();
     }
 
 
     /**
-     * Checks whether the current user has the necessary permissions to access the given page.
-     *
-     * This function evaluates the user's role against the required roles defined in
-     * the current page or inherited from its parent pages. It grants access to users
-     * with 'admin' or 'editor' roles by default. If no roles are explicitly defined,
-     * access is allowed.
-     *
-     * @param Page $currentPage The page for which permission is being checked
-     * @return bool Returns true if the user has permission to access the page, false otherwise
+     * @param Page $currentPage
+     * @return bool
      * @throws KirbyRetrievalException
      */
     protected function checkPagePermissions(Page $currentPage): bool
     {
-
-        if (in_array($currentPage->template()->name(), ['login', 'reset_password', 'reset_password_verification'])) {
-            return true;
-        }
-
-        // Only access user if session cookie exists to avoid starting a session (which prevents caching)
-        $user = $this->hasSessionCookie() ? $this->kirby->user() : null;
-
-        if ($this->isCurrentUserAdminOrEditor()) {
-            return true;
-        }
-        $siteRoles = $this->getSiteFieldAsString('requiredRoles');
-
-        if (!empty($siteRoles)) {
-            $requiredRolesWithSpaces = explode(",", $siteRoles);
-            $requiredRoles = array_map('trim', $requiredRolesWithSpaces);
-            //if the site has roles, and the user isn't logged in or isn't using one of the roles
-            if ((!$user || $user->isNobody()) || (!(in_array($user->role()->name(), $requiredRoles)))) {
-                return false;
-            }
-        }
-
-        // If no user is logged in (or it's the kirby user), we will check for required roles later.
-        // If roles are required and no eligible user is logged in, access will be denied.
-        $applicableRoles = [];
-
-        // Traverse up the page hierarchy to find the first non-empty requiredRoles field
-        $page = $currentPage;
-        while ($page) {
-            $currentRoles = $this->getPageFieldAsArray($page, 'requiredRoles'); // Access the field
-            // If this page has required roles set, these are the applicable roles due to inheritance
-            if (!empty($currentRoles)) {
-                $applicableRoles = $currentRoles;
-                break; // Found the most specific required roles in the hierarchy
-            }
-
-            // Move up to the parent page
-            $page = $page->parent();
-        }
-
-        // Now check if the user has permission based on the applicable roles found
-
-        // If no applicable roles were found throughout the hierarchy, access is allowed
-        if (empty($applicableRoles)) {
-            return true;
-        }
-
-        // If applicable roles exist, check if a *non-kirby* user is logged in
-        // and if their role is in the list
-        if ($user && !$user->isKirby() && in_array($user->role()->name(), $applicableRoles)) {
-            return true;
-        }
-
-        // If none of the above conditions are met, the user does not have permission
-        return false;
+        return $this->userService->checkPagePermissions($currentPage);
     }
 
     /**
@@ -2099,30 +2007,18 @@ abstract class KirbyBaseHelper
 
     public function isCurrentUserAdminOrEditor(): bool
     {
-        // Don't start a session just to check user - if no session cookie, no user is logged in
-        if (!$this->hasSessionCookie()) {
-            return false;
-        }
-        $user = $this->kirby->user();
-        return $this->isUserAdminOrEditor($user);
+        return $this->userService->isCurrentUserAdminOrEditor();
     }
 
-    public function isCurrentUserAdminOrEditorOrHasRoles(array $roles) : bool
+    public function isCurrentUserAdminOrEditorOrHasRoles(array $roles): bool
     {
-        $currentRole = $this->getCurrentUserRole();
-        return (in_array($currentRole,$roles)|| $currentRole === 'admin' || $currentRole === 'editor');
+        return $this->userService->isCurrentUserAdminOrEditorOrHasRoles($roles);
     }
 
     public function isUserAdminOrEditor(\Kirby\Cms\User|null $user): bool
     {
-        if ($user && !$user->isKirby() && ($user->role()->name() === 'admin' || $user->role()->name() === 'editor')) {
-            return true;
-        }
-        return false;
+        return $this->userService->isUserAdminOrEditor($user);
     }
-
-
-
 
     /**
      * @param string $role
@@ -2130,15 +2026,7 @@ abstract class KirbyBaseHelper
      */
     public function doesCurrentUserHaveRole(string $role): bool
     {
-        // Don't start a session just to check user - if no session cookie, no user is logged in
-        if (!$this->hasSessionCookie()) {
-            return false;
-        }
-        $user = $this->kirby->user();
-        if ($user && $user->role()->name() === $role) {
-            return true;
-        }
-        return false;
+        return $this->userService->doesCurrentUserHaveRole($role);
     }
 
     /**
@@ -2147,11 +2035,7 @@ abstract class KirbyBaseHelper
      */
     protected function isUserLoggedIn(): bool
     {
-        // Don't start a session just to check user - if no session cookie, no user is logged in
-        if (!$this->hasSessionCookie()) {
-            return false;
-        }
-        return $this->kirby->user() != null;
+        return $this->userService->isUserLoggedIn();
     }
 
     /**
@@ -2204,13 +2088,7 @@ abstract class KirbyBaseHelper
      */
     public function createUser(array $userData): \Kirby\Cms\User
     {
-        try {
-            return $this->kirby->impersonate('kirby', function () use ($userData) {
-                return $this->kirby->users()->create($userData);
-            });
-        } catch (Throwable $e) {
-            throw new KirbyRetrievalException($e->getMessage());
-        }
+        return $this->userService->createUser($userData);
     }
 
     /**
@@ -2221,13 +2099,7 @@ abstract class KirbyBaseHelper
      */
     public function updateUser(\Kirby\Cms\User $user, array $updateData): \Kirby\Cms\User
     {
-        try {
-            return $this->kirby->impersonate('kirby', function () use ($user, $updateData) {
-                return $user->update($updateData);
-            });
-        } catch (Throwable $e) {
-            throw new KirbyRetrievalException($e->getMessage());
-        }
+        return $this->userService->updateUser($user, $updateData);
     }
 
     /**
@@ -2238,13 +2110,7 @@ abstract class KirbyBaseHelper
      */
     public function changeUserName(\Kirby\Cms\User $user, string $name): \Kirby\Cms\User
     {
-        try {
-            return $this->kirby->impersonate('kirby', function () use ($user, $name) {
-                return $user->changeName($name);
-            });
-        } catch (Throwable $e) {
-            throw new KirbyRetrievalException($e->getMessage());
-        }
+        return $this->userService->changeUserName($user, $name);
     }
 
     /**
@@ -2255,13 +2121,7 @@ abstract class KirbyBaseHelper
      */
     public function changeUserRole(\Kirby\Cms\User $user, string $role): \Kirby\Cms\User
     {
-        try {
-            return $this->kirby->impersonate('kirby', function () use ($user, $role) {
-                return $user->changerole($role);
-            });
-        } catch (Throwable $e) {
-            throw new KirbyRetrievalException($e->getMessage());
-        }
+        return $this->userService->changeUserRole($user, $role);
     }
 
     /**
@@ -2272,13 +2132,7 @@ abstract class KirbyBaseHelper
      */
     public function changeUserEmail(\Kirby\Cms\User $user, string $email): \Kirby\Cms\User
     {
-        try {
-            return $this->kirby->impersonate('kirby', function () use ($user, $email) {
-                return $user->changeEmail($email);
-            });
-        } catch (Throwable $e) {
-            throw new KirbyRetrievalException($e->getMessage());
-        }
+        return $this->userService->changeUserEmail($user, $email);
     }
 
 
