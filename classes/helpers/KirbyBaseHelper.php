@@ -71,6 +71,7 @@ abstract class KirbyBaseHelper
     protected ImageService $imageService;
     protected NavigationService $navigationService;
     protected SearchService $searchService;
+    protected CollectionFilterService $collectionFilterService;
 
     #region CONSTRUCTOR
     /**
@@ -119,6 +120,7 @@ abstract class KirbyBaseHelper
             $this->kirby,
             fn () => $this->hasSessionCookie(),
         );
+        $this->collectionFilterService = new CollectionFilterService($this->fieldReader);
     }
     #endregion
 
@@ -4015,12 +4017,9 @@ abstract class KirbyBaseHelper
      * @return Collection
      * @noinspection PhpUnused
      */
-    public function filterByPagesTag(Collection $pages, string $tagName, string $tagValue): Collection {
-        if (empty($tagValue)) { return $pages;}
-        return $pages->filter(function ($page) use ($tagName, $tagValue) {
-            $pages = $page->content()->get($tagName)->toPages();
-            return ($pages->filterBy('title', $tagValue)->count() > 0);
-        });
+    public function filterByPagesTag(Collection $pages, string $tagName, string $tagValue): Collection
+    {
+        return $this->collectionFilterService->filterByPagesTag($pages, $tagName, $tagValue);
     }
 
     /**
@@ -4030,15 +4029,9 @@ abstract class KirbyBaseHelper
      * @return Structure
      * @noinspection PhpUnused
      */
-    public function filterStructureByPagesTag(Structure $structure, string $tagName, string $tagValue): Structure {
-        if (empty($tagValue)) { return $structure;}
-        return $structure->filter(function ($structureItem) use ($tagName, $tagValue) {
-            $pages = $structureItem->content()->get($tagName)->toPages();
-            if ($pages->isNotEmpty()) {
-                return ($pages->filterBy('title', $tagValue)->count() > 0);
-            }
-            return false;
-        });
+    public function filterStructureByPagesTag(Structure $structure, string $tagName, string $tagValue): Structure
+    {
+        return $this->collectionFilterService->filterStructureByPagesTag($structure, $tagName, $tagValue);
     }
 
     /**
@@ -4049,9 +4042,7 @@ abstract class KirbyBaseHelper
      */
     public function filterByEqualsValue(Collection $pages, string $fieldName, string $value): Collection
     {
-        return $pages->filter(function ($page) use ($fieldName, $value) {
-            return $page->content()->{$fieldName}()->value() === $value;
-        });
+        return $this->collectionFilterService->filterByEqualsValue($pages, $fieldName, $value);
     }
 
     /**
@@ -4062,14 +4053,7 @@ abstract class KirbyBaseHelper
      */
     public function filterByContainsValue(Collection $pages, string $fieldName, string $value): Collection
     {
-        return $pages->filter(function ($page) use ($fieldName, $value) {
-            $field = $page->{$fieldName}();
-            if ($field->isNotEmpty()) {
-                $values = Str::split($field->value(), ', ');
-                return in_array($value, $values, true);
-            }
-            return false;
-        });
+        return $this->collectionFilterService->filterByContainsValue($pages, $fieldName, $value);
     }
 
     /**
@@ -4079,80 +4063,61 @@ abstract class KirbyBaseHelper
      * @param bool $includeIfEmpty
      * @return Collection
      */
-    public function filterByContainsValues(Collection $pages, string $fieldName, array $values, bool $includeIfEmpty = false): Collection
-    {
-        $targetValues = array_map('trim', $values);
-        return $pages->filter(function ($page) use ($fieldName, $targetValues, $includeIfEmpty) {
-            $field = $page->{$fieldName}();
-            if ($field->isNotEmpty()) {
-                $fieldValues = $field->split(',');
-                $fieldValues = array_map('trim', $fieldValues);
-                $intersection = array_intersect($targetValues, $fieldValues);
-                return count($intersection) > 0;
-            }
-            return $includeIfEmpty;
-        });
+    public function filterByContainsValues(
+        Collection $pages,
+        string     $fieldName,
+        array      $values,
+        bool       $includeIfEmpty = false
+    ): Collection {
+        return $this->collectionFilterService->filterByContainsValues($pages, $fieldName, $values, $includeIfEmpty);
     }
 
-    public function filterByContainsPageTitle(Collection $pages, string $fieldName, string $pageFieldName, string $value): Collection
-    {
-        return $pages->filter(function ($page) use ($fieldName, $pageFieldName, $value) {
-            $fieldPages = $page->{$fieldName}()->toPages();
-            foreach($fieldPages as $fieldPage) {
-                if ($this->isPageFieldNotEmpty($fieldPage,$pageFieldName) && $this->getPageFieldAsPageTitle($fieldPage, $pageFieldName) === $value) {
-                    return true;
-                }
-            }
-            return false;
-        });
+    /**
+     * @param Collection $pages
+     * @param string $fieldName
+     * @param string $pageFieldName
+     * @param string $value
+     * @return Collection
+     */
+    public function filterByContainsPageTitle(
+        Collection $pages,
+        string     $fieldName,
+        string     $pageFieldName,
+        string     $value
+    ): Collection {
+        return $this->collectionFilterService->filterByContainsPageTitle($pages, $fieldName, $pageFieldName, $value);
     }
 
     /**
      * Filter pages where a page-reference field contains any of the given values (OR logic).
-     * Returns pages where the referenced page's field title matches at least one of the provided values.
      *
-     * @param Collection $pages the collection to filter
-     * @param string $fieldName the field on the page that contains page references
-     * @param string $pageFieldName the field on the referenced page to check (e.g. 'page' or 'country')
-     * @param string[] $values the values to match against (OR logic)
-     * @return Collection the filtered collection
+     * @param Collection $pages
+     * @param string $fieldName
+     * @param string $pageFieldName
+     * @param string[] $values
+     * @return Collection
      */
-    public function filterByContainsPageTitleAny(Collection $pages, string $fieldName, string $pageFieldName, array $values): Collection
-    {
-        return $pages->filter(function ($page) use ($fieldName, $pageFieldName, $values) {
-            $fieldPages = $page->{$fieldName}()->toPages();
-            foreach ($fieldPages as $fieldPage) {
-                if ($this->isPageFieldNotEmpty($fieldPage, $pageFieldName) && in_array($this->getPageFieldAsPageTitle($fieldPage, $pageFieldName), $values, true)) {
-                    return true;
-                }
-            }
-            return false;
-        });
+    public function filterByContainsPageTitleAny(
+        Collection $pages,
+        string     $fieldName,
+        string     $pageFieldName,
+        array      $values
+    ): Collection {
+        return $this->collectionFilterService->filterByContainsPageTitleAny($pages, $fieldName, $pageFieldName, $values);
     }
 
     /**
      * Filter pages where a page-reference field contains pages whose own title
      * matches any of the given values (OR logic).
      *
-     * Unlike filterByContainsPageTitleAny which checks a sub-field on the
-     * referenced pages, this checks the referenced pages' own title.
-     *
-     * @param Collection $pages the collection to filter
-     * @param string $fieldName the field on the page that contains page references
-     * @param string[] $values the titles to match against (OR logic)
-     * @return Collection the filtered collection
+     * @param Collection $pages
+     * @param string $fieldName
+     * @param string[] $values
+     * @return Collection
      */
     public function filterByLinkedPageTitleAny(Collection $pages, string $fieldName, array $values): Collection
     {
-        return $pages->filter(function ($page) use ($fieldName, $values) {
-            $fieldPages = $page->{$fieldName}()->toPages();
-            foreach ($fieldPages as $fieldPage) {
-                if (in_array($fieldPage->title()->toString(), $values, true)) {
-                    return true;
-                }
-            }
-            return false;
-        });
+        return $this->collectionFilterService->filterByLinkedPageTitleAny($pages, $fieldName, $values);
     }
 
     /**
@@ -4480,11 +4445,9 @@ abstract class KirbyBaseHelper
      * @return Collection
      * @noinspection PhpUnused
      */
-    public function applyLimit(Collection $pages, int $limit): Collection {
-        if ($limit>0) {
-            $pages = $pages->limit($limit);
-        }
-        return $pages;
+    public function applyLimit(Collection $pages, int $limit): Collection
+    {
+        return $this->collectionFilterService->applyLimit($pages, $limit);
     }
 
 
