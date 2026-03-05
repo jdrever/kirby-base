@@ -68,6 +68,8 @@ abstract class KirbyBaseHelper
     protected const string ASSETS_PATH = '/media/plugins/open-foundations/kirby-base/';
 
     protected KirbyFieldReader $fieldReader;
+    protected ImageService $imageService;
+    protected NavigationService $navigationService;
 
     #region CONSTRUCTOR
     /**
@@ -98,6 +100,19 @@ abstract class KirbyBaseHelper
         $this->site = site();
         $this->page = page();
         $this->fieldReader = new KirbyFieldReader($this->kirby, $this->site);
+        $this->imageService = new ImageService($this->fieldReader);
+        $this->navigationService = new NavigationService(
+            $this->fieldReader,
+            $this->imageService,
+            $this->site,
+            function (string $templateName, Page $page, WebPageLink $webPageLink): WebPageLink {
+                $methodName = 'getWebPageLinkFor' . ucfirst($templateName);
+                if (method_exists($this, $methodName)) {
+                    return $this->$methodName($page, $webPageLink);
+                }
+                return $webPageLink;
+            }
+        );
     }
     #endregion
 
@@ -1060,12 +1075,7 @@ abstract class KirbyBaseHelper
      */
     private function getDocumentFromFile(File $pageFile, string $title = 'Download'): Document
     {
-        $url = $this->getFileURL($pageFile);
-        /** @noinspection PhpUndefinedMethodInspection */
-        $size = $pageFile->niceSize();
-        $document = new Document($title, $url);
-        $document->setSize($size);
-        return $document;
+        return $this->imageService->getDocumentFromFile($pageFile, $title);
     }
 
     /**
@@ -1637,42 +1647,7 @@ abstract class KirbyBaseHelper
                                             ImageType $imageType = ImageType::SQUARE,
                                             bool      $fixedWidth = false): Image
     {
-        try {
-            $blockImage = $this->getBlockFieldAsFile($block, $fieldName);
-            //var_dump($blockImage);
-            if ($blockImage != null) {
-                if ($fixedWidth) {
-                    /** @noinspection PhpUndefinedMethodInspection */
-                    if ($blockImage->width() < $width) {
-                        /** @noinspection PhpUndefinedMethodInspection */
-                        $width = $blockImage->width();
-                    }
-                    $blockImage = $blockImage->resize($width);
-                    $src = $blockImage->url();
-                    $srcSet = $blockImage->srcset([
-                        '1x' => ['width' => $width],
-                        '2x' => ['width' => $width * 2],
-                        '3x' => ['width' => $width * 3],
-                    ]);
-                    /** @noinspection PhpUndefinedMethodInspection */
-                    $height = $blockImage->height();
-                    $webpSrcSet = $blockImage->srcset('webp');
-                } else {
-                    $srcSetType = ($imageType === ImageType::SQUARE) ? 'square' : 'main';
-                    $src = $blockImage->crop($width, $height)->url();
-                    $srcSet = $blockImage->srcset($srcSetType);
-                    $webpSrcSet = $blockImage->srcset($srcSetType . '-webp');
-                }
-                /** @noinspection PhpUndefinedMethodInspection */
-                $alt = $blockImage->alt()->isNotEmpty() ? $blockImage->alt()->value() : '';
-                if ($src !== null && $srcSet !== null && $webpSrcSet !== null) {
-                    return new Image ($src, $srcSet, $webpSrcSet, $alt, $width, $height);
-                }
-            }
-            return (new Image())->recordError('Image not found');
-        } catch (Throwable) {
-            return (new Image())->recordError('Image not found');
-        }
+        return $this->imageService->getBlockFieldAsImage($block, $fieldName, $width, $height, $imageType, $fixedWidth);
     }
 
     /**
@@ -2314,20 +2289,19 @@ abstract class KirbyBaseHelper
 
     protected function getFileURL(File $file): string
     {
-        return $this->isFileFieldNotEmtpy($file, 'permanentUrl')
-            ? $this->getFileFieldAsString($file, 'permanentUrl')
-            : $file->url();
+        return $this->imageService->getFileURL($file);
     }
 
-    protected function isFileFieldNotEmtpy(File $file, string $fieldName) : bool
+    protected function isFileFieldNotEmtpy(File $file, string $fieldName): bool
     {
-        return $file->{$fieldName}()->isNotEmpty();
+        return $this->imageService->isFileFieldNotEmpty($file, $fieldName);
     }
 
     protected function getFileFieldAsString(File $file, string $fieldName): string
     {
-        return $file->{$fieldName}()->value();
+        return $this->imageService->getFileFieldAsString($file, $fieldName);
     }
+
     #endregion
 
 
@@ -2552,14 +2526,7 @@ abstract class KirbyBaseHelper
      */
     protected function findCoreLink(string $title, string $linkType): CoreLink
     {
-        $page = $this->site->children()->find($title);
-        if ($page instanceof Page) {
-            $coreLink = new CoreLink($page->title()->toString(), $page->url(), $linkType);
-        } else {
-            $coreLink = new CoreLink('', '', 'NOT_FOUND');
-            $coreLink->setStatus(false);
-        }
-        return $coreLink;
+        return $this->navigationService->findCoreLink($title, $linkType);
     }
 
     /**
@@ -2570,9 +2537,8 @@ abstract class KirbyBaseHelper
      */
     protected function getCoreLink(Page $page, string $linkType): CoreLink
     {
-        return new CoreLink($page->title()->toString(), $page->url(), $linkType);
+        return $this->navigationService->getCoreLink($page, $linkType);
     }
-
 
     /**
      * @param Collection $collection
@@ -2585,26 +2551,14 @@ abstract class KirbyBaseHelper
      * @throws KirbyRetrievalException
      */
     protected function getWebPageLinks(Collection $collection,
-                                       bool $simpleLink = true,
-                                       bool $getSubPages = false,
-                                       bool $getImages = true,
+                                       bool       $simpleLink = true,
+                                       bool       $getSubPages = false,
+                                       bool       $getImages = true,
                                        ImageSizes $imageSizes = ImageSizes::HALF_LARGE_SCREEN,
-                                       ImageType $imageType = ImageType::PANEL): WebPageLinks
+                                       ImageType  $imageType = ImageType::PANEL): WebPageLinks
     {
-        $webPageLinks = new WebPageLinks();
-        /** @var Page $collectionPage */
-        foreach ($collection as $collectionPage) {
-            $webPageLink = $this->getWebPageLink($collectionPage, $simpleLink, null, null, $getImages, $imageSizes, $imageType);
-            if ($getSubPages) {
-                $subPages = $this->getSubPagesAsCollection($collectionPage);
-                $getSubPageImages = $webPageLink->doShowSubPageImages();
-                $webPageLink->setSubPages($this->getWebPageLinks($subPages, $simpleLink, false, $getSubPageImages, ImageSizes::QUARTER_LARGE_SCREEN, ImageType::PANEL_SMALL));
-            }
-            $webPageLinks->addListItem($webPageLink);
-        }
-        return $webPageLinks;
+        return $this->navigationService->getWebPageLinks($collection, $simpleLink, $getSubPages, $getImages, $imageSizes, $imageType);
     }
-
 
     /**
      * @param Page $page
@@ -2625,57 +2579,8 @@ abstract class KirbyBaseHelper
                                       ImageSizes  $imageSizes = ImageSizes::HALF_LARGE_SCREEN,
                                       ImageType   $imageType = ImageType::PANEL): WebPageLink
     {
-        $templateName = $page->template()->name();
-
-        if ($templateName === 'page_link') {
-            $linkType = $this->getLinkFieldType($page, 'redirect_link');
-            if ($linkType === 'page') {
-                $linkedPage = $this->getPageFieldAsPages($page, 'redirect_link', $simpleLink);
-                $linkTitle = $this->getPageTitle($page);
-                $linkDescription = $this->getPageFieldAsKirbyText($page, 'panelContent');
-                if ($linkedPage->first()) {
-                    $page = $linkedPage->first();
-                }
-            } elseif ($linkType === 'url') {
-                $pageUrl = $this->getPageFieldAsUrl($page, 'redirect_link');
-            }
-
-        }
-        if ($templateName === 'file_link') {
-            $file = $this->getPageFieldAsFile($page, 'file');
-            $pageUrl = $this->getFileUrl($file);
-        }
-
-        $linkDescription = empty($linkDescription)
-            ? $this->getPageFieldAsString($page, 'panelContent') : $linkDescription;
-        $linkTitle = $linkTitle ?? $this->getPageTitle($page);
-        $webPageLink = new WebPageLink($linkTitle, $pageUrl ?? $page->url(), $page->id(), $page->template()->name());
-        $webPageLink->setLinkDescription($linkDescription);
-        if ($this->isPageFieldNotEmpty($page, 'requirements')) {
-            $webPageLink->setRequirements($this->getPageFieldAsKirbyText($page, 'requirements'));
-        }
-
-        $getWebPageLinkForFunction = 'getWebPageLinkFor' . ucfirst($templateName);
-        if (method_exists($this, $getWebPageLinkForFunction)) {
-            $webPageLink = $this->$getWebPageLinkForFunction($page, $webPageLink);
-        }
-
-        $webPageLink->setShowSubPageImages($this->getPageFieldAsBool($page, 'showSubPageImages'));
-
-        if ($simpleLink) {
-            return $webPageLink;
-        }
-        if ($getImages && $this->isPageFieldNotEmpty($page, 'panelImage')) {
-            $panelImage = $this->getImage($page, 'panelImage', 400, 300, 80, $imageType, '', $imageSizes);
-            $panelImage->setClass('img-fix-size img-fix-size--four-three');
-            $webPageLink->setImage($panelImage);
-        }
-
-
-        return $webPageLink;
+        return $this->navigationService->getWebPageLink($page, $simpleLink, $linkTitle, $linkDescription, $getImages, $imageSizes, $imageType);
     }
-
-
 
     #endregion
 
@@ -2965,9 +2870,7 @@ abstract class KirbyBaseHelper
                                 bool       $crop = true,
                                 string     $imageClass = ''): Image
     {
-
-        $pageImage = $this->getPageFieldAsFile($page, $fieldName);
-        return $this->getImageFromFile($pageImage, $width, $height, $quality, $imageType, $imageFormat, $imageSizes, $crop, $imageClass);
+        return $this->imageService->getImage($page, $fieldName, $width, $height, $quality, $imageType, $imageFormat, $imageSizes, $crop, $imageClass);
     }
 
     /**
@@ -2995,13 +2898,7 @@ abstract class KirbyBaseHelper
                                  bool       $crop = true,
                                  string     $imageClass = ''): ImageList
     {
-
-        $pageImage = $this->getPageFieldAsFiles($page, $fieldName);
-        $imageList = new ImageList();
-        foreach ($pageImage as $image) {
-            $imageList->addListItem($this->getImageFromFile($image, $width, $height, $quality, $imageType, $imageFormat, $imageSizes, $crop, $imageClass));
-        }
-        return $imageList;
+        return $this->imageService->getImages($page, $fieldName, $width, $height, $quality, $imageType, $imageFormat, $imageSizes, $crop, $imageClass);
     }
 
     /**
@@ -3029,17 +2926,7 @@ abstract class KirbyBaseHelper
                                                   bool            $crop = true,
                                                   string          $imageClass = ''): Image
     {
-
-        $structureImage = $this->getStructureFieldAsFile($structureObject, $fieldName);
-        return $this->getImageFromFile($structureImage,
-            $width,
-            $height,
-            $quality,
-            $imageType,
-            $imageFormat,
-            $imageSizes,
-            $crop,
-            $imageClass);
+        return $this->imageService->getImageFromStructureField($structureObject, $fieldName, $width, $height, $quality, $imageType, $imageFormat, $imageSizes, $crop, $imageClass);
     }
 
     /**
@@ -3067,16 +2954,8 @@ abstract class KirbyBaseHelper
                                                    bool            $crop = true,
                                                    string          $imageClass = ''): ImageList
     {
-
-        $structureImages = $this->getStructureFieldAsFiles($structureObject, $fieldName);
-
-        $imageList = new ImageList();
-        foreach ($structureImages as $image) {
-            $imageList->addListItem($this->getImageFromFile($image, $width, $height, $quality, $imageType, $imageFormat, $imageSizes, $crop, $imageClass));
-        }
-        return $imageList;
+        return $this->imageService->getImagesFromStructureField($structureObject, $fieldName, $width, $height, $quality, $imageType, $imageFormat, $imageSizes, $crop, $imageClass);
     }
-
 
     /**
      * @param string $fieldName
@@ -3101,19 +2980,8 @@ abstract class KirbyBaseHelper
                                              bool       $crop = true,
                                              string     $imageClass = ''): Image
     {
-
-        $structureImage = $this->getSiteFieldAsFile($fieldName);
-        return $this->getImageFromFile($structureImage,
-            $width,
-            $height,
-            $quality,
-            $imageType,
-            $imageFormat,
-            $imageSizes,
-            $crop,
-            $imageClass);
+        return $this->imageService->getImageFromSiteField($fieldName, $width, $height, $quality, $imageType, $imageFormat, $imageSizes, $crop, $imageClass);
     }
-
 
     /**
      * @param File $image
@@ -3138,95 +3006,8 @@ abstract class KirbyBaseHelper
                                         bool       $crop = true,
                                         string     $imageClass = ''): Image
     {
-        $thumbOptions = [
-            'width' => $width,
-            'height' => $height,
-            'quality' => $quality,
-            'crop' => $crop // Enable cropping
-        ];
-
-        if (!empty($imageFormat)) {
-            $thumbOptions['format'] = $imageFormat;
-        }
-
-        try {
-            $src = $image->thumb($thumbOptions)->url();
-            // Generate single WebP URL for CSS background-image use
-            $webpThumbOptions = array_merge($thumbOptions, ['format' => 'webp']);
-            $webpSrc = $image->thumb($webpThumbOptions)->url();
-        } catch (InvalidArgumentException $e) {
-            throw new KirbyRetrievalException('The image could not be retrieved: ' . $e->getMessage());
-        }
-
-        // Generate single AVIF URL - may fail if server doesn't support AVIF encoding
-        $avifSrc = '';
-        try {
-            $avifThumbOptions = array_merge($thumbOptions, ['format' => 'avif']);
-            $avifSrc = $image->thumb($avifThumbOptions)->url();
-        } catch (Exception $e) {
-            // AVIF not supported on this server - continue without it
-        }
-
-        $srcSetType = strtolower($imageType->value);
-        $srcSet = $image->srcset($srcSetType);
-        $webpSrcSet = $image->srcset($srcSetType . '-webp');
-
-        // Fallback to 'panel' srcset if the requested srcset type returns empty
-        if (empty($srcSet) && $srcSetType !== 'panel') {
-            $srcSet = $image->srcset('panel');
-            $webpSrcSet = $image->srcset('panel-webp');
-        }
-
-        // AVIF srcset may fail if server doesn't support AVIF encoding
-        $avifSrcSet = '';
-        try {
-            $avifSrcSet = $image->srcset($srcSetType . '-avif');
-        } catch (Exception $e) {
-            // AVIF not supported on this server - continue without it
-        }
-
-        /** @noinspection PhpUndefinedMethodInspection */
-        $alt = $image->alt()->isNotEmpty() ? $image->alt()->value() : '';
-        $caption = $this->getCaptionForImage($image);
-        if ($src !== null && $srcSet !== null && $webpSrcSet !== null) {
-            $imageObj = (new Image($src, $srcSet, $webpSrcSet, $alt, $width, $height))
-                ->setSizes($imageSizes->value)
-                ->setClass($imageClass)
-                ->setCaption($caption)
-                ->setWebpSrc($webpSrc);
-            if (!empty($avifSrc)) {
-                $imageObj->setAvifSrc($avifSrc);
-            }
-            if (!empty($avifSrcSet)) {
-                $imageObj->setAvifSrcset($avifSrcSet);
-            }
-            return $imageObj;
-        }
-        return (new Image())->recordError('Image not found');
-
+        return $this->imageService->getImageFromFile($image, $width, $height, $quality, $imageType, $imageFormat, $imageSizes, $crop, $imageClass);
     }
-
-    /**
-     * @param File $image
-     * @return string
-     */
-    private function getCaptionForImage(File $image): string
-    {
-        /** @noinspection PhpUndefinedMethodInspection */
-        $caption = $image->caption()->isNotEmpty() ? $image->caption()->kt() : $image->alt()->value() ?? '';
-        /** @noinspection PhpUndefinedMethodInspection */
-        if ($image->photographer()->isNotEmpty()) {
-            /** @noinspection PhpUndefinedMethodInspection */
-            $caption .= ' Photographer: ' . $image->photographer()->value();
-        }
-        /** @noinspection PhpUndefinedMethodInspection */
-        if ($image->license()->isNotEmpty()) {
-            /** @noinspection PhpUndefinedMethodInspection */
-            $caption .= ' License: ' . $image->license()->value();
-        }
-        return $caption;
-    }
-
 
     #endregion
 
