@@ -42,4 +42,10 @@ interface FormPageInterface
      * current request (used to skip rendering the form on success).
      */
     public function isSubmissionSuccessful(): bool;
+
+    /**
+     * Returns an immutable ResolvedForm value object containing all data
+     * needed to render the form snippet, decoupled from the page model.
+     */
+    public function getResolvedForm(): ResolvedForm;
 }

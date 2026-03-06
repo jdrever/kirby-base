@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use BSBI\WebBase\forms\FormPageInterface;
+use BSBI\WebBase\forms\ResolvedForm;
 use BSBI\WebBase\forms\ResolvedFormField;
 use BSBI\WebBase\forms\ResolvedFormSection;
 
@@ -16,27 +16,21 @@ use BSBI\WebBase\forms\ResolvedFormSection;
  * client-side when the controlling radio or select field matches the expected value.
  *
  * Expected variable:
- *   $currentPage  FormPageInterface  The current form page model
+ *   $form  ResolvedForm  Form data built from FormProperties::getResolvedForm()
  */
 
-if (!isset($currentPage)) :
+if (!isset($form) || !$form instanceof ResolvedForm) :
     /** @noinspection PhpUnhandledExceptionInspection */
-    throw new Exception('definition-form snippet: $currentPage not provided');
+    throw new Exception('definition-form snippet: $form must be a ResolvedForm');
 endif;
 
-if (!$currentPage instanceof FormPageInterface) :
-    /** @noinspection PhpUnhandledExceptionInspection */
-    throw new Exception('definition-form snippet: $currentPage must implement FormPageInterface');
-endif;
-
-if ($currentPage->isSubmissionSuccessful()) :
+if ($form->submissionSuccessful) :
     return;
 endif;
 
-$groups = $currentPage->getFormFieldGroups();
 $hasConditionalSections = false;
 
-foreach ($groups as $item) :
+foreach ($form->fieldGroups as $item) :
     if ($item instanceof ResolvedFormSection && $item->isConditional()) :
         $hasConditionalSections = true;
         break;
@@ -46,9 +40,9 @@ endforeach;
 ?>
 <div class="container bg-light pt-4 mb-2">
     <form method="post">
-        <?php snippet('form/csrf') ?>
+        <input type="hidden" name="csrf" value="<?= htmlspecialchars($form->csrfToken, ENT_QUOTES, 'UTF-8') ?>">
 
-        <?php foreach ($groups as $item) : ?>
+        <?php foreach ($form->fieldGroups as $item) : ?>
             <?php if ($item instanceof ResolvedFormSection) : ?>
                 <?php snippet('form/section', ['section' => $item]) ?>
             <?php elseif ($item instanceof ResolvedFormField) : ?>
@@ -60,9 +54,8 @@ endforeach;
         <?php endforeach; ?>
 
         <?php
-        $customBlocks = $currentPage->getCustomFormBlocks();
-        if ($customBlocks !== null && $customBlocks->isNotEmpty()) :
-            foreach ($customBlocks as $block) :?>
+        if ($form->customBlocks !== null && $form->customBlocks->isNotEmpty()) :
+            foreach ($form->customBlocks as $block) :?>
                 <div class="mb-3">
                     <?php snippet('blocks/' . $block->type(), ['block' => $block]) ?>
                 </div>

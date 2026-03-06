@@ -75,35 +75,47 @@ Calling `.overridable('label')` (or `'options'`, `'leftLabel'`, etc.) on a spec:
 
 ## 2. Page model class
 
-Create a class extending `FormPage` in your site's `classes/models/` directory:
+Your consuming site needs a thin `FormPage` base class that wires the kirby-base
+`FormPageInterface` and `FormProperties` trait into the site's own `WebPage` hierarchy.
+This class cannot live in kirby-base because it must extend the site's `WebPage` (not
+`BaseWebPage`), and PHP only allows single class inheritance:
+
+```php
+// classes/models/FormPage.php  (create once per site)
+class FormPage extends WebPage implements FormPageInterface
+{
+    use FormProperties;
+}
+```
+
+All actual logic is in the `FormProperties` trait — `FormPage` is three lines of glue.
+
+For each distinct form type, create a subclass:
 
 ```php
 class MyFormPage extends FormPage {}
 ```
 
-No custom logic is needed unless you want to add form-specific properties.
+No additional logic is needed unless you want to add form-specific properties.
 
 ## 3. Setter method in KirbyHelper
 
-Add a protected setter method to your site's `KirbyHelper` class. The naming convention `set{ModelClass}(Page $page, ModelClass $model)` is important — `KirbyBaseHelper::getSpecificPage()` discovers and calls it automatically by matching the model class name:
+Add a protected setter method to your site's `KirbyHelper` class. The naming convention `set{ModelClass}(Page $page, ModelClass $model)` is important — `KirbyBaseHelper::getSpecificPage()` discovers and calls it automatically by matching the model class name.
+
+Use `populateFormPage()` (inherited from `KirbyBaseHelper`) to resolve fields and custom blocks in one call, then `setFormPage()` to handle submission:
 
 ```php
 protected function setMyFormPage(Page $page, MyFormPage $myFormPage): MyFormPage
 {
     $definition = new MyFormDefinition();
-    $myFormPage->setFormFields($definition->getFields($page));
-    $myFormPage->setFormFieldGroups($definition->getFieldGroups($page));
-
-    if ($this->isPageFieldNotEmpty($page, 'customFormElements')) {
-        $myFormPage->setCustomFormBlocks($this->getPageFieldAsBlocks($page, 'customFormElements'));
-    }
-
+    $this->populateFormPage($page, $myFormPage, $definition);
     $this->setFormPage($page, $myFormPage, $definition->getFormType());
     return $myFormPage;
 }
 ```
 
-`setFormPage()` handles CSRF validation, Turnstile CAPTCHA, storing the submission as a child page, and sending the confirmation email.
+- `populateFormPage()` resolves all fields/sections from the definition against panel overrides and populates `setFormFields()`, `setFormFieldGroups()`, and (if present) `setCustomFormBlocks()` on the model.
+- `setFormPage()` handles CSRF validation, Turnstile CAPTCHA, storing the submission as a child page, and sending the confirmation email.
 
 ## 4. Page blueprint
 
@@ -161,12 +173,12 @@ return function ($page) {
 };
 ```
 
-**Template** (`templates/my_form.php`) — pass `$currentPage` to the `forms/definition-form` snippet:
+**Template** (`templates/my_form.php`) — call `getResolvedForm()` on the page model and pass the result to the `forms/definition-form` snippet:
 
 ```php
 snippet('layout/content-page', slots: true);
   slot('lowerBody');
-    snippet('forms/definition-form', ['currentPage' => $currentPage]);
+    snippet('forms/definition-form', ['form' => $currentPage->getResolvedForm()]);
   endslot();
 endsnippet();
 ```

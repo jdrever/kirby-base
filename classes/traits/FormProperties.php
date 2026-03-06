@@ -2,6 +2,7 @@
 
 namespace BSBI\WebBase\traits;
 
+use BSBI\WebBase\forms\ResolvedForm;
 use BSBI\WebBase\forms\ResolvedFormField;
 use BSBI\WebBase\forms\ResolvedFormSection;
 use Kirby\Cms\Blocks;
@@ -140,6 +141,22 @@ trait FormProperties {
     {
         $this->customFormBlocks = $customFormBlocks;
         return $this;
+    }
+
+    /**
+     * Returns an immutable ResolvedForm value object containing all data
+     * needed to render the form snippet, decoupled from the page model.
+     *
+     * @return ResolvedForm
+     */
+    public function getResolvedForm(): ResolvedForm
+    {
+        return new ResolvedForm(
+            fieldGroups:          $this->formFieldGroups,
+            customBlocks:         $this->customFormBlocks,
+            submissionSuccessful: $this->submissionSuccessful,
+            csrfToken:            $this->csrfToken,
+        );
     }
 }
 

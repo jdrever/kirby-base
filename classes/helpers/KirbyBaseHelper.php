@@ -2,6 +2,8 @@
 
 namespace BSBI\WebBase\helpers;
 
+use BSBI\WebBase\forms\BaseFormDefinition;
+use BSBI\WebBase\forms\FormPageInterface;
 use BSBI\WebBase\models\ActionStatus;
 use BSBI\WebBase\models\BaseFilter;
 use BSBI\WebBase\models\BaseList;
@@ -4880,6 +4882,40 @@ abstract class KirbyBaseHelper
             return '';
         } catch (Throwable $e) {
             return 'Error: ' . $e->getMessage() . ' - ' . $e->getTraceAsString() . PHP_EOL;
+        }
+    }
+
+    #endregion
+
+    #region FORMS
+
+    /**
+     * Populates a FormPage model with resolved fields and custom blocks from
+     * the given BaseFormDefinition.  Call this from your form-specific setter
+     * before delegating to setFormPage():
+     *
+     *   protected function setMyFormPage(Page $page, MyFormPage $myFormPage): MyFormPage
+     *   {
+     *       $definition = new MyFormDefinition();
+     *       $this->populateFormPage($page, $myFormPage, $definition);
+     *       $this->setFormPage($page, $myFormPage, $definition->getFormType());
+     *       return $myFormPage;
+     *   }
+     *
+     * @param Page               $page       Kirby page that holds panel override values
+     * @param FormPageInterface  $formPage   The form page model to populate
+     * @param BaseFormDefinition $definition The form definition to resolve against the page
+     */
+    protected function populateFormPage(
+        Page $page,
+        FormPageInterface $formPage,
+        BaseFormDefinition $definition
+    ): void {
+        $formPage->setFormFields($definition->getFields($page));
+        $formPage->setFormFieldGroups($definition->getFieldGroups($page));
+
+        if ($this->isPageFieldNotEmpty($page, 'customFormElements')) {
+            $formPage->setCustomFormBlocks($this->getPageFieldAsBlocks($page, 'customFormElements'));
         }
     }
 
