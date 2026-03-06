@@ -202,6 +202,59 @@ final class FormFieldSpecTest extends TestCase
         $this->assertArrayHasKey('rightLabel', $props);
     }
 
+    // ── help() ─────────────────────────────────────────────────────────────
+
+    public function testHelpDefaultsToEmptyString(): void
+    {
+        $spec = FormFieldSpec::textbox('name', 'Name');
+        $this->assertSame('', $spec->resolve([])->help);
+    }
+
+    public function testHelpIsPassedThroughOnTextbox(): void
+    {
+        $spec = FormFieldSpec::textbox('name', 'Name')->help('Some hint text');
+        $this->assertSame('Some hint text', $spec->resolve([])->help);
+    }
+
+    public function testHelpIsPassedThroughOnTextarea(): void
+    {
+        $spec = FormFieldSpec::textarea('bio', 'Bio')->help('Short bio only');
+        $this->assertSame('Short bio only', $spec->resolve([])->help);
+    }
+
+    public function testHelpIsPassedThroughOnRadioGroup(): void
+    {
+        $spec = FormFieldSpec::radioGroup('skill', 'Skill', ['A', 'B'])
+            ->help('<a href="/ladder">See ladder</a>');
+        $this->assertSame('<a href="/ladder">See ladder</a>', $spec->resolve([])->help);
+    }
+
+    public function testHelpIsPassedThroughOnCheckboxGroup(): void
+    {
+        $spec = FormFieldSpec::checkboxGroup('consent', 'Consent', ['I agree'])
+            ->help('Required to proceed');
+        $this->assertSame('Required to proceed', $spec->resolve([])->help);
+    }
+
+    public function testHelpIsPassedThroughOnSelect(): void
+    {
+        $spec = FormFieldSpec::select('country', 'Country', ['UK', 'IE'])
+            ->help('Select your country of residence');
+        $this->assertSame('Select your country of residence', $spec->resolve([])->help);
+    }
+
+    public function testHelpIsPassedThroughOnLikert(): void
+    {
+        $spec = FormFieldSpec::likert('rating', 'Rating')->help('1 = low, 5 = high');
+        $this->assertSame('1 = low, 5 = high', $spec->resolve([])->help);
+    }
+
+    public function testHelpIsFluent(): void
+    {
+        $spec = FormFieldSpec::textbox('name', 'Name');
+        $this->assertSame($spec, $spec->help('hint'));
+    }
+
     // ── resolve() returns correct ResolvedFormField type ───────────────────
 
     public function testResolveReturnsResolvedFormField(): void
