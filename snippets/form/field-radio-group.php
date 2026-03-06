@@ -17,5 +17,6 @@ use BSBI\WebBase\forms\ResolvedFormField;
         'checkboxOrRadio' => 'radio',
         'value'           => $option,
         'labelLayout'     => 'small',
+        'required'        => $field->required && $index === 0,
     ]);
 endforeach;
