@@ -6,5 +6,5 @@ use BSBI\WebBase\forms\ResolvedFormField;
 
 /** @var ResolvedFormField $field */
 
-snippet('form/select', $field->toSelectArgs());
+snippet('form/select', $field->toSelectArgs()); ?>
 <?php if ($field->help !== '') : ?><div class="form-text mt-1"><?= $field->help ?></div><?php endif; ?>
