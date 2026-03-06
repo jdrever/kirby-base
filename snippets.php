@@ -56,7 +56,7 @@ return [
     'form/field-select' => __DIR__ . '/snippets/form/field-select.php',
     'form/field-checkbox-group' => __DIR__ . '/snippets/form/field-checkbox-group.php',
     'form/field-radio-group' => __DIR__ . '/snippets/form/field-radio-group.php',
-    'forms/definition-form' => __DIR__ . '/snippets/forms/definition-form.php',
+    'form/definition-form' => __DIR__ . '/snippets/form/definition-form.php',
 
     //search blocks
     'search/bar' => __DIR__ . '/snippets/search/bar.php',

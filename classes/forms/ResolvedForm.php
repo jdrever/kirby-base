@@ -8,7 +8,7 @@ use Kirby\Cms\Blocks;
 
 /**
  * An immutable value object carrying all data needed to render a definition-based
- * form in the forms/definition-form snippet.
+ * form in the form/definition-form snippet.
  *
  * Built from a FormPage model via FormProperties::getResolvedForm() and passed
  * directly to the snippet, decoupling snippet rendering from the page model.

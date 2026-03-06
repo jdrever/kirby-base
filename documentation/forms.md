@@ -173,12 +173,12 @@ return function ($page) {
 };
 ```
 
-**Template** (`templates/my_form.php`) — call `getResolvedForm()` on the page model and pass the result to the `forms/definition-form` snippet:
+**Template** (`templates/my_form.php`) — call `getResolvedForm()` on the page model and pass the result to the `form/definition-form` snippet:
 
 ```php
 snippet('layout/content-page', slots: true);
   slot('lowerBody');
-    snippet('forms/definition-form', ['form' => $currentPage->getResolvedForm()]);
+    snippet('form/definition-form', ['form' => $currentPage->getResolvedForm()]);
   endslot();
 endsnippet();
 ```
