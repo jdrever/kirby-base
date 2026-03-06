@@ -26,7 +26,7 @@ final class FormSubmissionIndexDefinitionTest extends TestCase
 
     public function testGetCollectionName(): void
     {
-        $this->assertSame('form_submissions', $this->definition->getCollectionName());
+        $this->assertSame('formSubmissions', $this->definition->getCollectionName());
     }
 
     public function testGetTemplates(): void

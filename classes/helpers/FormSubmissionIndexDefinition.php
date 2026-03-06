@@ -30,7 +30,7 @@ class FormSubmissionIndexDefinition extends ContentIndexDefinition
      */
     public function getCollectionName(): string
     {
-        return 'form_submissions';
+        return 'formSubmissions';
     }
 
     /**

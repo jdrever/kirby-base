@@ -27,6 +27,9 @@ $pluginConfig = [
         'file_link' =>  require __DIR__ . '/controllers/file_link.php',
         'page_link' =>  require __DIR__ . '/controllers/page_link.php',
     ],
+    'collections' => [
+        'formSubmissions' => require __DIR__ . '/collections/formSubmissions.php',
+    ],
     'sections' => [
         'formsubmissionexport' => require __DIR__ . '/sections/formsubmissionexport.php',
         'formsubmissionsindex' => require __DIR__ . '/sections/formsubmissionsindex.php',

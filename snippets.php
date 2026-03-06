@@ -49,6 +49,7 @@ return [
     'form/likert' => __DIR__ . '/snippets/form/likert.php',
     'form/csrf' => __DIR__ . '/snippets/form/csrf.php',
     'form/definition-fields' => __DIR__ . '/snippets/form/definition-fields.php',
+    'form/section' => __DIR__ . '/snippets/form/section.php',
     'form/field-textbox' => __DIR__ . '/snippets/form/field-textbox.php',
     'form/field-textarea' => __DIR__ . '/snippets/form/field-textarea.php',
     'form/field-likert' => __DIR__ . '/snippets/form/field-likert.php',

@@ -3,6 +3,7 @@
 namespace BSBI\WebBase\traits;
 
 use BSBI\WebBase\forms\ResolvedFormField;
+use BSBI\WebBase\forms\ResolvedFormSection;
 use Kirby\Cms\Blocks;
 
 /**
@@ -18,6 +19,9 @@ trait FormProperties {
 
     /** @var ResolvedFormField[] Fixed fields resolved from a BaseFormDefinition */
     private array $formFields = [];
+
+    /** @var array<ResolvedFormField|ResolvedFormSection> Section-aware field groups from a BaseFormDefinition */
+    private array $formFieldGroups = [];
 
     /** @var Blocks|null Custom form element blocks added by panel editors */
     private ?Blocks $customFormBlocks = null;
@@ -95,6 +99,26 @@ trait FormProperties {
     public function setFormFields(array $formFields): static
     {
         $this->formFields = $formFields;
+        return $this;
+    }
+
+    /**
+     * Returns the section-aware field groups set by BaseFormDefinition::getFieldGroups().
+     *
+     * @return array<ResolvedFormField|ResolvedFormSection>
+     */
+    public function getFormFieldGroups(): array
+    {
+        return $this->formFieldGroups;
+    }
+
+    /**
+     * @param array<ResolvedFormField|ResolvedFormSection> $formFieldGroups
+     * @return static
+     */
+    public function setFormFieldGroups(array $formFieldGroups): static
+    {
+        $this->formFieldGroups = $formFieldGroups;
         return $this;
     }
 

@@ -17,10 +17,19 @@ interface FormPageInterface
 {
     /**
      * Returns the resolved fixed form fields from a BaseFormDefinition.
+     * For section-aware rendering use getFormFieldGroups() instead.
      *
      * @return ResolvedFormField[]
      */
     public function getFormFields(): array;
+
+    /**
+     * Returns an ordered mixed array of ResolvedFormField and ResolvedFormSection
+     * objects for section-aware rendering of fixed form fields.
+     *
+     * @return array<ResolvedFormField|ResolvedFormSection>
+     */
+    public function getFormFieldGroups(): array;
 
     /**
      * Returns custom form element blocks added by panel editors, or null
