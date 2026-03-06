@@ -94,6 +94,26 @@ final class ResolvedFormFieldTest extends TestCase
         $this->assertFalse($args['required']);
     }
 
+    public function testToSelectArgsFormatsOptionsAsValueDisplayPairs(): void
+    {
+        $field = new ResolvedFormField(
+            type:    'select',
+            name:    'country',
+            label:   'Country',
+            options: ['UK', 'Ireland'],
+        );
+
+        $args = $field->toSelectArgs();
+
+        $this->assertSame('country', $args['id']);
+        $this->assertSame('country', $args['name']);
+        $this->assertSame('Country', $args['label']);
+        $this->assertSame([
+            ['value' => 'UK',      'display' => 'UK'],
+            ['value' => 'Ireland', 'display' => 'Ireland'],
+        ], $args['options']);
+    }
+
     public function testToLikertArgsContainsAllLikertKeys(): void
     {
         $field = new ResolvedFormField(

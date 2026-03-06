@@ -1,0 +1,20 @@
+<?php
+
+declare(strict_types=1);
+
+use BSBI\WebBase\forms\ResolvedFormField;
+
+/** @var ResolvedFormField $field */
+
+?>
+<p><strong><?= html($field->label) ?></strong></p>
+<?php foreach ($field->options as $index => $option) :
+    snippet('form/checkbox', [
+        'label'           => $option,
+        'id'              => $field->name . '_' . $index,
+        'name'            => $field->name . '[]',
+        'checkboxOrRadio' => 'checkbox',
+        'value'           => $option,
+        'labelLayout'     => 'small',
+    ]);
+endforeach;

@@ -74,6 +74,25 @@ readonly class ResolvedFormField
     }
 
     /**
+     * Returns the arguments array to pass directly to the form/select snippet.
+     * Converts the flat options array to the value/display pair format the snippet expects.
+     *
+     * @return array<string, mixed>
+     */
+    public function toSelectArgs(): array
+    {
+        return [
+            'id'      => $this->name,
+            'name'    => $this->name,
+            'label'   => $this->label,
+            'options' => array_map(
+                static fn(string $o): array => ['value' => $o, 'display' => $o],
+                $this->options
+            ),
+        ];
+    }
+
+    /**
      * Returns the arguments array to pass directly to the form/likert snippet.
      *
      * @return array<string, mixed>
