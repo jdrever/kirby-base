@@ -67,6 +67,23 @@ abstract class BaseFormDefinition
     abstract public function getFormType(): string;
 
     /**
+     * Returns a custom handler to invoke when the form is submitted, or null
+     * to use the default behaviour (save a form_submission Kirby child page and
+     * send a notification email).
+     *
+     * Override this in your definition subclass to replace the default action:
+     *
+     *   public function getSubmissionHandler(): ?FormSubmissionHandler
+     *   {
+     *       return new StripeCheckoutHandler();
+     *   }
+     */
+    public function getSubmissionHandler(): ?FormSubmissionHandler
+    {
+        return null;
+    }
+
+    /**
      * Resolves all fixed fields against panel-supplied overrides from the given
      * Kirby page and returns an array of ready-to-render ResolvedFormField objects.
      *
