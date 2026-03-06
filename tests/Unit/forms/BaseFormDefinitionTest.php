@@ -69,7 +69,7 @@ final class BaseFormDefinitionTest extends TestCase
                 return $this->testFormType;
             }
 
-            protected function defineGroups(): array
+            protected function defineForm(): array
             {
                 return $this->testGroups;
             }

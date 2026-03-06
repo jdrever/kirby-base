@@ -90,6 +90,10 @@ You can optionally also override getPaginationPerPage (which is 10 by default) a
 passing in the getPagination() function for your class list 
 
 
+## Forms
+
+See [forms.md](forms.md) for a full guide to creating definition-based forms, including sections and conditional display.
+
 ## Menu Pages
 
 Set up a collection called menuPages - this will be used to setMenuPages for the BaseWebPage class.

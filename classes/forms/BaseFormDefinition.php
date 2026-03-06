@@ -9,62 +9,55 @@ use Kirby\Cms\Page;
 /**
  * Abstract base class for form definitions.
  *
- * Subclasses declare the fixed form fields (including which properties are
- * overridable by panel editors) and provide a form-type identifier used when
- * storing submissions.
+ * Subclasses declare the fixed form fields (and optional sections) and provide
+ * a form-type identifier used when storing submissions.
  *
- * To use flat fields only, override defineFields():
+ * Override defineForm() and return any mix of FormFieldSpec and FormSection:
  *
- *   protected function defineFields(): array
+ *   protected function defineForm(): array
  *   {
  *       return [
  *           FormFieldSpec::textbox('location', 'Workshop name/location')->required(),
- *       ];
- *   }
- *
- * To group fields into sections (with optional conditional display), override
- * defineGroups() instead and return a mix of FormFieldSpec and FormSection objects:
- *
- *   protected function defineGroups(): array
- *   {
- *       return [
- *           FormFieldSpec::radioGroup('contact_preference', 'How do you prefer to be contacted?',
- *               ['Email', 'Phone']),
- *           FormSection::make('email_section', 'Email contact details')
+ *           FormFieldSpec::radioGroup('contact_pref', 'Preferred contact', ['Email', 'Phone']),
+ *           FormSection::make('email_section', 'Email details')
  *               ->fields(FormFieldSpec::textbox('email', 'Email address'))
- *               ->showWhen('contact_preference', 'Email'),
- *           FormSection::make('phone_section', 'Phone contact details')
- *               ->fields(FormFieldSpec::textbox('phone', 'Phone number'))
- *               ->showWhen('contact_preference', 'Phone'),
+ *               ->showWhen('contact_pref', 'Email'),
  *       ];
  *   }
+ *
+ * For backward compatibility, overriding defineFields() (which returns only
+ * FormFieldSpec objects) is still supported; defineForm() delegates to it by
+ * default.  New code should override defineForm() directly.
  */
 abstract class BaseFormDefinition
 {
     /**
-     * Returns the ordered list of fixed FormFieldSpec objects for this form.
-     * Override this for flat (no sections) forms.
+     * Returns the ordered list of FormFieldSpec and/or FormSection objects
+     * that make up this form.
+     *
+     * Override this method in your form definition subclass.  You may return
+     * a flat list of FormFieldSpec objects, a mix with FormSection groups, or
+     * any combination.
+     *
+     * Default implementation calls defineFields() for backward compatibility
+     * with subclasses that were written before sections were introduced.
+     *
+     * @return array<FormFieldSpec|FormSection>
+     */
+    protected function defineForm(): array
+    {
+        return $this->defineFields();
+    }
+
+    /**
+     * Backward-compatible hook for flat (no sections) form definitions.
+     * Override defineForm() instead for new form definitions.
      *
      * @return FormFieldSpec[]
      */
     protected function defineFields(): array
     {
         return [];
-    }
-
-    /**
-     * Returns an ordered list of FormFieldSpec and/or FormSection objects.
-     * Override this instead of defineFields() when you need to group fields
-     * into sections with optional conditional display.
-     *
-     * Default implementation wraps defineFields() so existing subclasses that
-     * only override defineFields() continue to work unchanged.
-     *
-     * @return array<FormFieldSpec|FormSection>
-     */
-    protected function defineGroups(): array
-    {
-        return $this->defineFields();
     }
 
     /**
@@ -95,7 +88,7 @@ abstract class BaseFormDefinition
     }
 
     /**
-     * Resolves defineGroups() against panel-supplied overrides from the given
+     * Resolves defineForm() against panel-supplied overrides from the given
      * Kirby page and returns an ordered mixed array of ResolvedFormField and
      * ResolvedFormSection objects suitable for section-aware rendering.
      *
@@ -106,7 +99,7 @@ abstract class BaseFormDefinition
     {
         $groups = [];
 
-        foreach ($this->defineGroups() as $item) {
+        foreach ($this->defineForm() as $item) {
             if ($item instanceof FormSection) {
                 $groups[] = $item->resolve($page, fn(FormFieldSpec $s, Page $p) => $this->resolveSpec($s, $p));
             } else {
@@ -156,7 +149,7 @@ abstract class BaseFormDefinition
     // ── Private helpers ─────────────────────────────────────────────────────
 
     /**
-     * Returns a flat list of all FormFieldSpec objects from defineGroups(),
+     * Returns a flat list of all FormFieldSpec objects from defineForm(),
      * extracting specs from inside FormSection objects.
      *
      * @return FormFieldSpec[]
@@ -165,7 +158,7 @@ abstract class BaseFormDefinition
     {
         $specs = [];
 
-        foreach ($this->defineGroups() as $item) {
+        foreach ($this->defineForm() as $item) {
             if ($item instanceof FormSection) {
                 foreach ($item->getFields() as $spec) {
                     $specs[] = $spec;
