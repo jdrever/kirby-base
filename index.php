@@ -27,11 +27,6 @@ $pluginConfig = [
         'file_link' =>  require __DIR__ . '/controllers/file_link.php',
         'page_link' =>  require __DIR__ . '/controllers/page_link.php',
     ],
-    'collections' => [
-        'form_submissions' => function (Kirby $kirby): \Kirby\Cms\Pages {
-            return $kirby->site()->index()->filterBy('template', 'form_submission');
-        },
-    ],
     'sections' => [
         'formsubmissionexport' => require __DIR__ . '/sections/formsubmissionexport.php',
         'formsubmissionsindex' => require __DIR__ . '/sections/formsubmissionsindex.php',
