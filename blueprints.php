@@ -67,6 +67,7 @@ return [
     'sections/templateName' => __DIR__ . '/blueprints/sections/templateName.yml',
 
     //tabs blueprints
+    'tabs/forms' => __DIR__ . '/blueprints/tabs/forms.yml',
     'tabs/page' => __DIR__ . '/blueprints/tabs/page.yml',
     'tabs/fields' => __DIR__ . '/blueprints/tabs/fields.yml',
     'tabs/panel' => __DIR__ . '/blueprints/tabs/panel.yml',

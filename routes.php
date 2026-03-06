@@ -83,6 +83,87 @@ return [
         }
     ],
     [
+        'pattern' => 'form-export-all',
+        'method'  => 'GET',
+        'action'  => function (): Response {
+            $helper = new KirbyInternalHelper();
+
+            if (!$helper->isCurrentUserAdminOrEditor()) {
+                return new Response(
+                    'You must be an administrator or editor to export submissions.',
+                    'text/plain',
+                    403
+                );
+            }
+
+            $formTypeFilter = (string) kirby()->request()->get('form_type', '');
+
+            $allSubmissions = site()->index()->filterBy('template', 'form_submission');
+
+            if ($formTypeFilter !== '') {
+                $allSubmissions = $allSubmissions->filter(
+                    static function (Page $page) use ($formTypeFilter): bool {
+                        $value = (string) $page->form_type()->value();
+                        if ($value === '' && $formTypeFilter === '(untyped)') {
+                            return true;
+                        }
+                        return $value === $formTypeFilter;
+                    }
+                );
+            }
+
+            // Pass 1: collect all unique questions across every submission.
+            $allQuestions  = [];
+            $submissionRows = [];
+
+            foreach ($allSubmissions as $submission) {
+                $formType = (string) $submission->form_type()->value();
+                $rowData  = [
+                    '_form_type' => $formType !== '' ? $formType : '(untyped)',
+                    '_title'     => $submission->title()->value(),
+                ];
+
+                foreach ($submission->submission()->toStructure() as $item) {
+                    $question = $item->question()->value();
+                    $answer   = $item->answer()->value();
+
+                    if (!in_array($question, $allQuestions, true)) {
+                        $allQuestions[] = $question;
+                    }
+
+                    $rowData[$question] = $answer;
+                }
+
+                $submissionRows[] = $rowData;
+            }
+
+            // Pass 2: build the CSV in memory.
+            ob_start();
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, array_merge(['Form Type', 'Submission'], $allQuestions));
+
+            foreach ($submissionRows as $row) {
+                $csvRow = [$row['_form_type'], $row['_title']];
+                foreach ($allQuestions as $question) {
+                    $csvRow[] = $row[$question] ?? '';
+                }
+                fputcsv($handle, $csvRow);
+            }
+
+            fclose($handle);
+            $csv = ob_get_clean();
+
+            $suffix   = $formTypeFilter !== '' ? '-' . preg_replace('/[^a-z0-9]+/i', '-', $formTypeFilter) : '-all';
+            $filename = 'form-submissions' . $suffix . '-' . date('Y-m-d') . '.csv';
+
+            return new Response($csv, 'text/csv', 200, [
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control'       => 'no-cache, no-store, must-revalidate',
+            ]);
+        }
+    ],
+    [
         'pattern' => 'logout',
         'action' => function () {
             if ($user = kirby()->user()) {
