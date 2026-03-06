@@ -3,7 +3,6 @@
 use BSBI\WebBase\helpers\ContentIndexRegistry;
 use BSBI\WebBase\helpers\KirbyInternalHelper;
 use BSBI\WebBase\helpers\SearchIndexHelper;
-use Kirby\Cms\Page;
 use Kirby\Http\Response;
 use Kirby\Toolkit\Tpl;
 
@@ -98,25 +97,35 @@ return [
 
             $formTypeFilter = (string) kirby()->request()->get('form_type', '');
 
-            $allSubmissions = site()->index()->filterBy('template', 'form_submission');
+            // Use the SQLite index to get matching page IDs, then load only those pages.
+            $manager = \BSBI\WebBase\helpers\ContentIndexRegistry::get('form_submissions');
+
+            if ($manager === null) {
+                return new Response('Form submissions index not available.', 'text/plain', 503);
+            }
+
+            $query = $manager->query();
 
             if ($formTypeFilter !== '') {
-                $allSubmissions = $allSubmissions->filter(
-                    static function (Page $page) use ($formTypeFilter): bool {
-                        $value = (string) $page->form_type()->value();
-                        if ($value === '' && $formTypeFilter === '(untyped)') {
-                            return true;
-                        }
-                        return $value === $formTypeFilter;
-                    }
-                );
+                if ($formTypeFilter === '(untyped)') {
+                    $query->where('form_type', '');
+                } else {
+                    $query->where('form_type', $formTypeFilter);
+                }
             }
+
+            $pageIds = $query->getPageIds();
 
             // Pass 1: collect all unique questions across every submission.
             $allQuestions  = [];
             $submissionRows = [];
 
-            foreach ($allSubmissions as $submission) {
+            foreach ($pageIds as $pageId) {
+                $submission = page($pageId);
+                if ($submission === null) {
+                    continue;
+                }
+
                 $formType = (string) $submission->form_type()->value();
                 $rowData  = [
                     '_form_type' => $formType !== '' ? $formType : '(untyped)',

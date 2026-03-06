@@ -2,11 +2,16 @@
 
 declare(strict_types=1);
 
+use BSBI\WebBase\helpers\ContentIndexRegistry;
+
 /**
  * Form Submissions Index Panel Section
  *
  * Displays a summary of all form_submission pages across the entire site,
  * grouped by form_type, with per-type submission counts and CSV export links.
+ *
+ * Uses the SQLite form_submissions content index for fast lookups without
+ * loading all Kirby pages into memory.
  *
  * Intended for the site-level dashboard, not individual form pages.
  */
@@ -24,11 +29,17 @@ return [
          * @return array<int, array{formType: string, count: int, exportUrl: string}>
          */
         'formTypes' => function (): array {
-            $submissions = site()->index()->filterBy('template', 'form_submission');
+            $manager = ContentIndexRegistry::get('form_submissions');
+
+            if ($manager === null) {
+                return [];
+            }
+
+            $rows = $manager->query()->get();
 
             $counts = [];
-            foreach ($submissions as $submission) {
-                $formType = (string) $submission->form_type()->value();
+            foreach ($rows as $row) {
+                $formType = (string) ($row['form_type'] ?? '');
                 if ($formType === '') {
                     $formType = '(untyped)';
                 }
@@ -54,7 +65,13 @@ return [
          * Total submission count across all form types.
          */
         'totalCount' => function (): int {
-            return site()->index()->filterBy('template', 'form_submission')->count();
+            $manager = ContentIndexRegistry::get('form_submissions');
+
+            if ($manager === null) {
+                return 0;
+            }
+
+            return $manager->query()->count();
         },
 
         /**
