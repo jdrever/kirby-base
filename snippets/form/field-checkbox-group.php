@@ -8,6 +8,7 @@ use BSBI\WebBase\forms\ResolvedFormField;
 
 ?>
 <p><strong><?= html($field->label) ?></strong></p>
+<?php if ($field->help !== '') : ?><div class="form-text mb-2"><?= $field->help ?></div><?php endif; ?>
 <?php foreach ($field->options as $index => $option) :
     snippet('form/checkbox', [
         'label'           => $option,

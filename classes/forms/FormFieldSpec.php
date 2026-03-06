@@ -41,6 +41,7 @@ class FormFieldSpec
     /** @var string[] Default options for checkbox-group / radio-group / select */
     private array $defaultOptions = [];
 
+    private string $defaultHelp        = '';
     private string $defaultLeftLabel   = 'Strongly disagree';
     private string $defaultMiddleLabel = '';
     private string $defaultRightLabel  = 'Strongly agree';
@@ -173,6 +174,18 @@ class FormFieldSpec
     // ── Fluent modifiers ────────────────────────────────────────────────────
 
     /**
+     * Sets optional help text shown beneath this field's label.
+     * May contain HTML (developer-authored, not user-supplied).
+     *
+     * @param string $help HTML or plain-text help content
+     */
+    public function help(string $help): static
+    {
+        $this->defaultHelp = $help;
+        return $this;
+    }
+
+    /**
      * Marks this field as required.
      */
     public function required(): static
@@ -269,18 +282,21 @@ class FormFieldSpec
                 label:     $label,
                 required:  $this->required,
                 inputType: $this->inputType,
+                help:      $this->defaultHelp,
             ),
             self::TYPE_TEXTAREA => new ResolvedFormField(
                 type:     $this->type,
                 name:     $this->name,
                 label:    $label,
                 required: $this->required,
+                help:     $this->defaultHelp,
             ),
             self::TYPE_CHECKBOX_GROUP, self::TYPE_RADIO_GROUP, self::TYPE_SELECT => new ResolvedFormField(
                 type:     $this->type,
                 name:     $this->name,
                 label:    $label,
                 required: $this->required,
+                help:     $this->defaultHelp,
                 options:  $this->resolveOptions($panelValues),
             ),
             self::TYPE_LIKERT => new ResolvedFormField(
@@ -288,6 +304,7 @@ class FormFieldSpec
                 name:        $this->name,
                 label:       $label,
                 required:    $this->required,
+                help:        $this->defaultHelp,
                 leftLabel:   $this->resolveProperty('leftLabel', $this->defaultLeftLabel, $panelValues),
                 middleLabel: $this->resolveProperty('middleLabel', $this->defaultMiddleLabel, $panelValues),
                 rightLabel:  $this->resolveProperty('rightLabel', $this->defaultRightLabel, $panelValues),
