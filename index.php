@@ -119,7 +119,7 @@ if (option('debug') === false) {
 
         error_log($exceptionAsString);
 
-        if (!str_starts_with($_SERVER['HTTP_HOST'], 'localhost')) {
+        if (!str_starts_with((string) $_SERVER['HTTP_HOST'], 'localhost')) {
             try {
                 $email = [
                     'to' => option('adminEmail'),

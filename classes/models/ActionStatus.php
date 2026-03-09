@@ -27,7 +27,7 @@ class ActionStatus
     public function __construct(bool                    $status,
                                 string                  $errorMessage = '',
                                 string                  $friendlyMessage = '',
-                                KirbyRetrievalException $exception = null)
+                                ?KirbyRetrievalException $exception = null)
     {
         $this->status = $status;
         if (!empty($errorMessage)) {

@@ -334,7 +334,7 @@ class SearchIndexHelper
             return '';
         }
 
-        $fieldNames = explode(',', $additionalFieldsConfig[$templateName]);
+        $fieldNames = explode(',', (string) $additionalFieldsConfig[$templateName]);
         $content = $page->content();
         $values = [];
 
@@ -695,7 +695,7 @@ class SearchIndexHelper
         // Filter stop words and empty strings
         $stopWords = $this->getStopWords();
         $filteredWords = array_filter($words, fn($word) =>
-            strlen($word) > 2 && !in_array(strtolower($word), $stopWords)
+            strlen((string) $word) > 2 && !in_array(strtolower((string) $word), $stopWords)
         );
 
         // Build FTS5 query with prefix matching for individual words

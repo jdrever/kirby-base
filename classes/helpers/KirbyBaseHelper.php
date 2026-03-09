@@ -1843,7 +1843,7 @@ abstract class KirbyBaseHelper
     {
         $userField = $user->{$fieldName}()->value();
         $userNames = '';
-        $userNamesAsArray = explode("\n", $userField);
+        $userNamesAsArray = explode("\n", (string) $userField);
         foreach ($userNamesAsArray as $userName) {
             $userNames .= $this->getUserName($userName) . ', ';
         }
@@ -2053,13 +2053,13 @@ abstract class KirbyBaseHelper
             try {
                 // validate CSRF token
                 if (csrf(get('csrf')) === true) {
-                    $userName = trim(get('userName'));
+                    $userName = trim((string) get('userName'));
                     $userName = str_replace(' ', '-', $userName);
                     if (!str_contains($userName, '@') && $loginDomain = option('useLoginDomain')) {
                         $userName .= '@' . $loginDomain;
                     }
                     $loginDetails->setUserName($userName);
-                    $this->kirby->auth()->login($userName, trim(get('password')), true);
+                    $this->kirby->auth()->login($userName, trim((string) get('password')), true);
                     $loginDetails->setLoginStatus(true);
                     $loginDetails->setLoginMessage('You have successfully logged in');
                     if ($loginDetails->hasRedirectPage()) {
@@ -3107,7 +3107,7 @@ abstract class KirbyBaseHelper
     {
         $recipients = str_contains($to, ',') ? Str::split($to) : $to;
         try {
-            if (!str_starts_with($_SERVER['HTTP_HOST'], 'localhost')) {
+            if (!str_starts_with((string) $_SERVER['HTTP_HOST'], 'localhost')) {
                 $this->kirby->email([
                     'template' => $template,
                     'from' => $from,
@@ -3139,7 +3139,7 @@ abstract class KirbyBaseHelper
     protected function setCookie(string $key, string $value, int $days = 90): void
     {
         //allow insecure cookies on localhost only
-        $secure = !(str_starts_with($_SERVER['HTTP_HOST'], 'localhost'));
+        $secure = !(str_starts_with((string) $_SERVER['HTTP_HOST'], 'localhost'));
         $expires = $days > 0 ? time() + ($days * 24 * 60 * 60) : 0;
 
         // Use PHP's setcookie() directly instead of Kirby's Cookie::set()
@@ -3165,7 +3165,7 @@ abstract class KirbyBaseHelper
      */
     protected function deleteCookie(string $key): void
     {
-        $secure = !(str_starts_with($_SERVER['HTTP_HOST'], 'localhost'));
+        $secure = !(str_starts_with((string) $_SERVER['HTTP_HOST'], 'localhost'));
         setcookie($key, '', [
             'expires'  => time() - 3600,
             'path'     => '/',
@@ -4009,7 +4009,7 @@ abstract class KirbyBaseHelper
     protected function getCustomTagList(Page   $kirbyPage,
                                         string $fieldName,
                                         string $modelListClass = BaseList::class,
-                                        BaseFilter $filter = null): BaseList
+                                        ?BaseFilter $filter = null): BaseList
     {
         $modelList = new $modelListClass();
         $modelClassName = $modelList->getItemType();
@@ -4581,7 +4581,7 @@ abstract class KirbyBaseHelper
                             $htmlBody .= '
         <li style="margin-bottom: 15px;">
             <strong style="display: block; font-size: 14px; color: #333;">' . htmlspecialchars(trim($item['question'])) . '</strong>
-            <span style="display: block; font-size: 16px; color: #555;">' . nl2br(htmlspecialchars(trim($item['answer']))) . '</span>
+            <span style="display: block; font-size: 16px; color: #555;">' . nl2br(htmlspecialchars(trim((string) $item['answer']))) . '</span>
         </li>
     ';
                         }
