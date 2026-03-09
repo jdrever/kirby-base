@@ -3,7 +3,6 @@
 use BSBI\WebBase\helpers\ContentIndexRegistry;
 use BSBI\WebBase\helpers\KirbyInternalHelper;
 use BSBI\WebBase\helpers\SearchIndexHelper;
-use Kirby\Cms\Page;
 use Kirby\Http\Response;
 use Kirby\Toolkit\Tpl;
 
@@ -75,6 +74,97 @@ return [
             $csv = ob_get_clean();
 
             $filename = 'submissions-' . $page->slug() . '-' . date('Y-m-d') . '.csv';
+
+            return new Response($csv, 'text/csv', 200, [
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control'       => 'no-cache, no-store, must-revalidate',
+            ]);
+        }
+    ],
+    [
+        'pattern' => 'form-export-all',
+        'method'  => 'GET',
+        'action'  => function (): Response {
+            $helper = new KirbyInternalHelper();
+
+            if (!$helper->isCurrentUserAdminOrEditor()) {
+                return new Response(
+                    'You must be an administrator or editor to export submissions.',
+                    'text/plain',
+                    403
+                );
+            }
+
+            $formTypeFilter = (string) kirby()->request()->get('form_type', '');
+
+            // Use the SQLite index to get matching page IDs, then load only those pages.
+            $manager = \BSBI\WebBase\helpers\ContentIndexRegistry::get('form_submissions');
+
+            if ($manager === null) {
+                return new Response('Form submissions index not available.', 'text/plain', 503);
+            }
+
+            $query = $manager->query();
+
+            if ($formTypeFilter !== '') {
+                if ($formTypeFilter === '(untyped)') {
+                    $query->where('form_type', '');
+                } else {
+                    $query->where('form_type', $formTypeFilter);
+                }
+            }
+
+            $pageIds = $query->getPageIds();
+
+            // Pass 1: collect all unique questions across every submission.
+            $allQuestions  = [];
+            $submissionRows = [];
+
+            foreach ($pageIds as $pageId) {
+                $submission = page($pageId);
+                if ($submission === null) {
+                    continue;
+                }
+
+                $formType = (string) $submission->form_type()->value();
+                $rowData  = [
+                    '_form_type' => $formType !== '' ? $formType : '(untyped)',
+                    '_title'     => $submission->title()->value(),
+                ];
+
+                foreach ($submission->submission()->toStructure() as $item) {
+                    $question = $item->question()->value();
+                    $answer   = $item->answer()->value();
+
+                    if (!in_array($question, $allQuestions, true)) {
+                        $allQuestions[] = $question;
+                    }
+
+                    $rowData[$question] = $answer;
+                }
+
+                $submissionRows[] = $rowData;
+            }
+
+            // Pass 2: build the CSV in memory.
+            ob_start();
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, array_merge(['Form Type', 'Submission'], $allQuestions));
+
+            foreach ($submissionRows as $row) {
+                $csvRow = [$row['_form_type'], $row['_title']];
+                foreach ($allQuestions as $question) {
+                    $csvRow[] = $row[$question] ?? '';
+                }
+                fputcsv($handle, $csvRow);
+            }
+
+            fclose($handle);
+            $csv = ob_get_clean();
+
+            $suffix   = $formTypeFilter !== '' ? '-' . preg_replace('/[^a-z0-9]+/i', '-', $formTypeFilter) : '-all';
+            $filename = 'form-submissions' . $suffix . '-' . date('Y-m-d') . '.csv';
 
             return new Response($csv, 'text/csv', 200, [
                 'Content-Disposition' => 'attachment; filename="' . $filename . '"',

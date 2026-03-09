@@ -2,6 +2,10 @@
 
 namespace BSBI\WebBase\traits;
 
+use BSBI\WebBase\forms\ResolvedForm;
+use BSBI\WebBase\forms\ResolvedFormField;
+use BSBI\WebBase\forms\ResolvedFormSection;
+use Kirby\Cms\Blocks;
 
 /**
  *
@@ -13,6 +17,15 @@ trait FormProperties {
     private string $csrfToken = '';
 
     private bool $submissionSuccessful = false;
+
+    /** @var ResolvedFormField[] Fixed fields resolved from a BaseFormDefinition */
+    private array $formFields = [];
+
+    /** @var array<ResolvedFormField|ResolvedFormSection> Section-aware field groups from a BaseFormDefinition */
+    private array $formFieldGroups = [];
+
+    /** @var Blocks|null Custom form element blocks added by panel editors */
+    private ?Blocks $customFormBlocks = null;
 
     /**
      * @return string
@@ -68,6 +81,82 @@ trait FormProperties {
     {
         $this->submissionSuccessful = $submissionSuccessful;
         return $this;
+    }
+
+    /**
+     * Returns the resolved fixed form fields set by BaseFormDefinition::getFields().
+     *
+     * @return ResolvedFormField[]
+     */
+    public function getFormFields(): array
+    {
+        return $this->formFields;
+    }
+
+    /**
+     * @param ResolvedFormField[] $formFields
+     * @return static
+     */
+    public function setFormFields(array $formFields): static
+    {
+        $this->formFields = $formFields;
+        return $this;
+    }
+
+    /**
+     * Returns the section-aware field groups set by BaseFormDefinition::getFieldGroups().
+     *
+     * @return array<ResolvedFormField|ResolvedFormSection>
+     */
+    public function getFormFieldGroups(): array
+    {
+        return $this->formFieldGroups;
+    }
+
+    /**
+     * @param array<ResolvedFormField|ResolvedFormSection> $formFieldGroups
+     * @return static
+     */
+    public function setFormFieldGroups(array $formFieldGroups): static
+    {
+        $this->formFieldGroups = $formFieldGroups;
+        return $this;
+    }
+
+    /**
+     * Returns the custom form element blocks added by panel editors.
+     *
+     * @return Blocks|null
+     */
+    public function getCustomFormBlocks(): ?Blocks
+    {
+        return $this->customFormBlocks;
+    }
+
+    /**
+     * @param Blocks $customFormBlocks
+     * @return static
+     */
+    public function setCustomFormBlocks(Blocks $customFormBlocks): static
+    {
+        $this->customFormBlocks = $customFormBlocks;
+        return $this;
+    }
+
+    /**
+     * Returns an immutable ResolvedForm value object containing all data
+     * needed to render the form snippet, decoupled from the page model.
+     *
+     * @return ResolvedForm
+     */
+    public function getResolvedForm(): ResolvedForm
+    {
+        return new ResolvedForm(
+            fieldGroups:          $this->formFieldGroups,
+            customBlocks:         $this->customFormBlocks,
+            submissionSuccessful: $this->submissionSuccessful,
+            csrfToken:            $this->csrfToken,
+        );
     }
 }
 

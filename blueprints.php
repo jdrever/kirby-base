@@ -35,6 +35,12 @@ return [
     'blocks/table-4col' => __DIR__ . '/blueprints/blocks/table-4col.yml',
     'blocks/table-5col' => __DIR__ . '/blueprints/blocks/table-5col.yml',
     'blocks/table-6col' => __DIR__ . '/blueprints/blocks/table-6col.yml',
+    'blocks/form-textbox' => __DIR__ . '/blueprints/blocks/form-textbox.yml',
+    'blocks/form-textarea' => __DIR__ . '/blueprints/blocks/form-textarea.yml',
+    'blocks/form-checkbox-group' => __DIR__ . '/blueprints/blocks/form-checkbox-group.yml',
+    'blocks/form-radio-group' => __DIR__ . '/blueprints/blocks/form-radio-group.yml',
+    'blocks/form-likert' => __DIR__ . '/blueprints/blocks/form-likert.yml',
+    'blocks/form-select' => __DIR__ . '/blueprints/blocks/form-select.yml',
 
     //field blueprints
     'fields/mainContent' => __DIR__ . '/blueprints/fields/mainContent.yml',
@@ -61,6 +67,7 @@ return [
     'sections/templateName' => __DIR__ . '/blueprints/sections/templateName.yml',
 
     //tabs blueprints
+    'tabs/forms' => __DIR__ . '/blueprints/tabs/forms.yml',
     'tabs/page' => __DIR__ . '/blueprints/tabs/page.yml',
     'tabs/fields' => __DIR__ . '/blueprints/tabs/fields.yml',
     'tabs/panel' => __DIR__ . '/blueprints/tabs/panel.yml',

@@ -46,6 +46,82 @@ panel.plugin('open-foundations/kirby-base', {
       `
     },
 
+    formsubmissionsindex: {
+      data: function () {
+        return {
+          headline: 'Form Submissions',
+          formTypes: [],
+          totalCount: 0,
+          exportAllUrl: ''
+        }
+      },
+      created: async function() {
+        try {
+          const response = await this.load();
+          this.headline     = response.headline;
+          this.formTypes    = response.formTypes    || [];
+          this.totalCount   = response.totalCount   || 0;
+          this.exportAllUrl = response.exportAllUrl || '';
+        } catch (error) {
+          console.error("Failed to load form submissions index section:", error);
+        }
+      },
+      template: `
+        <section class="k-section k-formsubmissionsindex-section">
+          <header class="k-section-header">
+            <h2 class="k-headline">{{ headline }}</h2>
+          </header>
+
+          <div v-if="formTypes.length > 0" style="padding: 0.75rem 0 0.5rem;">
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem;">
+              <thead>
+                <tr style="border-bottom: 2px solid var(--color-border);">
+                  <th style="text-align: left; padding: 0.5rem 0.75rem; font-size: 0.75rem; color: var(--color-text-dimmed); font-weight: 600;">Form type</th>
+                  <th style="text-align: right; padding: 0.5rem 0.75rem; font-size: 0.75rem; color: var(--color-text-dimmed); font-weight: 600;">Submissions</th>
+                  <th style="text-align: right; padding: 0.5rem 0.75rem; font-size: 0.75rem; color: var(--color-text-dimmed); font-weight: 600;">Export</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="row in formTypes"
+                  :key="row.formType"
+                  style="border-bottom: 1px solid var(--color-border);"
+                >
+                  <td style="padding: 0.6rem 0.75rem; font-size: 0.875rem;">{{ row.formType }}</td>
+                  <td style="text-align: right; padding: 0.6rem 0.75rem; font-size: 0.875rem; font-weight: 500;">{{ row.count }}</td>
+                  <td style="text-align: right; padding: 0.6rem 0.75rem;">
+                    <a
+                      :href="row.exportUrl"
+                      style="font-size: 0.8rem; color: var(--color-blue-500, #2563eb); text-decoration: none; white-space: nowrap;"
+                    >&#8595; CSV</a>
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr style="border-top: 2px solid var(--color-border);">
+                  <td style="padding: 0.6rem 0.75rem; font-size: 0.875rem; font-weight: 600;">Total</td>
+                  <td style="text-align: right; padding: 0.6rem 0.75rem; font-size: 0.875rem; font-weight: 600;">{{ totalCount }}</td>
+                  <td style="text-align: right; padding: 0.6rem 0.75rem;">
+                    <a
+                      :href="exportAllUrl"
+                      style="font-size: 0.8rem; color: var(--color-blue-500, #2563eb); text-decoration: none; white-space: nowrap;"
+                    >&#8595; All CSV</a>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <k-empty
+            v-else
+            icon="file-text"
+          >
+            No form submissions recorded yet.
+          </k-empty>
+        </section>
+      `
+    },
+
     formsubmissionexport: {
       data: function () {
         return {

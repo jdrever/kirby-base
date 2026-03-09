@@ -2,6 +2,7 @@
 
 use BSBI\WebBase\helpers\ContentIndexDefinition;
 use BSBI\WebBase\helpers\ContentIndexRegistry;
+use BSBI\WebBase\helpers\FormSubmissionIndexDefinition;
 use BSBI\WebBase\helpers\SearchIndexHelper;
 use Kirby\Cms\App as Kirby;
 use Kirby\Panel\Ui\Item\PageItem;
@@ -26,8 +27,12 @@ $pluginConfig = [
         'file_link' =>  require __DIR__ . '/controllers/file_link.php',
         'page_link' =>  require __DIR__ . '/controllers/page_link.php',
     ],
+    'collections' => [
+        'formSubmissions' => require __DIR__ . '/collections/formSubmissions.php',
+    ],
     'sections' => [
         'formsubmissionexport' => require __DIR__ . '/sections/formsubmissionexport.php',
+        'formsubmissionsindex' => require __DIR__ . '/sections/formsubmissionsindex.php',
         'quicklinks' => require __DIR__ . '/sections/quicklinks.php',
         'searchanalytics' => require __DIR__ . '/sections/searchanalytics.php',
         'searchindexstats' => require __DIR__ . '/sections/searchindexstats.php',
@@ -93,6 +98,13 @@ if (option('search.panelSearch', false)) {
 }
 
 Kirby::plugin('open-foundations/kirby-base', $pluginConfig);
+
+// Register built-in form submissions index
+try {
+    ContentIndexRegistry::register(new FormSubmissionIndexDefinition());
+} catch (Throwable $e) {
+    error_log('Failed to register form submissions content index: ' . $e->getMessage());
+}
 
 // Register content indexes from site configuration
 $contentIndexes = option('contentIndexes', []);

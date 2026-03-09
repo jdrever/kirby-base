@@ -48,6 +48,15 @@ return [
     'form/turnstile' => __DIR__ . '/snippets/form/turnstile.php',
     'form/likert' => __DIR__ . '/snippets/form/likert.php',
     'form/csrf' => __DIR__ . '/snippets/form/csrf.php',
+    'form/definition-fields' => __DIR__ . '/snippets/form/definition-fields.php',
+    'form/section' => __DIR__ . '/snippets/form/section.php',
+    'form/field-textbox' => __DIR__ . '/snippets/form/field-textbox.php',
+    'form/field-textarea' => __DIR__ . '/snippets/form/field-textarea.php',
+    'form/field-likert' => __DIR__ . '/snippets/form/field-likert.php',
+    'form/field-select' => __DIR__ . '/snippets/form/field-select.php',
+    'form/field-checkbox-group' => __DIR__ . '/snippets/form/field-checkbox-group.php',
+    'form/field-radio-group' => __DIR__ . '/snippets/form/field-radio-group.php',
+    'form/definition-form' => __DIR__ . '/snippets/form/definition-form.php',
 
     //search blocks
     'search/bar' => __DIR__ . '/snippets/search/bar.php',
@@ -57,6 +66,12 @@ return [
 
     // snippet blocks
     'blocks/accordion' => __DIR__ . '/snippets/blocks/accordion.php',
+    'blocks/form-textbox' => __DIR__ . '/snippets/blocks/form-textbox.php',
+    'blocks/form-textarea' => __DIR__ . '/snippets/blocks/form-textarea.php',
+    'blocks/form-checkbox-group' => __DIR__ . '/snippets/blocks/form-checkbox-group.php',
+    'blocks/form-radio-group' => __DIR__ . '/snippets/blocks/form-radio-group.php',
+    'blocks/form-likert' => __DIR__ . '/snippets/blocks/form-likert.php',
+    'blocks/form-select' => __DIR__ . '/snippets/blocks/form-select.php',
     'blocks/button' => __DIR__ . '/snippets/blocks/button.php',
     'blocks/description-list' => __DIR__ . '/snippets/blocks/description-list.php',
     'blocks/faq' => __DIR__ . '/snippets/blocks/faq.php',

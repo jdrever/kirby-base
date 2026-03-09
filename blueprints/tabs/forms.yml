@@ -1,0 +1,6 @@
+label: Forms
+icon: email
+sections:
+  formSubmissionsIndex:
+    type: formsubmissionsindex
+    headline: Form Submissions

@@ -2,6 +2,8 @@
 
 namespace BSBI\WebBase\helpers;
 
+use BSBI\WebBase\forms\BaseFormDefinition;
+use BSBI\WebBase\forms\FormPageInterface;
 use BSBI\WebBase\models\ActionStatus;
 use BSBI\WebBase\models\BaseFilter;
 use BSBI\WebBase\models\BaseList;
@@ -4521,13 +4523,17 @@ abstract class KirbyBaseHelper
     #region FORMS
 
     /**
-     * Will also email if a receipient has been given in the
-     * Email Recipient field for the page
-     * @param Page $parentPage
+     * Processes a POST form submission, stores it as a form_submission child page,
+     * and optionally sends an email notification to the configured recipient.
+     *
+     * @param Page   $parentPage The page under which the submission child page is created
+     * @param string $formType   Short identifier for the form type (e.g. 'training_feedback').
+     *                           Stored on the submission for filtering and export.
+     *                           Pass an empty string for generic/untyped forms.
      * @return ActionStatus
      * @throws KirbyRetrievalException
      */
-    protected function createFormSubmission(Page $parentPage): ActionStatus
+    protected function createFormSubmission(Page $parentPage, string $formType = ''): ActionStatus
     {
         if ($this->kirby->request()->is('POST')) {
             if (csrf(get('csrf')) === true) {
@@ -4545,7 +4551,7 @@ abstract class KirbyBaseHelper
 
                     $formSubmission[] = [
                         'question' => $questionTitle,
-                        'answer' => $inputValue,
+                        'answer' => is_array($inputValue) ? implode(', ', $inputValue) : $inputValue,
                     ];
                 }
 
@@ -4559,14 +4565,20 @@ abstract class KirbyBaseHelper
                     $slug = $slug . '-' . $counter;
                 }
 
+                $content = [
+                    'title'      => 'Submission: ' . $slug,
+                    'submission' => Data::encode($formSubmission, 'yaml'),
+                ];
+
+                if ($formType !== '') {
+                    $content['form_type'] = $formType;
+                }
+
                 $this->createPage($parentPage,
                     [
-                        'slug' => $slug,
+                        'slug'     => $slug,
                         'template' => 'form_submission',
-                        'content' => [
-                            'title' => 'Submission: ' . $slug,
-                            'submission' => Data::encode($formSubmission, 'yaml')
-                        ]
+                        'content'  => $content,
                     ],
                     true
                 );
@@ -4870,6 +4882,40 @@ abstract class KirbyBaseHelper
             return '';
         } catch (Throwable $e) {
             return 'Error: ' . $e->getMessage() . ' - ' . $e->getTraceAsString() . PHP_EOL;
+        }
+    }
+
+    #endregion
+
+    #region FORMS
+
+    /**
+     * Populates a FormPage model with resolved fields and custom blocks from
+     * the given BaseFormDefinition.  Call this from your form-specific setter
+     * before delegating to setFormPage():
+     *
+     *   protected function setMyFormPage(Page $page, MyFormPage $myFormPage): MyFormPage
+     *   {
+     *       $definition = new MyFormDefinition();
+     *       $this->populateFormPage($page, $myFormPage, $definition);
+     *       $this->setFormPage($page, $myFormPage, $definition->getFormType());
+     *       return $myFormPage;
+     *   }
+     *
+     * @param Page               $page       Kirby page that holds panel override values
+     * @param FormPageInterface  $formPage   The form page model to populate
+     * @param BaseFormDefinition $definition The form definition to resolve against the page
+     */
+    protected function populateFormPage(
+        Page $page,
+        FormPageInterface $formPage,
+        BaseFormDefinition $definition
+    ): void {
+        $formPage->setFormFields($definition->getFields($page));
+        $formPage->setFormFieldGroups($definition->getFieldGroups($page));
+
+        if ($this->isPageFieldNotEmpty($page, 'customFormElements')) {
+            $formPage->setCustomFormBlocks($this->getPageFieldAsBlocks($page, 'customFormElements'));
         }
     }
 

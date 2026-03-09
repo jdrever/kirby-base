@@ -62,6 +62,7 @@ if ($labelLayout !== 'badge') : ?>
     value="<?=$value ?>"
     class="form-check-input p-2 m-1"
     <?=$checked ?>
+    <?php if (!empty($required)) : ?>required<?php endif; ?>
 >
 <?php if (isset($label)) :
     if (!isset($labelTitle)) :
