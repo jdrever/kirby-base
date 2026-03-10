@@ -7,7 +7,7 @@ use Kirby\Cms\Block;
 /** @var Block $block */
 
 $fieldName = $block->name()->value();
-$options   = array_values(array_filter(array_map('trim', explode("\n", $block->options()->value()))));
+$options   = array_values(array_filter(array_map('trim', explode("\n", (string) $block->options()->value()))));
 
 if ($block->label()->isNotEmpty()) : ?>
     <p><strong><?= html($block->label()->value()) ?></strong></p>

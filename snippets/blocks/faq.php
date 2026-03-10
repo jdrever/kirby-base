@@ -11,7 +11,7 @@ use Kirby\Cms\Block;
 $questions = $block->questions()->toStructure();
 if ($questions->isNotEmpty()) :
     if ($block->title()->isNotEmpty()) :
-        $blockTitle = str_replace(' ', '', mb_strtolower($block->title()->value()));?>
+        $blockTitle = str_replace(' ', '', mb_strtolower((string) $block->title()->value()));?>
     <a id="<?=$blockTitle?>"></a>
     <h2><?=$block->title()?></h2>
     <?php endif;

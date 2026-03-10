@@ -21,7 +21,7 @@ $requiresConsent = $helper->requiresCookieConstent();
 
 // Pre-compute video content
 $videoContent = '';
-$isYoutube = str_contains($block->url()->value(), 'youtu');
+$isYoutube = str_contains((string) $block->url()->value(), 'youtu');
 
 if ($isYoutube) :
     $ytUrl = str_replace("https://", "", $block->url()->value());

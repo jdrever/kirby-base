@@ -74,7 +74,7 @@ return [
                 $words = preg_split('/\s+/', $query);
                 foreach ($words as $word) {
                     $word = preg_replace('/[^\p{L}\p{N}]/u', '', $word);
-                    if (strlen($word) >= 2 && !in_array($word, $stopWords, true)) {
+                    if (strlen((string) $word) >= 2 && !in_array($word, $stopWords, true)) {
                         $keywordCounts[$word] = ($keywordCounts[$word] ?? 0) + 1;
                     }
                 }

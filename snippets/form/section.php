@@ -22,8 +22,8 @@ $attrs = 'class="form-section"';
 $attrs .= ' id="section-' . htmlspecialchars($section->id, ENT_QUOTES, 'UTF-8') . '"';
 
 if ($section->isConditional()) :
-    $attrs .= ' data-condition-field="' . htmlspecialchars($section->conditionField, ENT_QUOTES, 'UTF-8') . '"';
-    $attrs .= ' data-condition-value="' . htmlspecialchars($section->conditionValue, ENT_QUOTES, 'UTF-8') . '"';
+    $attrs .= ' data-condition-field="' . htmlspecialchars((string) $section->conditionField, ENT_QUOTES, 'UTF-8') . '"';
+    $attrs .= ' data-condition-value="' . htmlspecialchars((string) $section->conditionValue, ENT_QUOTES, 'UTF-8') . '"';
     $attrs .= ' style="display:none"';
 endif;
 

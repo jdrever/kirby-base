@@ -241,7 +241,7 @@ class FormFieldSpec
     public function getBlueprintFieldName(string $property): string
     {
         $snakeName     = strtolower($this->name);
-        $snakeProperty = strtolower(preg_replace('/([A-Z])/', '_$1', $property));
+        $snakeProperty = strtolower((string) preg_replace('/([A-Z])/', '_$1', $property));
         return $snakeName . '_' . ltrim($snakeProperty, '_');
     }
 
