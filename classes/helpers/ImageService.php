@@ -63,7 +63,7 @@ final readonly class ImageService
     }
 
     /**
-     * @param Page $page
+     * @param Page $pages
      * @param string $fieldName
      * @param int $width
      * @param int|null $height
@@ -393,7 +393,8 @@ final readonly class ImageService
     private function getCaptionForImage(File $image): string
     {
         /** @noinspection PhpUndefinedMethodInspection */
-        $caption = $image->caption()->isNotEmpty() ? $image->caption()->kt() : $image->alt()->value() ?? '';
+        $captionField = $image->caption()->isNotEmpty() ? $image->caption()->kt() : $image->alt();
+        $caption = $captionField->value() ?? '';
         /** @noinspection PhpUndefinedMethodInspection */
         if ($image->photographer()->isNotEmpty()) {
             /** @noinspection PhpUndefinedMethodInspection */
