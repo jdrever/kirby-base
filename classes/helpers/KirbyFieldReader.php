@@ -1107,22 +1107,6 @@ final readonly class KirbyFieldReader
         return $fieldAsArray;
     }
 
-    /**
-     * Returns a site entries field as an array of string values.
-     *
-     * @return string[]
-     * @throws KirbyRetrievalException
-     */
-    public function getSiteEntriesFieldAsStringArray(string $fieldName): array
-    {
-        $field = $this->getSiteField($fieldName);
-        $fieldAsArray = [];
-        /** @noinspection PhpUndefinedMethodInspection */
-        foreach ($field->toEntries() as $entry) {
-            $fieldAsArray[] = $entry->toString();
-        }
-        return $fieldAsArray;
-    }
 
     // -------------------------------------------------------------------------
     // BLOCK FIELDS

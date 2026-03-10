@@ -44,10 +44,9 @@ final class KirbyFieldReaderTest extends TestCase
 
         // Site content used by site-field tests.
         // Kirby 5 content files separate fields with `----` on its own line.
-        $entriesYaml = Yaml::encode([['value' => 'Mr'], ['value' => 'Mrs'], ['value' => 'Dr']]);
         file_put_contents(
             $contentDir . '/site.txt',
-            "Title: Test Site\n\n----\n\nsitestringfield: Site Value\n\n----\n\nsiteboolfield: true\n\n----\n\nsitearrayfield: one, two, three\n\n----\n\nsiteentriesfield: \n" . $entriesYaml . "\n"
+            "Title: Test Site\n\n----\n\nsitestringfield: Site Value\n\n----\n\nsiteboolfield: true\n\n----\n\nsitearrayfield: one, two, three\n"
         );
 
         self::$kirby = new App([
@@ -840,19 +839,6 @@ final class KirbyFieldReaderTest extends TestCase
 
         $this->expectException(KirbyRetrievalException::class);
         self::$reader->getEntriesFieldAsStringArray($page, 'missing');
-    }
-
-    public function testGetSiteEntriesFieldAsStringArrayReturnsValues(): void
-    {
-        $values = self::$reader->getSiteEntriesFieldAsStringArray('siteentriesfield');
-
-        $this->assertSame(['Mr', 'Mrs', 'Dr'], $values);
-    }
-
-    public function testGetSiteEntriesFieldAsStringArrayThrowsWhenFieldMissing(): void
-    {
-        $this->expectException(KirbyRetrievalException::class);
-        self::$reader->getSiteEntriesFieldAsStringArray('missingentriesfield');
     }
 
     // =========================================================================
