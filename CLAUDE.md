@@ -68,6 +68,10 @@ These are registered in `blueprints.php`.
 - **Authentication:** Role-based access control and per-page password protection via `permissions` tab blueprint
 - **Image handling:** Responsive images with srcset generation, WebP conversion, and image bank support
 
+## Making changes
+Be aware that kirby-base may be updated from other projects.  Always best to pull the latest version of the plugin 
+before making changes.
+
 ## Coding Standards
 
 - PHP 8.3+ required (`declare(strict_types=1)` everywhere)
