@@ -1593,6 +1593,16 @@ abstract class KirbyBaseHelper
         return $this->fieldReader->getEntriesFieldAsStringArray($page, $fieldName);
     }
 
+    /**
+     * @param string $fieldName
+     * @return string[]
+     * @throws KirbyRetrievalException
+     */
+    protected function getSiteEntriesFieldAsStringArray(string $fieldName): array
+    {
+        return $this->fieldReader->getSiteEntriesFieldAsStringArray($fieldName);
+    }
+
     #endregion
 
     #region BLOCK_FIELDS
