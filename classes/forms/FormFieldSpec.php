@@ -374,18 +374,38 @@ class FormFieldSpec
     /**
      * Builds a single Kirby blueprint field definition for a given property.
      *
+     * The generated field includes a `placeholder` showing the current PHP default
+     * so panel editors can see exactly what value will be used if the field is left
+     * blank.  The `help` text also states the default explicitly.
+     *
+     * IMPORTANT — keeping placeholders in sync:
+     * The `placeholder` value shown here is derived from the hard-coded default in
+     * the FormFieldSpec declaration (e.g. in EventSignupDefinition::defineForm()).
+     * If that PHP default is ever changed, the corresponding blueprint field's
+     * `placeholder` and `help` text must be updated to match, so editors continue
+     * to see the correct default value in the panel.
+     *
      * @param string $property
      * @return array<string, mixed>
      */
     private function buildBlueprintField(string $property): array
     {
         if ($property === 'options') {
+            $defaultOptionsText = implode("\n", $this->defaultOptions);
             return [
-                'type'  => 'textarea',
-                'label' => "Options for \"{$this->defaultLabel}\" (one per line)",
-                'help'  => 'Each line becomes one option. Leave blank to use the default options.',
+                'type'        => 'textarea',
+                'label'       => "Options for \"{$this->defaultLabel}\" (one per line)",
+                'placeholder' => $defaultOptionsText,
+                'help'        => "Leave blank to use the default options. Default:\n{$defaultOptionsText}",
             ];
         }
+
+        $defaultValueMap = [
+            'label'       => $this->defaultLabel,
+            'leftLabel'   => $this->defaultLeftLabel,
+            'middleLabel' => $this->defaultMiddleLabel,
+            'rightLabel'  => $this->defaultRightLabel,
+        ];
 
         $labelMap = [
             'label'       => "Label for \"{$this->defaultLabel}\"",
@@ -394,10 +414,13 @@ class FormFieldSpec
             'rightLabel'  => "Right label for \"{$this->defaultLabel}\"",
         ];
 
+        $default = $defaultValueMap[$property] ?? '';
+
         return [
-            'type'  => 'text',
-            'label' => $labelMap[$property] ?? "Override: {$property} for \"{$this->defaultLabel}\"",
-            'help'  => 'Leave blank to use the default.',
+            'type'        => 'text',
+            'label'       => $labelMap[$property] ?? "Override: {$property} for \"{$this->defaultLabel}\"",
+            'placeholder' => $default,
+            'help'        => $default !== '' ? "Leave blank to use the default: \"{$default}\"" : 'Leave blank to use the default.',
         ];
     }
 }
