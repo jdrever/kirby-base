@@ -191,6 +191,8 @@ You need to do this to update the plugin in your project
 
 - Run composer update
 
+## Design system
+- See [design-system.md](design-system.md)
 
 ## Requirements
 

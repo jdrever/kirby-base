@@ -1,0 +1,30 @@
+// ============================================================
+// Site identity tokens – Docs Site (slate palette)
+// Copy this file to a new site and override the values below
+// to apply a different site identity. Everything else lives
+// in _design-system.scss and remains unchanged across sites.
+// ============================================================
+
+// Primary colour family
+$site-colour-primary:          #505A70;
+$site-colour-primary-light:    #838D9E;
+$site-colour-primary-dark:     #2B2D42;
+$site-colour-primary-darkest:  #272C37;
+
+// Primary colour family – dark mode (derived by halving lightness)
+$site-colour-dark-primary:         #282D38;
+$site-colour-dark-primary-light:   #42474F;
+$site-colour-dark-primary-dark:    #161721;
+$site-colour-dark-primary-darkest: #14161C;
+
+// Logo (white/light version for use on the primary-coloured header)
+// Dimensions should reflect the SVG's natural aspect ratio (165 × 70.5)
+$site-logo-url:            url('/assets/images/bsbi-docs-logo-white.svg');
+$site-logo-width-mobile:   160px;
+$site-logo-height-mobile:  68px;
+$site-logo-width-desktop:  220px;
+$site-logo-height-desktop: 94px;
+// Reduced from default 2rem to compensate for the taller logo
+$site-logo-main-header-padding-y: 1rem;
+// Compensates for internal SVG whitespace (~21px out of 165px viewBox)
+$site-logo-x-offset: -28px;
