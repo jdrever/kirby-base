@@ -6,6 +6,7 @@ return [
     'rss-html' => __DIR__ . '/snippets/rss-html.php',
     'robots-txt' => __DIR__ . '/snippets/robots-txt.php',
     'block-consent' => __DIR__ . '/snippets/block-consent.php',
+    'cookie-consent/banner' => __DIR__ . '/snippets/cookie-consent/banner.php',
 
     'base/robots-meta-tag' => __DIR__ . '/snippets/robots-meta-tag.php',
     'base/on-this-page' => __DIR__ . '/snippets/on-this-page.php',

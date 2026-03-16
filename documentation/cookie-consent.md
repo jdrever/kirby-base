@@ -25,23 +25,29 @@ $currentPage->addScript('cookie-consent', self::ASSETS_PATH);
 
 `ASSETS_PATH` should resolve to `/media/plugins/open-foundations/kirby-base/`.
 
-**2. Include the banner snippet.** In your header, include a banner that uses the `data-cookie-consent-banner` attribute. Kirby-base does not ship a ready-made banner because the wording is site-specific, but the required data attributes are:
+**2. Include the banner snippet.** Kirby-base ships a generic `cookie-consent/banner` snippet with all data attributes pre-wired. Include it in your header:
+
+```php
+<?php snippet('cookie-consent/banner', [
+    'description'     => 'We use cookies to keep you logged in and remember your preferences.',
+    'privacyPolicyUrl' => '/privacy',
+]) ?>
+```
+
+Parameters:
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `$description` | `'This site uses cookies to improve your experience.'` | Banner description text |
+| `$privacyPolicyUrl` | — | Optional link to a privacy policy page |
+
+If you need site-specific markup, write your own banner using these data attributes:
 
 | Element | Attribute | Purpose |
 |---------|-----------|---------|
 | Banner wrapper | `data-cookie-consent-banner` | Hidden by JS once a choice is recorded |
 | Accept button | `data-consent-accept` | Sets status to `accepted` |
 | Reject button | `data-consent-reject` | Sets status to `rejected` |
-
-Example:
-
-```html
-<div data-cookie-consent-banner>
-  <p>We use cookies…</p>
-  <button type="button" data-consent-accept>Accept</button>
-  <button type="button" data-consent-reject>Reject</button>
-</div>
-```
 
 ## Gating content behind consent
 
@@ -106,4 +112,4 @@ Colour mode is entirely self-contained in kirby-base — every consuming site wi
 
 Forcing the banner and JS into every page via `base/header` would be the wrong default.
 
-The one improvement worth making is adding a generic `cookie-consent/banner` snippet to kirby-base, so that when a consuming site does need a banner the data attributes are pre-wired and only the wording needs overriding.
+The `cookie-consent/banner` snippet provides a ready-made starting point so that when a consuming site does need a banner, the data attributes are pre-wired and only the wording needs overriding.
