@@ -100,26 +100,10 @@ Legacy cookie `cookieConsentGiven` (values `true`/`yes`/`1`/`no`) is read for ba
 
 ---
 
-## Comparison with colour mode — suggested improvements
+## Comparison with colour mode
 
-Colour mode is entirely self-contained in kirby-base. Cookie consent currently requires more manual wiring in consuming sites. Three inconsistencies are worth addressing:
+Colour mode is entirely self-contained in kirby-base — every consuming site will want it, so zero-setup makes sense. Cookie consent intentionally requires more wiring in the consuming site because not all sites will need it (if a site doesn't use cookies requiring explicit consent, there is nothing to set up).
 
-### 1. No auto-loading script snippet
+Forcing the banner and JS into every page via `base/header` would be the wrong default.
 
-Colour mode ships a `colour-mode/script` snippet that is included automatically by `base/header`, so consuming sites need zero setup for the JS. Cookie consent has no equivalent — sites must call `addScript('cookie-consent', ...)` manually.
-
-**Suggested fix:** Add a `cookie-consent/script` snippet to kirby-base that either inlines or `<script src>`s the JS, and include it from `base/header` alongside `colour-mode/script`. The `addScript()` call in consuming sites' `KirbyHelper` can then be removed.
-
-Unlike colour mode there is no FOUC concern for cookie consent, so inlining is optional — loading via `<script src>` at end of `<body>` is fine.
-
-### 2. No ready-made banner snippet in kirby-base
-
-Colour mode ships `colour-mode/selector` as a ready-to-use snippet. Cookie consent has no equivalent banner snippet in kirby-base — consuming sites must write their own HTML with the correct data attributes.
-
-**Suggested fix:** Add a generic `cookie-consent/banner` snippet to kirby-base with sensible default wording and all the required data attributes pre-wired. Consuming sites can override it if they need site-specific text.
-
-### 3. External JS file vs inline
-
-Colour mode JS is inlined in `<head>` (so the theme is applied before the first paint). Cookie consent JS is an external file loaded at end of `<body>`, which means the banner can briefly appear before JS hides it.
-
-**Suggested fix (lower priority):** Inline `cookie-consent.js` into a `cookie-consent/script` snippet (mirroring colour-mode), so the consent state is applied as early as possible and the banner flash is eliminated.
+The one improvement worth making is adding a generic `cookie-consent/banner` snippet to kirby-base, so that when a consuming site does need a banner the data attributes are pre-wired and only the wording needs overriding.
