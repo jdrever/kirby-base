@@ -194,6 +194,9 @@ You need to do this to update the plugin in your project
 ## Design system
 - See [design-system.md](design-system.md)
 
+## Colour mode
+- See [colour-mode.md](colour-mode.md)
+
 ## Requirements
 
 The following need to be in place for any site using KirbyBase
