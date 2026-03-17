@@ -321,4 +321,21 @@ final class BaseWebPageTest extends TestCase
         $this->assertTrue($page->hasAttribute('pinned'));
         $this->assertFalse($page->hasAttribute('archived'));
     }
+
+    // --- CSS file ---
+
+    public function testCssFileDefaultsToCustomCss(): void
+    {
+        $page = $this->createPage();
+        $this->assertSame('custom.css', $page->getCssFile());
+    }
+
+    public function testSetCssFileOverridesDefault(): void
+    {
+        $page = $this->createPage();
+        $result = $page->setCssFile('glaucous.css');
+
+        $this->assertSame($page, $result);
+        $this->assertSame('glaucous.css', $page->getCssFile());
+    }
 }

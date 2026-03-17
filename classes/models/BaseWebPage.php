@@ -137,6 +137,11 @@ class BaseWebPage extends BaseModel
 
     private string $passwordCSRFToken = '';
 
+    /**
+     * @var string
+     */
+    private string $cssFile = 'custom.css';
+
 
     /**
      * @param string $title
@@ -876,6 +881,27 @@ class BaseWebPage extends BaseModel
     public function setPasswordCSRFToken(string $passwordCSRFToken): BaseWebPage
     {
         $this->passwordCSRFToken = $passwordCSRFToken;
+        return $this;
+    }
+
+    /**
+     * Returns the CSS filename to use for this page (relative to /assets/css/).
+     * Defaults to 'custom.css'; override per page or course for alternative design systems.
+     *
+     * @return string
+     */
+    public function getCssFile(): string
+    {
+        return $this->cssFile;
+    }
+
+    /**
+     * @param string $cssFile
+     * @return BaseWebPage
+     */
+    public function setCssFile(string $cssFile): BaseWebPage
+    {
+        $this->cssFile = $cssFile;
         return $this;
     }
 
