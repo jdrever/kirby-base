@@ -5,43 +5,57 @@ use BSBI\WebBase\helpers\KirbyInternalHelper;
 use BSBI\WebBase\helpers\SearchIndexHelper;
 
 function handlePageChange($newPage, $oldPage) {
-    $user = kirby()->user();
+    static $isHandling = false;
 
-    $newPage = $newPage->update([
-        'updatedDate' => date('Y-m-d H:i:s'),
-        'updatedBy' => $user?->id()
-    ]);
-    if ($newPage->publishedDate()->isEmpty()) {
+    if ($isHandling) {
+        return $newPage;
+    }
+
+    $isHandling = true;
+
+    try {
+        $user = kirby()->user();
+
         $newPage = $newPage->update([
-            'publishedDate' => date('Y-m-d H:i:s'),
-            'publishedBy' => $user?->id()
+            'updatedDate' => date('Y-m-d H:i:s'),
+            'updatedBy' => $user?->id()
         ]);
-    }
-    /** @noinspection PhpUnhandledExceptionInspection */
-    $helper = new KirbyInternalHelper();
-    /** @noinspection PhpUnhandledExceptionInspection */
-    $helper->handleTwoWayTagging($newPage, $oldPage);
-    $helper->handleCaches($newPage);
 
-    // Update search index
-    try {
-        $searchIndex = new SearchIndexHelper();
-        $searchIndex->indexPage($newPage);
-    } catch (Throwable $e) {
-        error_log('Failed to update search index: ' . $e->getMessage());
-    }
-
-    // Update content indexes
-    try {
-        $managers = ContentIndexRegistry::getManagersForTemplate($newPage->template()->name());
-        foreach ($managers as $manager) {
-            $manager->indexPage($newPage, $helper);
+        if ($newPage->publishedDate()->isEmpty()) {
+            $newPage = $newPage->update([
+                'publishedDate' => date('Y-m-d H:i:s'),
+                'publishedBy' => $user?->id()
+            ]);
         }
-    } catch (Throwable $e) {
-        error_log('Failed to update content index: ' . $e->getMessage());
-    }
 
-    return $newPage;
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $helper = new KirbyInternalHelper();
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $helper->handleTwoWayTagging($newPage, $oldPage);
+        $helper->handleCaches($newPage);
+
+        // Update search index
+        try {
+            $searchIndex = new SearchIndexHelper();
+            $searchIndex->indexPage($newPage);
+        } catch (Throwable $e) {
+            error_log('Failed to update search index: ' . $e->getMessage());
+        }
+
+        // Update content indexes
+        try {
+            $managers = ContentIndexRegistry::getManagersForTemplate($newPage->template()->name());
+            foreach ($managers as $manager) {
+                $manager->indexPage($newPage, $helper);
+            }
+        } catch (Throwable $e) {
+            error_log('Failed to update content index: ' . $e->getMessage());
+        }
+
+        return $newPage;
+    } finally {
+        $isHandling = false;
+    }
 }
 
 return [
