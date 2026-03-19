@@ -871,7 +871,7 @@ abstract class KirbyBaseHelper
      * @throws KirbyRetrievalException
      * @noinspection PhpUnused
      */
-    protected function getPageFieldAsKirbyText(Page $page, string $fieldName, bool $required = false): string
+    public function getPageFieldAsKirbyText(Page $page, string $fieldName, bool $required = false): string
     {
         return $this->fieldReader->getPageFieldAsKirbyText($page, $fieldName, $required);
     }
@@ -885,6 +885,19 @@ abstract class KirbyBaseHelper
     protected function getPageFieldAsFile(Page $page, string $fieldName): File|null
     {
         return $this->fieldReader->getPageFieldAsFile($page, $fieldName);
+    }
+
+    /**
+     * Returns an Image model for the given Kirby File, generating thumbnails and srcsets.
+     *
+     * @param File $file The Kirby file to generate the image from.
+     * @param int $width The desired image width in pixels.
+     * @param int $height The desired image height in pixels.
+     * @return Image
+     */
+    public function getFileAsImage(File $file, int $width, int $height): Image
+    {
+        return $this->imageService->getImageFromFile($file, $width, $height);
     }
 
     /**
