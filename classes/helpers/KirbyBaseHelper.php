@@ -882,7 +882,7 @@ abstract class KirbyBaseHelper
      * @return File|null
      * @throws KirbyRetrievalException
      */
-    protected function getPageFieldAsFile(Page $page, string $fieldName): File|null
+    public function getPageFieldAsFile(Page $page, string $fieldName): File|null
     {
         return $this->fieldReader->getPageFieldAsFile($page, $fieldName);
     }
