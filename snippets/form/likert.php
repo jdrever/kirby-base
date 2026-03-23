@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-$name = $name ?? 'q1_satisfaction';
-$label = $label ?? 'How satisfied are you with the service?';
+$name         = $name ?? 'q1_satisfaction';
+$label        = $label ?? 'How satisfied are you with the service?';
 $scaleMin     = $scaleMin ?? 1;
 $scaleMax     = $scaleMax ?? 5;
 $leftLabel    = $leftLabel ?? 'Strongly disagree';
-$middleLabel = $middleLabel ?? 'Neutral';
+$middleLabel  = $middleLabel ?? 'Neutral';
 $rightLabel   = $rightLabel ?? 'Strongly agree';
+$required     = $required ?? false;
 ?>
 
 <div class="card p-2 mb-2">
@@ -33,6 +34,7 @@ $rightLabel   = $rightLabel ?? 'Strongly agree';
                                 name="<?= $name ?>"
                                 id="<?= $inputId ?>"
                                 value="<?= $i ?>"
+                                <?php if (!empty($required) && $i === $scaleMin) : ?>required<?php endif; ?>
                         >
                     </label>
                 <?php endfor; ?>
