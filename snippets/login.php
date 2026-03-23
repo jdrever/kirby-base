@@ -12,7 +12,7 @@ if (!method_exists($currentPage, 'getLoginDetails')) :
 endif;
 
 if (!isset($userNameLabel)) :
-    $userNameLabel = 'Username';
+    $userNameLabel = t('Username', 'Username');
 endif;
 
 $loginDetails = $currentPage->getLoginDetails();
@@ -48,7 +48,7 @@ $loginDetails = $currentPage->getLoginDetails();
             </li>
             <li class="mb-3">
                 <label for="password" class="form-label">
-                    Password:
+                    <?= t('Password', 'Password') ?>:
                 </label>
                 <input type="password"
                        name="password"
@@ -58,11 +58,11 @@ $loginDetails = $currentPage->getLoginDetails();
                        class="form-control">
                     <input class="form-check-input" type="checkbox" id="showPasswordToggle">
                     <label class="form-check-label" for="showPasswordToggle">
-                        Show Password
+                        <?= t('Show Password', 'Show Password') ?>
                     </label>
             </li>
             <li class="submit-buttons">
-                <input type="submit" value="LOGIN" name="loginButton" class="btn btn-success">
+                <input type="submit" value="<?= t('Log in', 'Log in') ?>" name="loginButton" class="btn btn-success">
             </li>
         </ol>
     </fieldset>
