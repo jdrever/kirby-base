@@ -13,7 +13,7 @@ namespace BSBI\WebBase\forms;
 readonly class ResolvedFormField
 {
     /**
-     * @param string        $type        One of: textbox, textarea, checkbox-group, radio-group, likert, select
+     * @param string        $type        One of: textbox, textarea, checkbox-group, radio-group, likert, select, info
      * @param string        $name        The HTML input name attribute and POST key
      * @param string        $label       The human-readable question label
      * @param bool          $required    Whether the field is required
@@ -25,6 +25,7 @@ readonly class ResolvedFormField
      * @param string        $rightLabel  For likert: right-end label
      * @param int           $scaleMin    For likert: minimum scale value
      * @param int           $scaleMax    For likert: maximum scale value
+     * @param string        $content     For info: markdown content to display (not a form input)
      */
     public function __construct(
         public readonly string $type,
@@ -39,6 +40,7 @@ readonly class ResolvedFormField
         public readonly string $rightLabel = 'Strongly agree',
         public readonly int $scaleMin = 1,
         public readonly int $scaleMax = 5,
+        public readonly string $content = '',
     ) {
     }
 
