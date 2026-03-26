@@ -26,6 +26,11 @@ class BaseWebPage extends BaseModel
     /**
      * @var string
      */
+    protected string $htmlTitle = '';
+
+    /**
+     * @var string
+     */
     protected string $openGraphTitle = '';
 
     /**
@@ -161,6 +166,26 @@ class BaseWebPage extends BaseModel
         parent::__construct($title, $url);
     }
 
+
+    /**
+     * Get the HTML document title (used in the <title> element)
+     * @return string
+     */
+    public function getHtmlTitle(): string
+    {
+        return $this->htmlTitle !== '' ? $this->htmlTitle : $this->getTitle();
+    }
+
+    /**
+     * Set the HTML document title (used in the <title> element)
+     * @param string $htmlTitle
+     * @return self
+     */
+    public function setHtmlTitle(string $htmlTitle): self
+    {
+        $this->htmlTitle = $htmlTitle;
+        return $this;
+    }
 
     /**
      * @return string

@@ -208,11 +208,15 @@ abstract class KirbyBaseHelper
                 throw new KirbyRetrievalException("Page class must extend BaseWebPage.");
             }
 
+            $pageTitle = $page->title()->toString();
+
             $webPage = new $pageClass(
-                $page->title()->toString(),
+                $pageTitle,
                 $page->url(),
                 $page->template()->name()
             );
+
+            $webPage->setHtmlTitle($pageTitle . ' - ' . site()->title()->toString());
 
             $webPage->setPageId($page->id());
 
