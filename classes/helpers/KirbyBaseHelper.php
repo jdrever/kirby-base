@@ -1270,6 +1270,25 @@ abstract class KirbyBaseHelper
         return $this->fieldReader->getSiteStructureFieldAsArray($fieldName, $required);
     }
 
+
+    /**
+     * if not links found, will return empty WebPageLinks
+     * @param string $fieldName
+     * @return WebPageLinks
+     */
+    public function getSiteFieldAsWebPageLinks(string $fieldName): WebPageLinks
+    {
+        try {
+            $siteField = $this->getSiteField($fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            $pages = $siteField->toPages();
+            return $this->getWebPageLinks($pages, true);
+        }
+        catch (KirbyRetrievalException $e) {
+            return new WebPageLinks();
+        }
+    }
+
     /**
      * @param string $fieldName
      * @return Field

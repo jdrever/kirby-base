@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BSBI\WebBase\helpers;
 
 use BSBI\WebBase\models\WebPageLink;
+use BSBI\WebBase\models\WebPageLinks;
 use DateTime;
 use Exception;
 use Kirby\Cms\App;
@@ -38,7 +39,8 @@ final readonly class KirbyFieldReader
     public function __construct(
         private App  $kirby,
         private Site $site,
-    ) {
+    )
+    {
     }
 
     // -------------------------------------------------------------------------
@@ -92,7 +94,8 @@ final readonly class KirbyFieldReader
         string $fieldName,
         bool   $required = false,
         string $defaultValue = '',
-    ): string {
+    ): string
+    {
         try {
             $pageField = $this->getPageField($page, $fieldName);
             return $pageField->toString();
@@ -128,7 +131,8 @@ final readonly class KirbyFieldReader
         string $fieldName,
         bool   $required = false,
         string $defaultValue = '',
-    ): string {
+    ): string
+    {
         $value = $this->getPageFieldAsString($page, $fieldName, $required, $defaultValue);
         return esc($value, 'js');
     }
@@ -143,7 +147,8 @@ final readonly class KirbyFieldReader
         string $fieldName,
         bool   $required = false,
         int    $default = 0,
-    ): int {
+    ): int
+    {
         try {
             $pageField = $this->getPageField($page, $fieldName);
             /** @noinspection PhpUndefinedMethodInspection */
@@ -186,7 +191,8 @@ final readonly class KirbyFieldReader
         string $fieldName,
         bool   $required = false,
         bool   $default = false,
-    ): bool {
+    ): bool
+    {
         try {
             $pageField = $this->getPageField($page, $fieldName);
             /** @noinspection PhpUndefinedMethodInspection */
@@ -317,7 +323,8 @@ final readonly class KirbyFieldReader
         string $fieldName,
         bool   $required = false,
         int    $excerpt = 0,
-    ): string {
+    ): string
+    {
         try {
             $pageField = $this->getPageField($page, $fieldName);
             $blocksHTML = '';
@@ -350,7 +357,8 @@ final readonly class KirbyFieldReader
         string $fieldName,
         int    $length,
         bool   $required = false,
-    ): string {
+    ): string
+    {
         if ($length <= 0) {
             return '';
         }
