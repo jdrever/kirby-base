@@ -179,6 +179,8 @@ abstract class KirbyBaseHelper
                 $page = $this->setBasicPage($kirbyPage, $page);
             }
 
+            $this->applyPendingFormFlash($page);
+
             $setPageFunction = 'set' . $this->extractClassName($pageClass);
 
             if (method_exists($this, $setPageFunction)) {
@@ -4924,6 +4926,36 @@ abstract class KirbyBaseHelper
     #endregion
 
     #region FORMS
+
+    /**
+     * Stores a success message in the Kirby session so it can be displayed on
+     * the next page load (e.g. after a post-submission redirect).
+     *
+     * @param string $message The friendly message to carry across the redirect.
+     */
+    protected function storeFormFlashMessage(string $message): void
+    {
+        kirby()->session()->set('form_flash_message', $message);
+    }
+
+    /**
+     * Reads any pending form flash message from the session, applies it to the
+     * page model as a friendly message, then immediately removes it so it only
+     * appears once.
+     *
+     * Called from getSpecificPage() on every page load so any destination page
+     * (not just form pages) can display the confirmation banner.
+     *
+     * @param BaseWebPage $page The page model to apply the message to.
+     */
+    protected function applyPendingFormFlash(BaseWebPage $page): void
+    {
+        $message = kirby()->session()->get('form_flash_message');
+        if (is_string($message) && $message !== '') {
+            $page->addFriendlyMessage($message);
+            kirby()->session()->remove('form_flash_message');
+        }
+    }
 
     /**
      * Populates a FormPage model with resolved fields and custom blocks from
