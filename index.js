@@ -406,6 +406,42 @@ panel.plugin('open-foundations/kirby-base', {
 
         </section>
       `
+    },
+
+    translatedpages: {
+      data: function () {
+        return {
+          translations: []
+        }
+      },
+      created: async function () {
+        try {
+          const response = await this.load();
+          this.translations = response.translations;
+        } catch (error) {
+          console.error("Failed to load translated pages section:", error);
+        }
+      },
+      template: `
+        <div v-if="translations.length > 0" style="margin-bottom: 1.5rem;">
+          <section class="k-section k-translated-pages-section">
+            <header class="k-section-header">
+              <h2 class="k-headline">Translated versions</h2>
+            </header>
+            <div class="k-items" data-layout="list">
+              <k-item
+                v-for="t in translations"
+                :key="t.code"
+                :text="t.name"
+                :info="t.code"
+                :link="t.panelUrl"
+                layout="list"
+                :image="false"
+              />
+            </div>
+          </section>
+        </div>
+      `
     }
   }
 });

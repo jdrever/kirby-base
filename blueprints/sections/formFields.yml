@@ -3,9 +3,29 @@ fields:
   emailRecepient:
     type: email
     label: Email Receipient
+  onSubmission:
+    type: select
+    label: After submission
+    default: show_success
+    options:
+      show_success: Show success content on this page
+      redirect: Redirect to another page
+  successMessage:
+    type: text
+    label: Success message
+    help: Message shown to the visitor after a successful submission. Leave blank to use the default message.
   successContent:
     type: blocks
     label: Success content
+    when:
+      onSubmission: show_success
+  redirectOnSubmission:
+    type: pages
+    label: Redirect to page
+    max: 1
+    when:
+      onSubmission: redirect
+    help: The visitor will be redirected to this page after successful submission, with a confirmation banner shown at the top.
   customFormElements:
     type: blocks
     label: Custom form elements

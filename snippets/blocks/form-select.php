@@ -10,8 +10,9 @@ $rawOptions = array_values(array_filter(array_map('trim', explode("\n", (string)
 $options    = array_map(static fn(string $o): array => ['value' => $o, 'display' => $o], $rawOptions);
 
 snippet('form/select', [
-    'id'      => $block->name()->value(),
-    'name'    => $block->name()->value(),
-    'label'   => $block->label()->value(),
-    'options' => $options,
+    'id'       => $block->name()->value(),
+    'name'     => $block->name()->value(),
+    'label'    => $block->label()->value(),
+    'options'  => $options,
+    'required' => $block->required()->isTrue(),
 ]);

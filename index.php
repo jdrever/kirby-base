@@ -37,6 +37,7 @@ $pluginConfig = [
         'searchanalytics' => require __DIR__ . '/sections/searchanalytics.php',
         'searchindexstats' => require __DIR__ . '/sections/searchindexstats.php',
         'contentindexstats' => require __DIR__ . '/sections/contentindexstats.php',
+        'translatedpages' => require __DIR__ . '/sections/translatedpages.php',
     ],
 ];
 

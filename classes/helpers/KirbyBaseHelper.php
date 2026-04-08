@@ -179,6 +179,8 @@ abstract class KirbyBaseHelper
                 $page = $this->setBasicPage($kirbyPage, $page);
             }
 
+            $this->applyPendingFormFlash($page);
+
             $setPageFunction = 'set' . $this->extractClassName($pageClass);
 
             if (method_exists($this, $setPageFunction)) {
@@ -208,11 +210,15 @@ abstract class KirbyBaseHelper
                 throw new KirbyRetrievalException("Page class must extend BaseWebPage.");
             }
 
+            $pageTitle = $page->title()->toString();
+
             $webPage = new $pageClass(
-                $page->title()->toString(),
+                $pageTitle,
                 $page->url(),
                 $page->template()->name()
             );
+
+            $webPage->setHtmlTitle($pageTitle . ' - ' . site()->title()->toString());
 
             $webPage->setPageId($page->id());
 
@@ -892,7 +898,7 @@ abstract class KirbyBaseHelper
      * @throws KirbyRetrievalException
      * @noinspection PhpUnused
      */
-    protected function getPageFieldAsKirbyText(Page $page, string $fieldName, bool $required = false): string
+    public function getPageFieldAsKirbyText(Page $page, string $fieldName, bool $required = false): string
     {
         return $this->fieldReader->getPageFieldAsKirbyText($page, $fieldName, $required);
     }
@@ -903,9 +909,22 @@ abstract class KirbyBaseHelper
      * @return File|null
      * @throws KirbyRetrievalException
      */
-    protected function getPageFieldAsFile(Page $page, string $fieldName): File|null
+    public function getPageFieldAsFile(Page $page, string $fieldName): File|null
     {
         return $this->fieldReader->getPageFieldAsFile($page, $fieldName);
+    }
+
+    /**
+     * Returns an Image model for the given Kirby File, generating thumbnails and srcsets.
+     *
+     * @param File $file The Kirby file to generate the image from.
+     * @param int $width The desired image width in pixels.
+     * @param int $height The desired image height in pixels.
+     * @return Image
+     */
+    public function getFileAsImage(File $file, int $width, int $height): Image
+    {
+        return $this->imageService->getImageFromFile($file, $width, $height);
     }
 
     /**
@@ -1272,6 +1291,25 @@ abstract class KirbyBaseHelper
     protected function getSiteStructureFieldAsArray(string $fieldName, bool $required = false): array
     {
         return $this->fieldReader->getSiteStructureFieldAsArray($fieldName, $required);
+    }
+
+
+    /**
+     * if not links found, will return empty WebPageLinks
+     * @param string $fieldName
+     * @return WebPageLinks
+     */
+    public function getSiteFieldAsWebPageLinks(string $fieldName): WebPageLinks
+    {
+        try {
+            $siteField = $this->getSiteField($fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            $pages = $siteField->toPages();
+            return $this->getWebPageLinks($pages, true);
+        }
+        catch (KirbyRetrievalException $e) {
+            return new WebPageLinks();
+        }
     }
 
     /**
@@ -4924,6 +4962,36 @@ abstract class KirbyBaseHelper
     #endregion
 
     #region FORMS
+
+    /**
+     * Stores a success message in the Kirby session so it can be displayed on
+     * the next page load (e.g. after a post-submission redirect).
+     *
+     * @param string $message The friendly message to carry across the redirect.
+     */
+    protected function storeFormFlashMessage(string $message): void
+    {
+        kirby()->session()->set('form_flash_message', $message);
+    }
+
+    /**
+     * Reads any pending form flash message from the session, applies it to the
+     * page model as a friendly message, then immediately removes it so it only
+     * appears once.
+     *
+     * Called from getSpecificPage() on every page load so any destination page
+     * (not just form pages) can display the confirmation banner.
+     *
+     * @param BaseWebPage $page The page model to apply the message to.
+     */
+    protected function applyPendingFormFlash(BaseWebPage $page): void
+    {
+        $message = kirby()->session()->get('form_flash_message');
+        if (is_string($message) && $message !== '') {
+            $page->addFriendlyMessage($message);
+            kirby()->session()->remove('form_flash_message');
+        }
+    }
 
     /**
      * Populates a FormPage model with resolved fields and custom blocks from

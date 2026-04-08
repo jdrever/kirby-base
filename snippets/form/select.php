@@ -28,7 +28,7 @@ if (isset($label)) : ?>
 <label for="<?=$id?>" class="col-form-label"><?=$label?></label>
 <?php endif ?>
 
-<select name="<?=$name?>" id="<?=$id?>" class="form-select <?=$size?>">
+<select name="<?=$name?>" id="<?=$id?>" class="form-select <?=$size?>"<?php if (!empty($required)) : ?> required<?php endif; ?>>
 <?php foreach ($options as $option)  :
     $selected = (trim((string) $option['value']) === $selectedValue) ? ' selected' : ''; ?>
     <option value="<?=$option['value']?>" <?=$selected?>><?=$option['display'] ?? $option['value']?></option>

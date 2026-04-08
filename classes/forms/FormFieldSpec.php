@@ -23,12 +23,13 @@ namespace BSBI\WebBase\forms;
 class FormFieldSpec
 {
     // ── Supported types ────────────────────────────────────────────────────
-    public const TYPE_TEXTBOX       = 'textbox';
-    public const TYPE_TEXTAREA      = 'textarea';
+    public const TYPE_TEXTBOX        = 'textbox';
+    public const TYPE_TEXTAREA       = 'textarea';
     public const TYPE_CHECKBOX_GROUP = 'checkbox-group';
-    public const TYPE_RADIO_GROUP   = 'radio-group';
-    public const TYPE_LIKERT        = 'likert';
-    public const TYPE_SELECT        = 'select';
+    public const TYPE_RADIO_GROUP    = 'radio-group';
+    public const TYPE_LIKERT         = 'likert';
+    public const TYPE_SELECT         = 'select';
+    public const TYPE_INFO           = 'info';
 
     /** @var array<string, mixed> Overridable property defaults keyed by property name */
     private array $overridable = [];
@@ -42,6 +43,7 @@ class FormFieldSpec
     private array $defaultOptions = [];
 
     private string $defaultHelp        = '';
+    private string $defaultContent     = '';
     private string $defaultLeftLabel   = 'Strongly disagree';
     private string $defaultMiddleLabel = '';
     private string $defaultRightLabel  = 'Strongly agree';
@@ -168,6 +170,20 @@ class FormFieldSpec
     {
         $spec = new static(self::TYPE_SELECT, $name, $defaultLabel);
         $spec->defaultOptions = $defaultOptions;
+        return $spec;
+    }
+
+    /**
+     * Creates an info (display-only) spec that renders markdown content.
+     * No form input is generated; the field is not submitted with the form.
+     *
+     * @param string $name    Unique identifier for this item (not rendered as an input)
+     * @param string $content Markdown content to display
+     */
+    public static function info(string $name, string $content): static
+    {
+        $spec = new static(self::TYPE_INFO, $name, '');
+        $spec->defaultContent = $content;
         return $spec;
     }
 
@@ -310,6 +326,12 @@ class FormFieldSpec
                 rightLabel:  $this->resolveProperty('rightLabel', $this->defaultRightLabel, $panelValues),
                 scaleMin:    $this->defaultScaleMin,
                 scaleMax:    $this->defaultScaleMax,
+            ),
+            self::TYPE_INFO => new ResolvedFormField(
+                type:    $this->type,
+                name:    $this->name,
+                label:   '',
+                content: $this->defaultContent,
             ),
             default => throw new \InvalidArgumentException("Unknown FormFieldSpec type: {$this->type}"),
         };
