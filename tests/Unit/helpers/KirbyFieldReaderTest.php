@@ -496,7 +496,7 @@ final class KirbyFieldReaderTest extends TestCase
     }
 
     // =========================================================================
-    // PAGE FIELDS — getPageTitle / getPageUrl
+    // PAGE FIELDS — getPageTitle / getPageUrl / getPageType
     // =========================================================================
 
     public function testGetPageTitleReturnsTitle(): void
@@ -511,6 +511,14 @@ final class KirbyFieldReaderTest extends TestCase
         $page = $this->makePage(['title' => 'My Page']);
 
         $this->assertIsString(self::$reader->getPageUrl($page));
+    }
+
+    public function testGetPageTypeReturnsTemplateName(): void
+    {
+        $page = $this->makePage(['title' => 'Test']);
+
+        $this->assertIsString(self::$reader->getPageType($page));
+        $this->assertNotEmpty(self::$reader->getPageType($page));
     }
 
     // =========================================================================

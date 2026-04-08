@@ -620,22 +620,43 @@ abstract class KirbyBaseHelper
     }
 
     /**
-     * Gets the field - if the field is empty, returns an empty string
+     * Returns the page title as a string.
+     * @param Page $page
+     * @return string
      */
-    public function getPageTitle($page): string
+    public function getPageTitle(Page $page): string
     {
-        return $page->title()->toString();
+        return $this->fieldReader->getPageTitle($page);
     }
 
     /**
-     * Gets the field - if the field is empty, returns an empty string
-     * @param $page
+     * Returns the page URL as a string.
+     * @param Page $page
      * @return string
      * @noinspection PhpUnused
      */
-    public function getPageUrl($page): string
+    public function getPageUrl(Page $page): string
     {
-        return $page->url();
+        return $this->fieldReader->getPageUrl($page);
+    }
+
+    /**
+     * @param Page $page
+     * @return string
+     */
+    public function getPageId(Page $page): string
+    {
+        return $this->fieldReader->getPageId($page);
+    }
+
+    /**
+     * Returns the template name (type) of the page as a string.
+     * @param Page $page
+     * @return string
+     */
+    public function getPageType(Page $page): string
+    {
+        return $this->fieldReader->getPageType($page);
     }
 
     /**
@@ -2723,6 +2744,21 @@ abstract class KirbyBaseHelper
      * @return Image
      * @throws KirbyRetrievalException
      */
+    /**
+     * Returns an Image model for an SVG file field, using the raw file URL without
+     * any thumbnail processing.
+     *
+     * @param Page $page
+     * @param string $fieldName
+     * @param string $imageClass
+     * @return Image
+     * @throws KirbyRetrievalException
+     */
+    protected function getSvgImage(Page $page, string $fieldName, string $imageClass = ''): Image
+    {
+        return $this->imageService->getSvgImage($page, $fieldName, $imageClass);
+    }
+
     protected function getImage(Page       $page,
                                 string     $fieldName,
                                 int        $width,

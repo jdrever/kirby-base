@@ -270,6 +270,50 @@ final readonly class ImageService
         return (new Image())->recordError('Image not found');
     }
 
+    /**
+     * Returns an Image model for an SVG file field, using the raw file URL without
+     * any thumbnail processing (SVGs are vector files and do not need rasterisation).
+     *
+     * @param Page $page
+     * @param string $fieldName
+     * @param string $imageClass
+     * @return Image
+     * @throws KirbyRetrievalException
+     */
+    /**
+     * Returns an Image model for an SVG file field, using the raw file URL without
+     * any thumbnail processing (SVGs are vector files and do not need rasterisation).
+     *
+     * @param Page $page
+     * @param string $fieldName
+     * @param string $imageClass
+     * @return Image
+     * @throws KirbyRetrievalException
+     */
+    public function getSvgImage(Page $page, string $fieldName, string $imageClass = ''): Image
+    {
+        $file = $this->fieldReader->getPageFieldAsFile($page, $fieldName);
+        if ($file === null) {
+            return (new Image())->recordError('SVG file not found');
+        }
+        return $this->getSvgImageFromFile($file, $imageClass);
+    }
+
+    /**
+     * Builds an Image model directly from a Kirby File, using the raw URL without
+     * thumbnail processing. Suitable for SVG files.
+     *
+     * @param File $file
+     * @param string $imageClass
+     * @return Image
+     */
+    public function getSvgImageFromFile(File $file, string $imageClass = ''): Image
+    {
+        /** @noinspection PhpUndefinedMethodInspection */
+        $alt = $file->alt()->isNotEmpty() ? $file->alt()->value() : '';
+        return (new Image($file->url(), '', '', $alt))->setClass($imageClass);
+    }
+
     // endregion
 
     // region FILES

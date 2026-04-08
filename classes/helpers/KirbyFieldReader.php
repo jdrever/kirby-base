@@ -628,6 +628,25 @@ final readonly class KirbyFieldReader
         return $page->url();
     }
 
+    /**
+     * @param Page $page
+     * @return string
+     */
+    public function getPageId(Page $page): string
+    {
+        return $page->id();
+    }
+
+    /**
+     * Returns the template name (type) of the page as a string.
+     * @param Page $page
+     * @return string
+     */
+    public function getPageType(Page $page): string
+    {
+        return $page->template()->name();
+    }
+
     // -------------------------------------------------------------------------
     // SITE FIELDS
     // -------------------------------------------------------------------------
