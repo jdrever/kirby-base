@@ -108,7 +108,7 @@ final readonly class UserService
         if (!($this->hasSessionCookieFn)()) {
             return '';
         }
-        return $this->kirby->user() ? $this->kirby->user()->name() : '';
+        return $this->kirby->user() ? $this->kirby->user()->name()->value() : '';
     }
 
     /**

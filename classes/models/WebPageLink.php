@@ -31,6 +31,8 @@ class WebPageLink extends BaseModel
 
     private bool $openInNewTab;
 
+    private string $backgroundColour = '';
+
     /**
      * @param string $title
      * @param string $url
@@ -226,6 +228,22 @@ class WebPageLink extends BaseModel
         $this->breadcrumb = $breadcrumb;
         return $this;
     }
+
+    public function hasBackgroundColour(): bool
+    {
+        return !empty($this->backgroundColour);
+    }
+    public function getBackgroundColour(): string
+    {
+        return $this->backgroundColour;
+    }
+
+    public function setBackgroundColour(string $backgroundColour): void
+    {
+        $this->backgroundColour = $backgroundColour;
+    }
+
+
 
 
 
