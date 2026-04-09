@@ -37,6 +37,9 @@ endif;
 <?php if ($image->hasClass()) : ?>
             class="<?= $image->getClass() ?>"
 <?php endif ?>
+<?php if ($image->hasStyle()) : ?>
+            style="<?= $image->getStyle() ?>"
+<?php endif ?>
             alt="<?= $image->getAlt() ?>"
             src="<?= $image->getSrc() ?>"
             srcset="<?= $image->getSrcset() ?>"
