@@ -529,6 +529,30 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * Creates a new top-level page directly under the site root.
+     *
+     * @param array $pageData Page data (slug, template, content, etc.)
+     * @param bool $createAsListed Whether to publish the page immediately as listed
+     * @return Page The newly created Page object
+     * @throws KirbyRetrievalException If the page cannot be created
+     */
+    protected function createPageInSiteRoot(array $pageData, bool $createAsListed = false): Page
+    {
+        try {
+            $createdPage = $this->kirby->impersonate('kirby', function () use ($pageData, $createAsListed) {
+                $newPage = site()->createChild($pageData);
+                if ($createAsListed) {
+                    $newPage = $newPage->changeStatus('listed');
+                }
+                return $newPage;
+            });
+        } catch (Throwable $e) {
+            throw new KirbyRetrievalException($e->getMessage());
+        }
+        return $createdPage;
+    }
+
+    /**
      * @param Page $page
      * @param array $pageData
      * @return Page
