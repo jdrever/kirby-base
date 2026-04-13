@@ -24,7 +24,7 @@ if (!isset($label) || !isset($columnKey) || !isset($list)) {
 
 $sortDirection = $list->getSortDirectionForColumn($columnKey);
 ?>
-<th>
+<th style="white-space: nowrap">
     <?php if ($list->isSortableColumn($columnKey)) : ?>
         <a href="<?= htmlspecialchars($list->getSortUrl($columnKey), ENT_QUOTES, 'UTF-8') ?>">
             <?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?>
