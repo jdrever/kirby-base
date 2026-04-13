@@ -11,7 +11,7 @@
 </head>
 <body>
 <div class="container mt-4">
-    <p><a href="/" class="header__logo__link">Home</a></p>
+    <p><a href="/">Home</a></p>
     <div class="alert alert-danger" role="alert">
         <h2>An unexpected error has occurred</h2>
         <?php if ($userRole === 'admin') : ?>
