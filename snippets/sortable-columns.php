@@ -22,30 +22,16 @@ if (!isset($label) || !isset($columnKey) || !isset($list)) {
 /** @var string $label */
 /** @var string $columnKey */
 
-$isSortable   = in_array($columnKey, $list->getSortableColumns(), true);
-$currentSortBy  = $list->getSortBy();
-$currentSortDir = $list->getSortDirection();
-$isCurrent    = ($currentSortBy === $columnKey);
-$nextDir      = ($isCurrent && $currentSortDir === 'asc') ? 'desc' : 'asc';
-
-// Build the sort URL: strip page/sort_by/sort_dir from current URL, then append fresh values.
-// Stripping 'page' resets pagination to page 1 when a new sort is chosen.
-$currentUrl = (string) kirby()->request()->url();
-$baseUrl = preg_replace('/([?&])(page|sort_by|sort_dir)=[^&]*(&|$)/', '$1', $currentUrl) ?? $currentUrl;
-$baseUrl = preg_replace('/[?&]$/', '', $baseUrl) ?? $baseUrl;
-$separator  = str_contains($baseUrl, '?') ? '&' : '?';
-$sortUrl    = $baseUrl . $separator . 'sort_by=' . urlencode($columnKey) . '&sort_dir=' . urlencode($nextDir);
+$sortDirection = $list->getSortDirectionForColumn($columnKey);
 ?>
 <th>
-    <?php if ($isSortable) : ?>
-        <a href="<?= htmlspecialchars($sortUrl, ENT_QUOTES, 'UTF-8') ?>">
+    <?php if ($list->isSortableColumn($columnKey)) : ?>
+        <a href="<?= htmlspecialchars($list->getSortUrl($columnKey), ENT_QUOTES, 'UTF-8') ?>">
             <?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?>
-            <?php if ($isCurrent) : ?>
-                <?php if ($currentSortDir === 'asc') : ?>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16" aria-label="sorted ascending" role="img"><path fill-rule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z"/></svg>
-                <?php else : ?>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16" aria-label="sorted descending" role="img"><path fill-rule="evenodd" d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z"/></svg>
-                <?php endif ?>
+            <?php if ($sortDirection === 'asc') : ?>
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16" aria-label="sorted ascending" role="img"><path fill-rule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z"/></svg>
+            <?php elseif ($sortDirection === 'desc') : ?>
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16" aria-label="sorted descending" role="img"><path fill-rule="evenodd" d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z"/></svg>
             <?php else : ?>
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16" style="opacity:0.4" aria-label="sortable" role="img"><path fill-rule="evenodd" d="M11.5 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L11 2.707V14.5a.5.5 0 0 0 .5.5zm-7-14a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L4 13.293V1.5A.5.5 0 0 1 4.5 1z"/></svg>
             <?php endif ?>

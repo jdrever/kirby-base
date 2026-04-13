@@ -2648,9 +2648,14 @@ abstract class KirbyBaseHelper
         }
 
         if (!empty($sortableColumns)) {
+            $currentUrl = (string) $this->kirby->request()->url();
+            $baseUrl = preg_replace('/([?&])(page|sort_by|sort_dir)=[^&]*(&|$)/', '$1', $currentUrl) ?? $currentUrl;
+            $baseUrl = preg_replace('/[?&]$/', '', $baseUrl) ?? $baseUrl;
+
             $modelList->setSortableColumns($sortableColumns)
                       ->setSortBy($sortBy)
-                      ->setSortDirection($sortDirection);
+                      ->setSortDirection($sortDirection)
+                      ->setSortBaseUrl($baseUrl);
         }
 
         if ($modelList->usePagination() && !$filter->doStopPagination()) {
