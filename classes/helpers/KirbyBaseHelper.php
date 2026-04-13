@@ -2569,6 +2569,7 @@ abstract class KirbyBaseHelper
      * @param bool $childrenOnly
      * @param string $sortBy (default is no sorting applied)
      * @param string $sortDirection
+     * @param string[] $sortableColumns Allowed sort column keys; stored on the list and used to preserve sort state in pagination URLs
      * @return BaseList
      * @throws KirbyRetrievalException
      * @noinspection PhpUnused
@@ -2580,7 +2581,8 @@ abstract class KirbyBaseHelper
                                             Page|null       $parentPage = null,
                                             bool            $childrenOnly = true,
                                             string          $sortBy = '',
-                                            string          $sortDirection = ''
+                                            string          $sortDirection = '',
+                                            array           $sortableColumns = []
     ): BaseList
     {
 
@@ -2645,13 +2647,25 @@ abstract class KirbyBaseHelper
             }
         }
 
+        if (!empty($sortableColumns)) {
+            $modelList->setSortableColumns($sortableColumns)
+                      ->setSortBy($sortBy)
+                      ->setSortDirection($sortDirection);
+        }
+
         if ($modelList->usePagination() && !$filter->doStopPagination()) {
 
             $collectionPages = $collectionPages->paginate($modelList->getPaginatePerPage());
             $paginationFromKirby = $collectionPages->pagination();
 
             if (isset($paginationFromKirby)) {
-                $modelList->setPagination($this->getPagination($paginationFromKirby));
+                $pagination = $this->getPagination($paginationFromKirby);
+
+                if (!empty($sortBy)) {
+                    $pagination->appendQueryParams('sort_by=' . urlencode($sortBy) . '&sort_dir=' . urlencode($sortDirection));
+                }
+
+                $modelList->setPagination($pagination);
             }
         }
 
@@ -3182,6 +3196,37 @@ abstract class KirbyBaseHelper
     protected function getRequestOrCookie(string $key, string $fallBack): string
     {
         return get($key) ?: cookie::get($key) ?: $fallBack;
+    }
+
+    /**
+     * Read and validate sort parameters from the current request.
+     *
+     * Reads 'sort_by' and 'sort_dir' GET parameters and validates them against
+     * an allowed-columns whitelist to prevent arbitrary field injection.
+     * Falls back to the supplied defaults when parameters are absent or invalid.
+     *
+     * @param string[] $allowedColumns Column keys that may be sorted on
+     * @param string $defaultSortBy Default column key when none is supplied or the supplied value is invalid
+     * @param string $defaultSortDir Default direction ('asc' or 'desc')
+     * @return array{0: string, 1: string} Tuple of [sortBy, sortDir]
+     */
+    protected function readSortFromRequest(
+        array  $allowedColumns,
+        string $defaultSortBy = '',
+        string $defaultSortDir = 'asc'
+    ): array {
+        $sortBy  = $this->getRequestAsString('sort_by', $defaultSortBy);
+        $sortDir = $this->getRequestAsString('sort_dir', $defaultSortDir);
+
+        if (!in_array($sortBy, $allowedColumns, true)) {
+            $sortBy = $defaultSortBy;
+        }
+
+        if (!in_array($sortDir, ['asc', 'desc'], true)) {
+            $sortDir = $defaultSortDir;
+        }
+
+        return [$sortBy, $sortDir];
     }
 
 

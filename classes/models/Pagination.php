@@ -158,6 +158,46 @@ class Pagination
         return $this;
     }
 
+    /**
+     * Append additional query string parameters to all stored page URLs.
+     * Used to preserve sort state across pagination links.
+     *
+     * @param string $params Query string fragment (e.g. 'sort_by=date&sort_dir=desc'), without leading '?'
+     * @return $this
+     */
+    public function appendQueryParams(string $params): static
+    {
+        if (empty($params)) {
+            return $this;
+        }
+
+        $this->previousPageUrl = $this->appendToUrl($this->previousPageUrl, $params);
+        $this->nextPageUrl = $this->appendToUrl($this->nextPageUrl, $params);
+
+        foreach ($this->pageUrls as &$url) {
+            $url = $this->appendToUrl($url, $params);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Append a query string fragment to a URL, using '?' or '&' as appropriate.
+     *
+     * @param string $url
+     * @param string $params
+     * @return string
+     */
+    private function appendToUrl(string $url, string $params): string
+    {
+        if (empty($url)) {
+            return $url;
+        }
+
+        $separator = str_contains($url, '?') ? '&' : '?';
+        return $url . $separator . $params;
+    }
+
 
 }
 

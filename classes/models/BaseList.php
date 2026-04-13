@@ -178,6 +178,79 @@ abstract class BaseList
         return $this;
     }
 
+    /** @var string The current sort column key */
+    private string $sortBy = '';
+
+    /** @var string The current sort direction ('asc' or 'desc') */
+    private string $sortDirection = 'asc';
+
+    /** @var string[] Allowed sort column keys for this list */
+    private array $sortableColumns = [];
+
+    /**
+     * @return string
+     */
+    public function getSortBy(): string
+    {
+        return $this->sortBy;
+    }
+
+    /**
+     * @param string $sortBy
+     * @return $this
+     */
+    public function setSortBy(string $sortBy): static
+    {
+        $this->sortBy = $sortBy;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSortDirection(): string
+    {
+        return $this->sortDirection;
+    }
+
+    /**
+     * @param string $sortDirection
+     * @return $this
+     */
+    public function setSortDirection(string $sortDirection): static
+    {
+        $this->sortDirection = $sortDirection;
+        return $this;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getSortableColumns(): array
+    {
+        return $this->sortableColumns;
+    }
+
+    /**
+     * @param string[] $sortableColumns
+     * @return $this
+     */
+    public function setSortableColumns(array $sortableColumns): static
+    {
+        $this->sortableColumns = $sortableColumns;
+        return $this;
+    }
+
+    /**
+     * Returns true if this list has any sortable columns defined.
+     *
+     * @return bool
+     */
+    public function isSortable(): bool
+    {
+        return !empty($this->sortableColumns);
+    }
+
     /**
      * @return bool
      */
