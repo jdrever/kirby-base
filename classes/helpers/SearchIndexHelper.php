@@ -148,7 +148,7 @@ class SearchIndexHelper
      *
      * @return array<string> Stop words to filter from search queries
      */
-    private function getStopWords(): array
+    protected function getStopWords(): array
     {
         return option('search.stopWords', self::DEFAULT_STOP_WORDS);
     }
@@ -158,7 +158,7 @@ class SearchIndexHelper
      *
      * @return array<string, float> Field name to weight mapping
      */
-    private function getFieldWeights(): array
+    protected function getFieldWeights(): array
     {
         return option('search.fieldWeights', self::DEFAULT_FIELD_WEIGHTS);
     }
@@ -168,7 +168,7 @@ class SearchIndexHelper
      *
      * @return int Boost value for exact matches (subtracted from BM25 score)
      */
-    private function getExactMatchBoost(): int
+    protected function getExactMatchBoost(): int
     {
         return option('search.exactMatchBoost', self::DEFAULT_EXACT_MATCH_BOOST);
     }
@@ -178,7 +178,7 @@ class SearchIndexHelper
      *
      * @return array<string> Field names that receive exact match boost
      */
-    private function getExactMatchFields(): array
+    protected function getExactMatchFields(): array
     {
         return option('search.exactMatchFields', self::DEFAULT_EXACT_MATCH_FIELDS);
     }
@@ -370,7 +370,7 @@ class SearchIndexHelper
      *
      * @return int Boost value subtracted from BM25 score when a key phrase matches exactly
      */
-    private function getKeyPhraseBoost(): int
+    protected function getKeyPhraseBoost(): int
     {
         return option('search.keyPhraseBoost', self::DEFAULT_KEY_PHRASE_BOOST);
     }
