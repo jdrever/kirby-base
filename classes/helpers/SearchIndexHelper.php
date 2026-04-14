@@ -270,7 +270,7 @@ class SearchIndexHelper
             'main_content' => $mainContent,
             'additional_content' => $additionalContent,
             'key_search_phrases' => self::normaliseKeySearchPhrases(
-                (string)($content->keySearchPhrases()->value() ?? '')
+                (string)($content->get('key_search_phrases')->value() ?? '')
             ),
             'url' => $page->url(),
             'is_members_only' => $isMembersOnly,
