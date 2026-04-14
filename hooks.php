@@ -1,6 +1,7 @@
 <?php
 
 use BSBI\WebBase\helpers\ContentIndexRegistry;
+use BSBI\WebBase\helpers\KirbyBaseHelper;
 use BSBI\WebBase\helpers\KirbyInternalHelper;
 use BSBI\WebBase\helpers\SearchIndexHelper;
 
@@ -39,7 +40,7 @@ function handlePageChange($newPage, $oldPage) {
             $searchIndex = new SearchIndexHelper();
             $searchIndex->indexPage($newPage);
         } catch (Throwable $e) {
-            error_log('Failed to update search index: ' . $e->getMessage());
+            KirbyBaseHelper::writeToLogFile('search-index', 'Failed to update search index for page ' . $newPage->id() . ': ' . $e->getMessage());
         }
 
         // Update content indexes
@@ -49,7 +50,7 @@ function handlePageChange($newPage, $oldPage) {
                 $manager->indexPage($newPage, $helper);
             }
         } catch (Throwable $e) {
-            error_log('Failed to update content index: ' . $e->getMessage());
+            KirbyBaseHelper::writeToLogFile('search-index', 'Failed to update content index for page ' . $newPage->id() . ': ' . $e->getMessage());
         }
 
         return $newPage;
@@ -90,7 +91,7 @@ return [
             $searchIndex = new SearchIndexHelper();
             $searchIndex->indexPage($page);
         } catch (Throwable $e) {
-            error_log('Failed to add page to search index: ' . $e->getMessage());
+            KirbyBaseHelper::writeToLogFile('search-index', 'Failed to add page to search index for page ' . $page->id() . ': ' . $e->getMessage());
         }
 
         // Add to content indexes
@@ -100,13 +101,13 @@ return [
                 $manager->indexPage($page, $helper);
             }
         } catch (Throwable $e) {
-            error_log('Failed to add page to content index: ' . $e->getMessage());
+            KirbyBaseHelper::writeToLogFile('search-index', 'Failed to add page to content index for page ' . $page->id() . ': ' . $e->getMessage());
         }
 
         return $page;
     },
 
-    'page.changeStatus:after' => function ($newPage, $oldPage) {
+    'page.changeStatus:after' => function ($newPage, $_oldPage) {
         $helper = new KirbyInternalHelper();
         $helper->handleCaches($newPage);
 
@@ -115,7 +116,7 @@ return [
             $searchIndex = new SearchIndexHelper();
             $searchIndex->indexPage($newPage);
         } catch (Throwable $e) {
-            error_log('Failed to update search index after status change: ' . $e->getMessage());
+            KirbyBaseHelper::writeToLogFile('search-index', 'Failed to update search index after status change for page ' . $newPage->id() . ': ' . $e->getMessage());
         }
 
         // Update content indexes
@@ -125,7 +126,7 @@ return [
                 $manager->indexPage($newPage, $helper);
             }
         } catch (Throwable $e) {
-            error_log('Failed to update content index after status change: ' . $e->getMessage());
+            KirbyBaseHelper::writeToLogFile('search-index', 'Failed to update content index after status change for page ' . $newPage->id() . ': ' . $e->getMessage());
         }
     },
     'page.delete:before' => function (Kirby\Cms\Page $page) {
@@ -137,7 +138,7 @@ return [
             $searchIndex = new SearchIndexHelper();
             $searchIndex->removePage($page->id());
         } catch (Throwable $e) {
-            error_log('Failed to remove page from search index: ' . $e->getMessage());
+            KirbyBaseHelper::writeToLogFile('search-index', 'Failed to remove page from search index for page ' . $page->id() . ': ' . $e->getMessage());
         }
 
         // Remove from content indexes
@@ -147,7 +148,7 @@ return [
                 $manager->removePage($page->id());
             }
         } catch (Throwable $e) {
-            error_log('Failed to remove page from content index: ' . $e->getMessage());
+            KirbyBaseHelper::writeToLogFile('search-index', 'Failed to remove page from content index for page ' . $page->id() . ': ' . $e->getMessage());
         }
     },
 

@@ -3468,19 +3468,31 @@ abstract class KirbyBaseHelper
      * @return void
      */
     public function writeToLog(string $logFile, string $message, bool $overwrite = false): void {
+        self::writeToLogFile($logFile, $message, $overwrite);
+    }
+
+    /**
+     * Write a message to a named log file (static version for use in hooks and other static contexts).
+     *
+     * @param string $logFile Log file name without extension (.log is appended)
+     * @param string $message Message to write
+     * @param bool $overwrite If true, overwrites the log file; otherwise appends
+     * @return void
+     */
+    public static function writeToLogFile(string $logFile, string $message, bool $overwrite = false): void {
         $logDir = kirby()->root('logs');
 
         if (!is_dir($logDir)) {
             mkdir($logDir, 0755, true);
         }
 
-        $logFile = $logDir .'/'. $logFile.'.log';
+        $logPath = $logDir . '/' . $logFile . '.log';
 
         $date = new DateTime();
-        $date = $date->format("y:m:d h:i:s");
+        $dateStr = $date->format("y:m:d h:i:s");
 
         $flags = $overwrite ? 0 : FILE_APPEND;
-        file_put_contents($logFile, $date. ' '. $message, $flags);
+        file_put_contents($logPath, $dateStr . ' ' . $message . PHP_EOL, $flags);
     }
 
     /**
