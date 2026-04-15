@@ -63,14 +63,19 @@ class ContentIndexManager
     public function indexPage(Page $page, KirbyBaseHelper $helper): bool
     {
         try {
+            // Remove existing entry first (handles slug changes and draft transitions)
+            $this->removePage($page->id());
+
+            // Only index published pages (listed or unlisted), not drafts
+            if (!$page->isListed() && !$page->isUnlisted()) {
+                return false;
+            }
+
             $rowData = $this->definition->getRowData($page, $helper);
 
             if (empty($rowData)) {
                 return false;
             }
-
-            // Remove existing entry first
-            $this->removePage($page->id());
 
             $columns = array_keys($rowData);
             $placeholders = array_map(fn(string $col) => ':' . $col, $columns);
