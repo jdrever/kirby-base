@@ -38,6 +38,10 @@ function handlePageChange($newPage, $oldPage) {
         // Update search index
         try {
             $searchIndex = new SearchIndexHelper();
+            // If the page ID changed (e.g. slug rename), remove the stale old entry first
+            if ($oldPage !== null && $oldPage->id() !== $newPage->id()) {
+                $searchIndex->removePage($oldPage->id());
+            }
             $searchIndex->indexPage($newPage);
         } catch (Throwable $e) {
             KirbyBaseHelper::writeToLogFile('search-index', 'Failed to update search index for page ' . $newPage->id() . ': ' . $e->getMessage());
@@ -47,6 +51,10 @@ function handlePageChange($newPage, $oldPage) {
         try {
             $managers = ContentIndexRegistry::getManagersForTemplate($newPage->template()->name());
             foreach ($managers as $manager) {
+                // If the page ID changed (e.g. slug rename), remove the stale old entry first
+                if ($oldPage !== null && $oldPage->id() !== $newPage->id()) {
+                    $manager->removePage($oldPage->id());
+                }
                 $manager->indexPage($newPage, $helper);
             }
         } catch (Throwable $e) {
