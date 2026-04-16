@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use BSBI\WebBase\helpers\FilteredPagesHelper;
-
 /**
  * filteredpages panel section.
  *
@@ -140,13 +138,5 @@ return [
             return $this->model()->id();
         },
 
-        /**
-         * Panel URL for creating a new child page of this section's parent.
-         *
-         * @return string
-         */
-        'createUrl' => function (): string {
-            return $this->model()->panel()->url() . '/create';
-        },
     ],
 ];

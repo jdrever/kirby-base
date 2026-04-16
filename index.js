@@ -414,7 +414,6 @@ panel.plugin('open-foundations/kirby-base', {
           // Config loaded from PHP section
           headline:      '',
           modelId:       '',
-          createUrl:     '',
           filterDefs:    {},
           columnDefs:    [],
           pageSize:      25,
@@ -447,7 +446,6 @@ panel.plugin('open-foundations/kirby-base', {
           var response = await this.load();
           this.headline      = response.headline      || '';
           this.modelId       = response.modelId       || '';
-          this.createUrl     = response.createUrl     || '';
           this.filterDefs    = response.filters       || {};
           this.columnDefs    = response.columns       || [];
           this.pageSize      = response.pageSize      || 25;
@@ -622,10 +620,14 @@ panel.plugin('open-foundations/kirby-base', {
           <!-- Header -->
           <header class="k-section-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
             <h2 class="k-headline">{{ headline }}</h2>
-            <a v-if="createUrl" :href="createUrl"
-               style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;background:var(--color-black);color:var(--color-white);border-radius:var(--rounded);font-size:0.8rem;text-decoration:none;white-space:nowrap;">
-              + Create
-            </a>
+            <k-button
+              v-if="modelId"
+              :dialog="'pages/create?parent=' + modelId"
+              icon="add"
+              text="Create"
+              size="sm"
+              variant="filled"
+            />
           </header>
 
           <!-- Toolbar: search + filter dropdowns + clear button -->
