@@ -622,7 +622,7 @@ panel.plugin('open-foundations/kirby-base', {
             <h2 class="k-headline">{{ headline }}</h2>
             <k-button
               v-if="modelId"
-              :dialog="'pages/create?parent=' + modelId"
+              :dialog="'pages/create?parent=pages/' + modelId.split('/').join('+')"
               icon="add"
               text="Create"
               size="sm"
