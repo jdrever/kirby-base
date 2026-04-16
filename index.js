@@ -457,9 +457,14 @@ panel.plugin('open-foundations/kirby-base', {
           this.template      = response.template      || '';
           this.currentSort   = response.sortBy        || 'title asc';
 
-          // Restore persisted toolbar state
+          // Initialise every filter field to '' so each select shows "Label: All"
+          var initialActive = {};
+          Object.keys(this.filterDefs).forEach(function (field) { initialActive[field] = ''; });
+          this.active = initialActive;
+
+          // Then overlay any persisted selections
           var saved = this.loadSavedState();
-          if (saved.active)  this.active      = saved.active;
+          if (saved.active)  Object.assign(this.active, saved.active);
           if (saved.search)  this.search      = saved.search;
           if (saved.sort)    this.currentSort = saved.sort;
           if (saved.page)    this.currentPage = saved.page;
