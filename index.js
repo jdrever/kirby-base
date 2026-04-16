@@ -408,6 +408,307 @@ panel.plugin('open-foundations/kirby-base', {
       `
     },
 
+    filteredpages: {
+      data: function () {
+        return {
+          // Config loaded from PHP section
+          headline:      '',
+          modelId:       '',
+          createUrl:     '',
+          filterDefs:    {},
+          columnDefs:    [],
+          pageSize:      25,
+          searchEnabled: false,
+          defaultSort:   'title asc',
+          sortOptions:   [],
+          template:      '',
+
+          // Toolbar state (persisted in localStorage)
+          active:      {},
+          search:      '',
+          currentSort: 'title asc',
+          currentPage: 1,
+
+          // Dropdown options fetched from API
+          options: {},
+
+          // Results
+          items:      [],
+          total:      0,
+          totalPages: 0,
+          loading:    false,
+
+          _searchTimer: null
+        };
+      },
+
+      created: async function () {
+        try {
+          var response = await this.load();
+          this.headline      = response.headline      || '';
+          this.modelId       = response.modelId       || '';
+          this.createUrl     = response.createUrl     || '';
+          this.filterDefs    = response.filters       || {};
+          this.columnDefs    = response.columns       || [];
+          this.pageSize      = response.pageSize      || 25;
+          this.searchEnabled = response.search        || false;
+          this.defaultSort   = response.sortBy        || 'title asc';
+          this.sortOptions   = response.sortOptions   || [];
+          this.template      = response.template      || '';
+          this.currentSort   = response.sortBy        || 'title asc';
+
+          // Restore persisted toolbar state
+          var saved = this.loadSavedState();
+          if (saved.active)  this.active      = saved.active;
+          if (saved.search)  this.search      = saved.search;
+          if (saved.sort)    this.currentSort = saved.sort;
+          if (saved.page)    this.currentPage = saved.page;
+
+          await Promise.all([this.loadOptions(), this.loadResults()]);
+        } catch (error) {
+          console.error('Failed to initialise filteredpages section:', error);
+        }
+      },
+
+      computed: {
+        filterFields: function () {
+          return Object.keys(this.filterDefs);
+        },
+        sortField: function () {
+          return this.currentSort.split(' ')[0] || 'title';
+        },
+        sortDir: function () {
+          return (this.currentSort.split(' ')[1] || 'asc');
+        },
+        hasActiveFilters: function () {
+          var self = this;
+          return Object.keys(self.active).some(function (k) { return self.active[k] !== ''; });
+        }
+      },
+
+      methods: {
+        loadSavedState: function () {
+          try {
+            return JSON.parse(localStorage.getItem('bsbi-filteredpages-' + this.modelId) || '{}');
+          } catch (e) {
+            return {};
+          }
+        },
+
+        saveState: function () {
+          try {
+            localStorage.setItem('bsbi-filteredpages-' + this.modelId, JSON.stringify({
+              active:  this.active,
+              search:  this.search,
+              sort:    this.currentSort,
+              page:    this.currentPage
+            }));
+          } catch (e) { /* storage unavailable */ }
+        },
+
+        loadOptions: async function () {
+          try {
+            this.options = await this.$api.get('filtered-pages/options', {
+              model_id: this.modelId,
+              filters:  JSON.stringify(this.filterDefs)
+            });
+          } catch (e) {
+            console.error('Failed to load filter options:', e);
+          }
+        },
+
+        loadResults: async function () {
+          if (!this.modelId) return;
+          this.loading = true;
+          try {
+            var result = await this.$api.get('filtered-pages/results', {
+              model_id:  this.modelId,
+              template:  this.template,
+              filters:   JSON.stringify(this.filterDefs),
+              columns:   JSON.stringify(this.columnDefs),
+              active:    JSON.stringify(this.active),
+              search:    this.search,
+              sort:      this.currentSort,
+              page:      this.currentPage,
+              page_size: this.pageSize
+            });
+            this.items      = result.items      || [];
+            this.total      = result.total      || 0;
+            this.totalPages = result.totalPages || 0;
+            this.saveState();
+          } catch (e) {
+            console.error('Failed to load filtered pages results:', e);
+          } finally {
+            this.loading = false;
+          }
+        },
+
+        onFilterChange: function () {
+          this.currentPage = 1;
+          this.loadResults();
+        },
+
+        onSearchInput: function () {
+          var self = this;
+          clearTimeout(self._searchTimer);
+          self._searchTimer = setTimeout(function () {
+            self.currentPage = 1;
+            self.loadResults();
+          }, 300);
+        },
+
+        goToPage: function (page) {
+          if (page < 1 || page > this.totalPages) return;
+          this.currentPage = page;
+          this.loadResults();
+        },
+
+        changeSort: function (field) {
+          var parts = this.currentSort.split(' ');
+          if (parts[0] === field) {
+            this.currentSort = field + ' ' + (parts[1] === 'asc' ? 'desc' : 'asc');
+          } else {
+            this.currentSort = field + ' asc';
+          }
+          this.currentPage = 1;
+          this.loadResults();
+        },
+
+        sortIcon: function (field) {
+          var parts = this.currentSort.split(' ');
+          if (parts[0] !== field) return '\u2195';
+          return parts[1] === 'asc' ? '\u2191' : '\u2193';
+        },
+
+        isSortable: function (field) {
+          return this.sortOptions.some(function (opt) { return opt.field === field; });
+        },
+
+        colWidth: function (width) {
+          if (!width) return 'auto';
+          var parts = String(width).split('/');
+          if (parts.length === 2) {
+            return (parseInt(parts[0]) / parseInt(parts[1]) * 100).toFixed(2) + '%';
+          }
+          return width;
+        },
+
+        resetFilters: function () {
+          this.active      = {};
+          this.search      = '';
+          this.currentPage = 1;
+          this.loadResults();
+        },
+
+        navigateTo: function (url) {
+          window.location.href = url;
+        },
+
+        displayValue: function (item, col) {
+          if (col.field === 'title')  return item.title;
+          if (col.field === 'status') return item.status;
+          return (item.displayValues && item.displayValues[col.field]) || '';
+        }
+      },
+
+      template: `
+        <section class="k-section k-filteredpages-section">
+
+          <!-- Header -->
+          <header class="k-section-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+            <h2 class="k-headline">{{ headline }}</h2>
+            <a v-if="createUrl" :href="createUrl"
+               style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;background:var(--color-black);color:var(--color-white);border-radius:var(--rounded);font-size:0.8rem;text-decoration:none;white-space:nowrap;">
+              + Create
+            </a>
+          </header>
+
+          <!-- Toolbar: search + filter dropdowns + clear button -->
+          <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem;align-items:center;">
+            <input
+              v-if="searchEnabled"
+              type="text"
+              v-model="search"
+              @input="onSearchInput"
+              placeholder="Search..."
+              style="flex:1;min-width:160px;padding:0.4rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.875rem;background:var(--color-background);color:var(--color-text);"
+            />
+            <select
+              v-for="field in filterFields"
+              :key="field"
+              v-model="active[field]"
+              @change="onFilterChange"
+              style="padding:0.4rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.875rem;background:var(--color-background);color:var(--color-text);cursor:pointer;"
+            >
+              <option value="">{{ filterDefs[field].label }}: All</option>
+              <option v-for="opt in (options[field] || [])" :key="opt.value" :value="opt.value">{{ opt.text }}</option>
+            </select>
+            <button
+              v-if="hasActiveFilters || search"
+              @click="resetFilters"
+              style="padding:0.35rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.8rem;background:transparent;color:var(--color-text-dimmed);cursor:pointer;"
+            >Clear</button>
+          </div>
+
+          <!-- Loading -->
+          <div v-if="loading" style="padding:1rem 0;color:var(--color-text-dimmed);font-size:0.875rem;">Loading&hellip;</div>
+
+          <!-- Results table -->
+          <template v-else-if="items.length > 0">
+            <table style="width:100%;border-collapse:collapse;">
+              <thead>
+                <tr style="border-bottom:2px solid var(--color-border);">
+                  <th
+                    v-for="col in columnDefs"
+                    :key="col.field"
+                    :style="'text-align:left;padding:0.5rem 0.75rem;font-size:0.75rem;color:var(--color-text-dimmed);font-weight:600;width:' + colWidth(col.width) + ';' + (isSortable(col.field) ? 'cursor:pointer;user-select:none;' : '')"
+                    @click="isSortable(col.field) && changeSort(col.field)"
+                  >
+                    {{ col.label }}<span v-if="isSortable(col.field)" style="opacity:0.6;margin-left:0.25rem;">{{ sortIcon(col.field) }}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="item in items"
+                  :key="item.id"
+                  style="border-bottom:1px solid var(--color-border);cursor:pointer;"
+                  @click="navigateTo(item.panelUrl)"
+                >
+                  <td
+                    v-for="(col, idx) in columnDefs"
+                    :key="col.field"
+                    style="padding:0.6rem 0.75rem;font-size:0.875rem;"
+                  >
+                    <a v-if="idx === 0" :href="item.panelUrl" @click.stop
+                       style="color:var(--color-text);text-decoration:none;font-weight:500;">{{ displayValue(item, col) }}</a>
+                    <span v-else>{{ displayValue(item, col) }}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div v-if="totalPages > 1" style="display:flex;align-items:center;gap:1rem;padding:0.75rem 0;font-size:0.875rem;">
+              <button @click="goToPage(currentPage - 1)" :disabled="currentPage <= 1"
+                      :style="'padding:0.35rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.8rem;background:transparent;cursor:pointer;opacity:' + (currentPage <= 1 ? '0.4' : '1') + ';'"
+              >&larr; Prev</button>
+              <span style="color:var(--color-text-dimmed);">Page {{ currentPage }} of {{ totalPages }} &middot; {{ total }} total</span>
+              <button @click="goToPage(currentPage + 1)" :disabled="currentPage >= totalPages"
+                      :style="'padding:0.35rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.8rem;background:transparent;cursor:pointer;opacity:' + (currentPage >= totalPages ? '0.4' : '1') + ';'"
+              >Next &rarr;</button>
+            </div>
+          </template>
+
+          <!-- Empty state -->
+          <k-empty v-else icon="page">
+            No pages found{{ hasActiveFilters || search ? ' matching the current filters' : '' }}.
+          </k-empty>
+
+        </section>
+      `
+    },
+
     translatedpages: {
       data: function () {
         return {

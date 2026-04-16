@@ -1,0 +1,330 @@
+<?php
+
+declare(strict_types=1);
+
+namespace BSBI\WebBase\Tests\Unit\helpers;
+
+use BSBI\WebBase\helpers\FilteredPagesHelper;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * Unit tests for FilteredPagesHelper pure methods.
+ *
+ * Only the pure static methods (applyFilters, applySearch, applySort, paginate)
+ * are tested here — they have no Kirby dependency.  The Kirby-dependent methods
+ * (getOptions, getResults) require a running Kirby instance and are covered by
+ * integration tests at the site level.
+ */
+final class FilteredPagesHelperTest extends TestCase
+{
+    // ── Fixtures ──────────────────────────────────────────────────────────
+
+    /**
+     * Returns a minimal set of page data arrays that cover the main filter paths.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function makePages(): array
+    {
+        return [
+            [
+                'id'       => 'events/mountain-walk',
+                'title'    => 'Mountain Walk',
+                'status'   => 'listed',
+                'panelUrl' => '/panel/pages/events+mountain-walk',
+                'filterValues' => [
+                    'activities' => ['activities/botany', 'activities/walking'],
+                    'projects'   => ['projects/atlas'],
+                ],
+                'displayValues' => [
+                    'title'     => 'Mountain Walk',
+                    'status'    => 'listed',
+                    'startDate' => '2025-06-15',
+                ],
+            ],
+            [
+                'id'       => 'events/river-survey',
+                'title'    => 'River Survey',
+                'status'   => 'listed',
+                'panelUrl' => '/panel/pages/events+river-survey',
+                'filterValues' => [
+                    'activities' => ['activities/surveying'],
+                    'projects'   => ['projects/atlas', 'projects/bryophytes'],
+                ],
+                'displayValues' => [
+                    'title'     => 'River Survey',
+                    'status'    => 'listed',
+                    'startDate' => '2025-07-20',
+                ],
+            ],
+            [
+                'id'       => 'events/autumn-foray',
+                'title'    => 'Autumn Foray',
+                'status'   => 'draft',
+                'panelUrl' => '/panel/pages/events+autumn-foray',
+                'filterValues' => [
+                    'activities' => ['activities/botany', 'activities/surveying'],
+                    'projects'   => ['projects/bryophytes'],
+                ],
+                'displayValues' => [
+                    'title'     => 'Autumn Foray',
+                    'status'    => 'draft',
+                    'startDate' => '2025-09-10',
+                ],
+            ],
+        ];
+    }
+
+    /** @return array<string, array<string, mixed>> */
+    private function makeFilterDefs(): array
+    {
+        return [
+            'activities' => ['type' => 'pages', 'collection' => 'activities'],
+            'projects'   => ['type' => 'pages', 'collection' => 'projectsAll'],
+        ];
+    }
+
+    // ── applyFilters ──────────────────────────────────────────────────────
+
+    public function testApplyFilters_emptyActive_returnsAllPages(): void
+    {
+        $pages  = $this->makePages();
+        $result = FilteredPagesHelper::applyFilters($pages, $this->makeFilterDefs(), []);
+        $this->assertCount(3, $result);
+    }
+
+    public function testApplyFilters_byActivity_returnsMatchingPages(): void
+    {
+        $pages  = $this->makePages();
+        $result = FilteredPagesHelper::applyFilters(
+            $pages,
+            $this->makeFilterDefs(),
+            ['activities' => 'activities/botany']
+        );
+        $this->assertCount(2, $result);
+        $titles = array_column($result, 'title');
+        $this->assertContains('Mountain Walk', $titles);
+        $this->assertContains('Autumn Foray', $titles);
+    }
+
+    public function testApplyFilters_byProject_returnsMatchingPages(): void
+    {
+        $pages  = $this->makePages();
+        $result = FilteredPagesHelper::applyFilters(
+            $pages,
+            $this->makeFilterDefs(),
+            ['projects' => 'projects/bryophytes']
+        );
+        $this->assertCount(2, $result);
+        $titles = array_column($result, 'title');
+        $this->assertContains('River Survey', $titles);
+        $this->assertContains('Autumn Foray', $titles);
+    }
+
+    public function testApplyFilters_combinedFilters_returnsIntersection(): void
+    {
+        // Both River Survey (surveying + bryophytes) and Autumn Foray (surveying + bryophytes) match.
+        $pages  = $this->makePages();
+        $result = FilteredPagesHelper::applyFilters(
+            $pages,
+            $this->makeFilterDefs(),
+            [
+                'activities' => 'activities/surveying',
+                'projects'   => 'projects/bryophytes',
+            ]
+        );
+        $this->assertCount(2, $result);
+        $titles = array_column($result, 'title');
+        $this->assertContains('River Survey', $titles);
+        $this->assertContains('Autumn Foray', $titles);
+    }
+
+    public function testApplyFilters_noMatch_returnsEmpty(): void
+    {
+        $pages  = $this->makePages();
+        $result = FilteredPagesHelper::applyFilters(
+            $pages,
+            $this->makeFilterDefs(),
+            ['activities' => 'activities/nonexistent']
+        );
+        $this->assertCount(0, $result);
+    }
+
+    public function testApplyFilters_emptyStringValue_isIgnored(): void
+    {
+        $pages  = $this->makePages();
+        $result = FilteredPagesHelper::applyFilters(
+            $pages,
+            $this->makeFilterDefs(),
+            ['activities' => '']
+        );
+        $this->assertCount(3, $result);
+    }
+
+    public function testApplyFilters_unknownFilterField_isIgnored(): void
+    {
+        $pages  = $this->makePages();
+        $result = FilteredPagesHelper::applyFilters(
+            $pages,
+            $this->makeFilterDefs(),
+            ['nonexistent' => 'some-value']
+        );
+        $this->assertCount(3, $result);
+    }
+
+    // ── applySearch ───────────────────────────────────────────────────────
+
+    public function testApplySearch_emptyString_returnsAllPages(): void
+    {
+        $pages  = $this->makePages();
+        $result = FilteredPagesHelper::applySearch($pages, '');
+        $this->assertCount(3, $result);
+    }
+
+    public function testApplySearch_matchingSubstring_returnsMatch(): void
+    {
+        $pages  = $this->makePages();
+        $result = FilteredPagesHelper::applySearch($pages, 'river');
+        $this->assertCount(1, $result);
+        $this->assertSame('River Survey', $result[0]['title']);
+    }
+
+    public function testApplySearch_caseInsensitive(): void
+    {
+        $pages  = $this->makePages();
+        $result = FilteredPagesHelper::applySearch($pages, 'MOUNTAIN');
+        $this->assertCount(1, $result);
+        $this->assertSame('Mountain Walk', $result[0]['title']);
+    }
+
+    public function testApplySearch_noMatch_returnsEmpty(): void
+    {
+        $pages  = $this->makePages();
+        $result = FilteredPagesHelper::applySearch($pages, 'zzznomatch');
+        $this->assertCount(0, $result);
+    }
+
+    public function testApplySearch_partialMatch_returnsMultiple(): void
+    {
+        $pages  = $this->makePages();
+        // 'a' appears in 'Mountain Walk' and 'Autumn Foray' but not 'River Survey'
+        $result = FilteredPagesHelper::applySearch($pages, 'a');
+        $this->assertCount(2, $result);
+        $titles = array_column($result, 'title');
+        $this->assertContains('Mountain Walk', $titles);
+        $this->assertContains('Autumn Foray',  $titles);
+    }
+
+    // ── applySort ─────────────────────────────────────────────────────────
+
+    public function testApplySort_byTitleAsc_returnsAlphabeticalOrder(): void
+    {
+        $pages  = $this->makePages();
+        $result = FilteredPagesHelper::applySort($pages, 'title', 'asc');
+        $this->assertSame('Autumn Foray',  $result[0]['title']);
+        $this->assertSame('Mountain Walk', $result[1]['title']);
+        $this->assertSame('River Survey',  $result[2]['title']);
+    }
+
+    public function testApplySort_byTitleDesc_returnsReverseAlphabeticalOrder(): void
+    {
+        $pages  = $this->makePages();
+        $result = FilteredPagesHelper::applySort($pages, 'title', 'desc');
+        $this->assertSame('River Survey',  $result[0]['title']);
+        $this->assertSame('Mountain Walk', $result[1]['title']);
+        $this->assertSame('Autumn Foray',  $result[2]['title']);
+    }
+
+    public function testApplySort_byStartDateAsc_returnsChronologicalOrder(): void
+    {
+        $pages  = $this->makePages();
+        $result = FilteredPagesHelper::applySort($pages, 'startDate', 'asc');
+        $this->assertSame('Mountain Walk', $result[0]['title']); // 2025-06-15
+        $this->assertSame('River Survey',  $result[1]['title']); // 2025-07-20
+        $this->assertSame('Autumn Foray',  $result[2]['title']); // 2025-09-10
+    }
+
+    public function testApplySort_byStartDateDesc_returnsReverseChronologicalOrder(): void
+    {
+        $pages  = $this->makePages();
+        $result = FilteredPagesHelper::applySort($pages, 'startDate', 'desc');
+        $this->assertSame('Autumn Foray',  $result[0]['title']); // 2025-09-10
+        $this->assertSame('River Survey',  $result[1]['title']); // 2025-07-20
+        $this->assertSame('Mountain Walk', $result[2]['title']); // 2025-06-15
+    }
+
+    public function testApplySort_byTopLevelField_status(): void
+    {
+        $pages  = $this->makePages();
+        $result = FilteredPagesHelper::applySort($pages, 'status', 'asc');
+        // 'draft' < 'listed' lexicographically
+        $this->assertSame('Autumn Foray', $result[0]['title']);
+    }
+
+    // ── paginate ──────────────────────────────────────────────────────────
+
+    public function testPaginate_firstPage_returnsCorrectSlice(): void
+    {
+        $pages  = $this->makePages();
+        $result = FilteredPagesHelper::paginate($pages, 1, 2);
+        $this->assertSame(3, $result['total']);
+        $this->assertSame(2, $result['totalPages']);
+        $this->assertSame(1, $result['page']);
+        $this->assertCount(2, $result['items']);
+        $this->assertSame('Mountain Walk', $result['items'][0]['title']);
+        $this->assertSame('River Survey',  $result['items'][1]['title']);
+    }
+
+    public function testPaginate_secondPage_returnsRemainder(): void
+    {
+        $pages  = $this->makePages();
+        $result = FilteredPagesHelper::paginate($pages, 2, 2);
+        $this->assertCount(1, $result['items']);
+        $this->assertSame('Autumn Foray', $result['items'][0]['title']);
+    }
+
+    public function testPaginate_pageSizeLargerThanTotal_returnsSinglePage(): void
+    {
+        $pages  = $this->makePages();
+        $result = FilteredPagesHelper::paginate($pages, 1, 50);
+        $this->assertSame(1, $result['totalPages']);
+        $this->assertCount(3, $result['items']);
+    }
+
+    public function testPaginate_emptyInput_returnsZeroTotals(): void
+    {
+        $result = FilteredPagesHelper::paginate([], 1, 25);
+        $this->assertSame(0, $result['total']);
+        $this->assertSame(0, $result['totalPages']);
+        $this->assertCount(0, $result['items']);
+    }
+
+    public function testPaginate_totalPagesRoundsUp(): void
+    {
+        // 5 items, 2 per page → 3 pages
+        $pages  = array_fill(0, 5, $this->makePages()[0]);
+        $result = FilteredPagesHelper::paginate($pages, 1, 2);
+        $this->assertSame(3, $result['totalPages']);
+    }
+
+    // ── combined pipeline ─────────────────────────────────────────────────
+
+    public function testCombinedPipeline_filterSearchSortPaginate(): void
+    {
+        $pages = $this->makePages();
+
+        // Filter: botany activities (Mountain Walk + Autumn Foray)
+        $pages = FilteredPagesHelper::applyFilters(
+            $pages,
+            $this->makeFilterDefs(),
+            ['activities' => 'activities/botany']
+        );
+        // Search: 'mountain' → Mountain Walk only
+        $pages = FilteredPagesHelper::applySearch($pages, 'mountain');
+        $pages = FilteredPagesHelper::applySort($pages, 'title', 'asc');
+        $result = FilteredPagesHelper::paginate($pages, 1, 25);
+
+        $this->assertSame(1, $result['total']);
+        $this->assertSame('Mountain Walk', $result['items'][0]['title']);
+    }
+}

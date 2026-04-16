@@ -2,6 +2,7 @@
 
 use BSBI\WebBase\helpers\ContentIndexDefinition;
 use BSBI\WebBase\helpers\ContentIndexRegistry;
+use BSBI\WebBase\helpers\FilteredPagesHelper;
 use BSBI\WebBase\helpers\FormSubmissionIndexDefinition;
 use BSBI\WebBase\helpers\SearchIndexHelper;
 use Kirby\Cms\App as Kirby;
@@ -38,6 +39,49 @@ $pluginConfig = [
         'searchindexstats' => require __DIR__ . '/sections/searchindexstats.php',
         'contentindexstats' => require __DIR__ . '/sections/contentindexstats.php',
         'translatedpages' => require __DIR__ . '/sections/translatedpages.php',
+        'filteredpages'   => require __DIR__ . '/sections/filteredpages.php',
+    ],
+    'api' => [
+        'routes' => [
+            [
+                'pattern' => 'filtered-pages/options',
+                'method'  => 'GET',
+                'action'  => function (): array {
+                    $filterDefs = json_decode(get('filters', '{}'), true) ?? [];
+                    return FilteredPagesHelper::getOptions($filterDefs);
+                },
+            ],
+            [
+                'pattern' => 'filtered-pages/results',
+                'method'  => 'GET',
+                'action'  => function (): array {
+                    $modelId    = (string)get('model_id', '');
+                    $template   = (string)get('template', '');
+                    $filterDefs = json_decode(get('filters', '{}'), true) ?? [];
+                    $columnDefs = json_decode(get('columns', '[]'), true) ?? [];
+                    $active     = json_decode(get('active', '{}'), true) ?? [];
+                    $search     = (string)get('search', '');
+                    $sortParts  = explode(' ', (string)get('sort', 'title asc'), 2);
+                    $sortField  = $sortParts[0] ?? 'title';
+                    $sortDir    = strtolower($sortParts[1] ?? 'asc') === 'desc' ? 'desc' : 'asc';
+                    $page       = max(1, (int)get('page', 1));
+                    $pageSize   = max(1, min(200, (int)get('page_size', 25)));
+
+                    return FilteredPagesHelper::getResults(
+                        $modelId,
+                        $template,
+                        $filterDefs,
+                        $columnDefs,
+                        $active,
+                        $search,
+                        $sortField,
+                        $sortDir,
+                        $page,
+                        $pageSize
+                    );
+                },
+            ],
+        ],
     ],
 ];
 
