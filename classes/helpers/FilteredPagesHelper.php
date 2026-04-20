@@ -47,8 +47,8 @@ class FilteredPagesHelper
      * Each active filter value must appear in the corresponding filterValues
      * array (AND logic across filters; empty/null values are skipped).
      *
-     * Currently supports filter type 'pages' only.  Add further type branches
-     * here when additional types (multiselect, year, etc.) are introduced.
+     * Currently supports filter types 'pages' and 'siteStructure'.  Add further
+     * type branches here when additional types (year, etc.) are introduced.
      *
      * @param array<int, array<string, mixed>>    $pages      Pages data arrays.
      * @param array<string, array<string, mixed>> $filterDefs Filter definitions keyed by field name.
@@ -71,6 +71,10 @@ class FilteredPagesHelper
                 $pageValues = $page['filterValues'][$field] ?? [];
 
                 if ($type === 'pages' && !in_array($value, $pageValues, true)) {
+                    $match = false;
+                    break;
+                }
+                if ($type === 'siteStructure' && !in_array($value, $pageValues, true)) {
                     $match = false;
                     break;
                 }
@@ -156,6 +160,10 @@ class FilteredPagesHelper
      * Supports filter type 'pages': loads the named Kirby collection and
      * returns [{value: pageId, text: pageTitle}, ...].
      *
+     * Supports filter type 'siteStructure': reads a site structure field and
+     * returns [{value: itemValue, text: itemValue}, ...] using the configured
+     * 'siteField' and 'valueField' keys.
+     *
      * @param array<string, array<string, mixed>> $filterDefs Filter definitions keyed by field name.
      * @return array<string, array<int, array{value: string, text: string}>>
      */
@@ -172,6 +180,22 @@ class FilteredPagesHelper
                         $items[] = ['value' => $page->id(), 'text' => $page->title()->value()];
                     }
                     $options[$field] = $items;
+                }
+            }
+            if ($type === 'siteStructure' && isset($def['siteField'], $def['valueField'])) {
+                try {
+                    /** @var Field $siteField */
+                    $siteField = kirby()->site()->content()->get((string)$def['siteField']);
+                    /** @noinspection PhpUndefinedMethodInspection */
+                    $structure       = $siteField->toStructure();
+                    $items           = [];
+                    foreach ($structure as $item) {
+                        $val     = $item->content()->get((string)$def['valueField'])->value() ?? '';
+                        $items[] = ['value' => $val, 'text' => $val];
+                    }
+                    $options[$field] = $items;
+                } catch (InvalidArgumentException) {
+                    $options[$field] = [];
                 }
             }
         }
@@ -255,6 +279,14 @@ class FilteredPagesHelper
                     /** @noinspection PhpUndefinedMethodInspection */
                     $linkedPages              = $fieldValue->toPages();
                     $filterValues[$fieldName] = $linkedPages !== null ? $linkedPages->pluck('id') : [];
+                } catch (InvalidArgumentException) {
+                    $filterValues[$fieldName] = [];
+                }
+            }
+            if ($type === 'siteStructure') {
+                try {
+                    $raw                      = $page->content()->get($fieldName)->value() ?? '';
+                    $filterValues[$fieldName] = $raw !== '' ? array_map('trim', explode(',', $raw)) : [];
                 } catch (InvalidArgumentException) {
                     $filterValues[$fieldName] = [];
                 }

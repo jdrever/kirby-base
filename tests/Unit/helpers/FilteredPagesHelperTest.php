@@ -172,6 +172,95 @@ final class FilteredPagesHelperTest extends TestCase
         $this->assertCount(3, $result);
     }
 
+    // ── applyFilters — siteStructure type ────────────────────────────────
+
+    /** @return array<int, array<string, mixed>> */
+    private function makeSiteStructurePages(): array
+    {
+        return [
+            [
+                'id'            => 'news/recording-news',
+                'title'         => 'Recording News',
+                'status'        => 'listed',
+                'panelUrl'      => '/panel/pages/news+recording-news',
+                'filterValues'  => ['areasOfWork' => ['Recording', 'Conservation']],
+                'displayValues' => ['title' => 'Recording News', 'status' => 'listed'],
+            ],
+            [
+                'id'            => 'news/conservation-update',
+                'title'         => 'Conservation Update',
+                'status'        => 'listed',
+                'panelUrl'      => '/panel/pages/news+conservation-update',
+                'filterValues'  => ['areasOfWork' => ['Conservation']],
+                'displayValues' => ['title' => 'Conservation Update', 'status' => 'listed'],
+            ],
+            [
+                'id'            => 'news/general-news',
+                'title'         => 'General News',
+                'status'        => 'listed',
+                'panelUrl'      => '/panel/pages/news+general-news',
+                'filterValues'  => ['areasOfWork' => []],
+                'displayValues' => ['title' => 'General News', 'status' => 'listed'],
+            ],
+        ];
+    }
+
+    /** @return array<string, array<string, mixed>> */
+    private function makeSiteStructureFilterDefs(): array
+    {
+        return [
+            'areasOfWork' => ['type' => 'siteStructure', 'siteField' => 'areasOfWork', 'valueField' => 'name'],
+        ];
+    }
+
+    public function testApplyFilters_siteStructure_returnsMatchingPages(): void
+    {
+        $pages  = $this->makeSiteStructurePages();
+        $result = FilteredPagesHelper::applyFilters(
+            $pages,
+            $this->makeSiteStructureFilterDefs(),
+            ['areasOfWork' => 'Recording']
+        );
+        $this->assertCount(1, $result);
+        $this->assertSame('Recording News', $result[0]['title']);
+    }
+
+    public function testApplyFilters_siteStructure_multipleMatchingPages(): void
+    {
+        $pages  = $this->makeSiteStructurePages();
+        $result = FilteredPagesHelper::applyFilters(
+            $pages,
+            $this->makeSiteStructureFilterDefs(),
+            ['areasOfWork' => 'Conservation']
+        );
+        $this->assertCount(2, $result);
+        $titles = array_column($result, 'title');
+        $this->assertContains('Recording News',     $titles);
+        $this->assertContains('Conservation Update', $titles);
+    }
+
+    public function testApplyFilters_siteStructure_emptyValue_returnsAll(): void
+    {
+        $pages  = $this->makeSiteStructurePages();
+        $result = FilteredPagesHelper::applyFilters(
+            $pages,
+            $this->makeSiteStructureFilterDefs(),
+            ['areasOfWork' => '']
+        );
+        $this->assertCount(3, $result);
+    }
+
+    public function testApplyFilters_siteStructure_noMatch_returnsEmpty(): void
+    {
+        $pages  = $this->makeSiteStructurePages();
+        $result = FilteredPagesHelper::applyFilters(
+            $pages,
+            $this->makeSiteStructureFilterDefs(),
+            ['areasOfWork' => 'Nonexistent']
+        );
+        $this->assertCount(0, $result);
+    }
+
     // ── applySearch ───────────────────────────────────────────────────────
 
     public function testApplySearch_emptyString_returnsAllPages(): void
