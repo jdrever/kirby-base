@@ -914,15 +914,41 @@ panel.plugin('open-foundations/kirby-base', {
           if (col.field === 'filename') return item.filename;
           if (col.field === 'title')    return item.title;
           return (item.displayValues && item.displayValues[col.field]) || '';
+        },
+
+        openUpload: function () {
+          this.$refs.uploader.open();
+        },
+
+        onUploadSuccess: function () {
+          this.loadResults();
+          this.loadOptions();
         }
       },
 
       template: `
         <section class="k-section k-filteredfiles-section">
 
+          <!-- Hidden upload handler -->
+          <k-upload
+            ref="uploader"
+            :url="'/api/pages/' + modelId.split('/').join('+') + '/files'"
+            accept="image/*"
+            :multiple="true"
+            @success="onUploadSuccess"
+          />
+
           <!-- Header -->
           <header class="k-section-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
             <h2 class="k-headline">{{ headline }}</h2>
+            <k-button
+              v-if="modelId"
+              icon="upload"
+              text="Add"
+              size="sm"
+              variant="filled"
+              @click="openUpload"
+            />
           </header>
 
           <!-- Toolbar: search + filter dropdowns + clear button -->
