@@ -979,12 +979,10 @@ panel.plugin('open-foundations/kirby-base', {
                   @click="navigateTo(item.panelUrl)"
                 >
                   <td style="padding:0.4rem 0.5rem;width:60px;">
-                    <img
+                    <div
                       v-if="item.thumbUrl"
-                      :src="item.thumbUrl"
-                      :alt="item.title"
-                      style="width:48px;height:48px;object-fit:cover;border-radius:3px;display:block;"
-                    />
+                      :style="'width:48px;height:48px;border-radius:3px;background-image:url(' + JSON.stringify(item.thumbUrl) + ');background-size:cover;background-position:center;'"
+                    ></div>
                   </td>
                   <td
                     v-for="(col, idx) in columnDefs"
