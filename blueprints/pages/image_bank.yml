@@ -37,12 +37,34 @@ tabs:
       - width: 3/4
         sections:
           allImages:
-            type: files
+            type: filteredfiles
             headline: All images
-            template: image
-            layout: cards
-            info: "{{ file.tags }}"
-            text: "{{ file.filename }}"
-            sortBy: filename asc
-            size: medium
             search: true
+            pageSize: 50
+            sortBy: filename asc
+            sortOptions:
+              - field: filename
+                label: Filename
+              - field: photographer
+                label: Photographer
+            filters:
+              photographer:
+                label: Photographer
+                type: distinctText
+              tags:
+                label: Tag
+                type: tags
+              taxa:
+                label: Taxon
+                type: pages
+                collection: uncachedTaxa
+            columns:
+              - field: filename
+                label: Filename
+                width: 1/3
+              - field: photographer
+                label: Photographer
+                width: 1/3
+              - field: tags
+                label: Tags
+                width: 1/3
