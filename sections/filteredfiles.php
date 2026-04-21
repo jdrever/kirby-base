@@ -125,6 +125,16 @@ return [
         },
 
         /**
+         * File template to use when uploading via the Add button.
+         *
+         * @param string $uploadTemplate
+         * @return string
+         */
+        'uploadTemplate' => function (string $uploadTemplate = 'image'): string {
+            return $uploadTemplate;
+        },
+
+        /**
          * API endpoint prefix for options and results requests.
          *
          * Defaults to 'filtered-files', giving routes filtered-files/options and

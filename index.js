@@ -728,7 +728,7 @@ panel.plugin('open-foundations/kirby-base', {
           searchEnabled: false,
           defaultSort:   'filename asc',
           sortOptions:   [],
-          uploading:     false,
+          uploadTemplate: 'image',
 
           active:      {},
           search:      '',
@@ -751,7 +751,8 @@ panel.plugin('open-foundations/kirby-base', {
           var response = await this.load();
           this.headline      = response.headline             || '';
           this.modelId       = response.modelId             || '';
-          this.apiEndpoint   = response.resolvedApiEndpoint || 'filtered-files';
+          this.apiEndpoint    = response.resolvedApiEndpoint  || 'filtered-files';
+          this.uploadTemplate = response.uploadTemplate      || 'image';
           this.filterDefs    = response.filters             || {};
           this.columnDefs    = response.columns             || [];
           this.pageSize      = response.pageSize            || 25;
@@ -917,41 +918,7 @@ panel.plugin('open-foundations/kirby-base', {
           return (item.displayValues && item.displayValues[col.field]) || '';
         },
 
-        openUpload: function () {
-          this.$refs.fileInput.click();
-        },
-
-        handleFileUpload: async function (event) {
-          var files = Array.from(event.target.files);
-          if (!files.length) return;
-
-          var csrf = (this.$store && this.$store.state && this.$store.state.system && this.$store.state.system.csrf)
-            || (this.$panel && this.$panel.system && this.$panel.system.csrf)
-            || '';
-          var pageId = this.modelId.split('/').join('+');
-          this.uploading = true;
-
-          for (var i = 0; i < files.length; i++) {
-            var fd = new FormData();
-            fd.append('file', files[i], files[i].name);
-            fd.append('template', 'image');
-            try {
-              var resp = await fetch('/api/pages/' + pageId + '/files', {
-                method: 'POST',
-                headers: { 'X-CSRF': csrf },
-                body: fd,
-                credentials: 'same-origin'
-              });
-              if (!resp.ok) {
-                console.error('Upload failed for ' + files[i].name + ':', await resp.text());
-              }
-            } catch (e) {
-              console.error('Upload error:', e);
-            }
-          }
-
-          event.target.value = '';
-          this.uploading = false;
+        onDialogSuccess: function () {
           this.loadResults();
           this.loadOptions();
         }
@@ -960,20 +927,16 @@ panel.plugin('open-foundations/kirby-base', {
       template: `
         <section class="k-section k-filteredfiles-section">
 
-          <!-- Hidden file input for uploads -->
-          <input ref="fileInput" type="file" accept="image/*" multiple style="display:none" @change="handleFileUpload" />
-
           <!-- Header -->
           <header class="k-section-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
             <h2 class="k-headline">{{ headline }}</h2>
             <k-button
               v-if="modelId"
               icon="upload"
-              :text="uploading ? 'Uploading\u2026' : 'Add'"
-              :disabled="uploading"
+              text="Add"
               size="sm"
               variant="filled"
-              @click="openUpload"
+              :dialog="'files/upload?parent=pages/' + modelId.split('/').join('+') + '&template=' + uploadTemplate"
             />
           </header>
 
