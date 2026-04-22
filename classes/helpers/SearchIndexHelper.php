@@ -617,6 +617,48 @@ class SearchIndexHelper
     }
 
     /**
+     * Batch lookup of page IDs from a list of DDb identifiers.
+     *
+     * Returns a map of ddb_id => page_id for all IDs that are found.
+     * DDb IDs with no matching entry are omitted from the result.
+     * Uses the same cached connection as lookupPageIdByDdbId.
+     *
+     * @param string[] $ddbIds The DDb identifiers to look up
+     * @return array<string, string> Map of ddb_id => page_id
+     */
+    public static function lookupPageIdsByDdbIds(array $ddbIds): array
+    {
+        if (empty($ddbIds)) {
+            return [];
+        }
+
+        if (self::$staticDb === null) {
+            $databasePath = option('search.databasePath', self::DEFAULT_DATABASE_PATH);
+            $file = kirby()->root('site') . $databasePath;
+            if (!F::exists($file)) {
+                return [];
+            }
+            self::$staticDb = new PDO('sqlite:' . $file);
+            self::$staticDb->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        }
+
+        try {
+            $placeholders = implode(', ', array_fill(0, count($ddbIds), '?'));
+            $stmt = self::$staticDb->prepare(
+                "SELECT ddb_id, page_id FROM page_lookup WHERE ddb_id IN ($placeholders)"
+            );
+            $stmt->execute(array_values($ddbIds));
+            $result = [];
+            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                $result[(string) $row['ddb_id']] = (string) $row['page_id'];
+            }
+            return $result;
+        } catch (Throwable) {
+            return [];
+        }
+    }
+
+    /**
      * Find a page ID by exact title match
      *
      * @param string $title The title to search for (case-insensitive, trimmed)
