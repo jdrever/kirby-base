@@ -1543,7 +1543,8 @@ abstract class KirbyBaseHelper
      */
     protected function getStructureAsWebPageLinks(Page      $page,
                                                   string    $fieldName = 'related',
-                                                  ImageType $imageType = ImageType::SQUARE): WebPageLinks
+                                                  ImageType $imageType = ImageType::SQUARE,
+                                                  string $pageFieldName = 'page'): WebPageLinks
     {
         $webPageLinks = new WebPageLinks();
         try {
@@ -1551,8 +1552,8 @@ abstract class KirbyBaseHelper
 
             foreach ($webPageLinksStructure as $item) {
                 $itemTitle = $this->getStructureFieldAsString($item, 'title');
-                if ($this->hasStructureField($item, 'page')) {
-                    $page = $this->getStructureFieldAsPage($item, 'page');
+                if ($this->hasStructureField($item, $pageFieldName)) {
+                    $page = $this->getStructureFieldAsPage($item, $pageFieldName);
                     $itemTitle = empty($itemTitle) ? $page->title()->value() : $itemTitle;
                     $description = $this->getStructureFieldAsString($item, 'description');
                     $webPageLink = $this->getWebPageLink($page, true, $itemTitle, $description);
