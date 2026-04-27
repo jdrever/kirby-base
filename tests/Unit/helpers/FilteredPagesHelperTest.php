@@ -306,7 +306,7 @@ final class FilteredPagesHelperTest extends TestCase
     private function makeDateYearFilterDefs(): array
     {
         return [
-            'startYear' => ['type' => 'dateYear', 'field' => 'start_date'],
+            'startYear' => ['type' => 'dateYear', 'field' => 'startDate'],
         ];
     }
 
