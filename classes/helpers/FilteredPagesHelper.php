@@ -231,7 +231,7 @@ class FilteredPagesHelper
                     krsort($years);
                     $items = [];
                     foreach (array_keys($years) as $year) {
-                        $items[] = ['value' => $year, 'text' => $year];
+                        $items[] = ['value' => (string)$year, 'text' => (string)$year];
                     }
                     $options[$field] = $items;
                 }
