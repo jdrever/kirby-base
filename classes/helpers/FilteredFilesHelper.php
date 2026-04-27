@@ -60,6 +60,10 @@ class FilteredFilesHelper
      * Supported types: 'distinctText' (exact string match), 'tags' (value in array),
      * 'pages' (value in array of page IDs).
      *
+     * Each filter definition may include an optional 'mode' key:
+     *  - 'include' (default): only keep files that match the selected value.
+     *  - 'exclude': keep files that do NOT match the selected value.
+     *
      * @param array<int, array<string, mixed>>    $files      File data arrays.
      * @param array<string, array<string, mixed>> $filterDefs Filter definitions keyed by field name.
      * @param array<string, string>               $active     Selected values keyed by field name.
@@ -78,20 +82,18 @@ class FilteredFilesHelper
                     continue;
                 }
                 $type       = $filterDefs[$field]['type'] ?? 'pages';
+                $exclude    = (($filterDefs[$field]['mode'] ?? 'include') === 'exclude');
                 $fileValues = $file['filterValues'][$field] ?? [];
 
                 if ($type === 'distinctText') {
-                    if ($fileValues !== $value) {
+                    $hit = ($fileValues === $value);
+                    if ($exclude ? $hit : !$hit) {
                         $match = false;
                         break;
                     }
-                } elseif ($type === 'tags') {
-                    if (!in_array($value, (array)$fileValues, true)) {
-                        $match = false;
-                        break;
-                    }
-                } elseif ($type === 'pages') {
-                    if (!in_array($value, (array)$fileValues, true)) {
+                } elseif ($type === 'tags' || $type === 'pages') {
+                    $hit = in_array($value, (array)$fileValues, true);
+                    if ($exclude ? $hit : !$hit) {
                         $match = false;
                         break;
                     }
@@ -258,17 +260,18 @@ class FilteredFilesHelper
             }
 
             if (($type === 'distinctText' || $type === 'tags') && $parentPage !== null) {
+                $contentField = $def['field'] ?? $field;
                 $seen  = [];
                 $items = [];
                 foreach ($parentPage->files()->filterBy('template', 'image') as $file) {
                     if ($type === 'distinctText') {
-                        $val = trim($file->content()->get($field)->value() ?? '');
+                        $val = trim($file->content()->get($contentField)->value() ?? '');
                         if ($val !== '' && !in_array($val, $seen, true)) {
                             $seen[]  = $val;
                             $items[] = ['value' => $val, 'text' => $val];
                         }
                     } else {
-                        $raw  = $file->content()->get($field)->value() ?? '';
+                        $raw  = $file->content()->get($contentField)->value() ?? '';
                         $tags = $raw !== '' ? array_map('trim', explode(',', $raw)) : [];
                         foreach ($tags as $tag) {
                             if ($tag !== '' && !in_array($tag, $seen, true)) {
@@ -351,23 +354,24 @@ class FilteredFilesHelper
     {
         $filterValues = [];
         foreach ($filterDefs as $fieldName => $def) {
-            $type = $def['type'] ?? 'pages';
+            $type         = $def['type'] ?? 'pages';
+            $contentField = $def['field'] ?? $fieldName;
             if ($type === 'pages') {
                 try {
-                    $raw                      = $file->content()->get($fieldName)->value() ?? '';
+                    $raw                      = $file->content()->get($contentField)->value() ?? '';
                     $filterValues[$fieldName] = $raw !== '' ? Yaml::decode($raw) : [];
                 } catch (InvalidArgumentException) {
                     $filterValues[$fieldName] = [];
                 }
             } elseif ($type === 'distinctText') {
                 try {
-                    $filterValues[$fieldName] = trim($file->content()->get($fieldName)->value() ?? '');
+                    $filterValues[$fieldName] = trim($file->content()->get($contentField)->value() ?? '');
                 } catch (InvalidArgumentException) {
                     $filterValues[$fieldName] = '';
                 }
             } elseif ($type === 'tags') {
                 try {
-                    $raw                      = $file->content()->get($fieldName)->value() ?? '';
+                    $raw                      = $file->content()->get($contentField)->value() ?? '';
                     $filterValues[$fieldName] = $raw !== '' ? array_map('trim', explode(',', $raw)) : [];
                 } catch (InvalidArgumentException) {
                     $filterValues[$fieldName] = [];

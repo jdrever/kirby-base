@@ -217,6 +217,138 @@ final class FilteredFilesHelperTest extends TestCase
         $this->assertCount(3, $result);
     }
 
+    // ── applyFilters — exclude mode ───────────────────────────────────────
+
+    public function testApplyFilters_excludeMode_distinctText_excludesMatchingPhotographer(): void
+    {
+        $defs = ['photographer' => ['type' => 'distinctText', 'mode' => 'exclude']];
+        $result = FilteredFilesHelper::applyFilters(
+            $this->makeFiles(),
+            $defs,
+            ['photographer' => 'Jane Smith']
+        );
+        // Jane Smith has Bluebell Wood + Puffin; excluding her leaves only Oak Tree
+        $this->assertCount(1, $result);
+        $this->assertSame('Oak Tree', $result[0]['title']);
+    }
+
+    public function testApplyFilters_excludeMode_distinctText_emptyValue_returnsAll(): void
+    {
+        $defs = ['photographer' => ['type' => 'distinctText', 'mode' => 'exclude']];
+        $result = FilteredFilesHelper::applyFilters($this->makeFiles(), $defs, ['photographer' => '']);
+        $this->assertCount(3, $result);
+    }
+
+    public function testApplyFilters_excludeMode_distinctText_noMatch_returnsAll(): void
+    {
+        $defs = ['photographer' => ['type' => 'distinctText', 'mode' => 'exclude']];
+        $result = FilteredFilesHelper::applyFilters(
+            $this->makeFiles(),
+            $defs,
+            ['photographer' => 'Unknown Person']
+        );
+        $this->assertCount(3, $result);
+    }
+
+    public function testApplyFilters_excludeMode_tags_excludesMatchingTag(): void
+    {
+        $defs = ['tags' => ['type' => 'tags', 'mode' => 'exclude']];
+        $result = FilteredFilesHelper::applyFilters(
+            $this->makeFiles(),
+            $defs,
+            ['tags' => 'Woodland']
+        );
+        // Woodland appears in Bluebell Wood + Oak Tree; excluding leaves only Puffin
+        $this->assertCount(1, $result);
+        $this->assertSame('Puffin', $result[0]['title']);
+    }
+
+    public function testApplyFilters_excludeMode_pages_excludesMatchingTaxon(): void
+    {
+        $defs = ['taxa' => ['type' => 'pages', 'mode' => 'exclude']];
+        $result = FilteredFilesHelper::applyFilters(
+            $this->makeFiles(),
+            $defs,
+            ['taxa' => 'taxa/quercus-robur']
+        );
+        // Only Oak Tree has quercus-robur; excluding it leaves Bluebell Wood + Puffin
+        $this->assertCount(2, $result);
+        $titles = array_column($result, 'title');
+        $this->assertNotContains('Oak Tree', $titles);
+    }
+
+    public function testApplyFilters_excludeMode_defaultModeIsInclude(): void
+    {
+        // A def without 'mode' key should default to include behaviour
+        $defs = ['photographer' => ['type' => 'distinctText']];
+        $result = FilteredFilesHelper::applyFilters(
+            $this->makeFiles(),
+            $defs,
+            ['photographer' => 'Jane Smith']
+        );
+        $this->assertCount(2, $result);
+    }
+
+    // ── applyFilters — field property override ────────────────────────────
+
+    public function testApplyFilters_fieldOverride_includeUsesContentField(): void
+    {
+        // 'includePhotographer' key with field: photographer behaves as include
+        $defs = ['includePhotographer' => ['type' => 'distinctText', 'field' => 'photographer']];
+        // filterValues must be populated under the filter key 'includePhotographer'
+        $files = $this->makeFiles();
+        foreach ($files as &$f) {
+            $f['filterValues']['includePhotographer'] = $f['filterValues']['photographer'];
+        }
+        unset($f);
+
+        $result = FilteredFilesHelper::applyFilters($files, $defs, ['includePhotographer' => 'Jane Smith']);
+        $this->assertCount(2, $result);
+        $titles = array_column($result, 'title');
+        $this->assertContains('Bluebell Wood', $titles);
+        $this->assertContains('Puffin', $titles);
+    }
+
+    public function testApplyFilters_fieldOverride_excludeUsesContentField(): void
+    {
+        // 'excludePhotographer' key with field: photographer + mode: exclude
+        $defs = ['excludePhotographer' => ['type' => 'distinctText', 'field' => 'photographer', 'mode' => 'exclude']];
+        $files = $this->makeFiles();
+        foreach ($files as &$f) {
+            $f['filterValues']['excludePhotographer'] = $f['filterValues']['photographer'];
+        }
+        unset($f);
+
+        $result = FilteredFilesHelper::applyFilters($files, $defs, ['excludePhotographer' => 'Jane Smith']);
+        $this->assertCount(1, $result);
+        $this->assertSame('Oak Tree', $result[0]['title']);
+    }
+
+    public function testApplyFilters_bothIncludeAndExclude_andLogic(): void
+    {
+        // Include Jane Smith AND exclude Coastal tag → only Bluebell Wood survives
+        $defs = [
+            'photographer'        => ['type' => 'distinctText'],
+            'excludePhotographer' => ['type' => 'distinctText', 'field' => 'photographer', 'mode' => 'exclude'],
+        ];
+        $files = $this->makeFiles();
+        foreach ($files as &$f) {
+            $f['filterValues']['excludePhotographer'] = $f['filterValues']['photographer'];
+        }
+        unset($f);
+
+        // Include Jane Smith (Bluebell + Puffin), then exclude John Brown (no-op here)
+        $result = FilteredFilesHelper::applyFilters(
+            $files,
+            $defs,
+            ['photographer' => 'Jane Smith', 'excludePhotographer' => 'John Brown']
+        );
+        $this->assertCount(2, $result);
+        $titles = array_column($result, 'title');
+        $this->assertContains('Bluebell Wood', $titles);
+        $this->assertContains('Puffin', $titles);
+    }
+
     // ── applySearch ───────────────────────────────────────────────────────
 
     public function testApplySearch_emptyString_returnsAllFiles(): void

@@ -620,6 +620,15 @@ panel.plugin('open-foundations/kirby-base', {
           if (col.field === 'title')  return item.title;
           if (col.field === 'status') return item.status;
           return (item.displayValues && item.displayValues[col.field]) || '';
+        },
+
+        isExcludeFilter: function (field) {
+          return (this.filterDefs[field] && this.filterDefs[field].mode === 'exclude');
+        },
+
+        filterDefaultLabel: function (field) {
+          var label = this.filterDefs[field] ? this.filterDefs[field].label : field;
+          return this.isExcludeFilter(field) ? 'Exclude ' + label + ': None' : label + ': All';
         }
       },
 
@@ -659,9 +668,9 @@ panel.plugin('open-foundations/kirby-base', {
                 :key="field"
                 v-model="active[field]"
                 @change="onFilterChange"
-                style="padding:0.4rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.875rem;background:var(--color-white);color:var(--color-text);cursor:pointer;"
+                :style="'padding:0.4rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.875rem;background:var(--color-white);color:var(--color-text);cursor:pointer;' + (isExcludeFilter(field) && active[field] ? 'border-color:var(--color-negative,#c82829);' : '')"
               >
-                <option value="">{{ filterDefs[field].label }}: All</option>
+                <option value="">{{ filterDefaultLabel(field) }}</option>
                 <option v-for="opt in (options[field] || [])" :key="opt.value" :value="opt.value">{{ opt.text }}</option>
               </select>
               <button
@@ -943,6 +952,15 @@ panel.plugin('open-foundations/kirby-base', {
           return (item.displayValues && item.displayValues[col.field]) || '';
         },
 
+        isExcludeFilter: function (field) {
+          return (this.filterDefs[field] && this.filterDefs[field].mode === 'exclude');
+        },
+
+        filterDefaultLabel: function (field) {
+          var label = this.filterDefs[field] ? this.filterDefs[field].label : field;
+          return this.isExcludeFilter(field) ? 'Exclude ' + label + ': None' : label + ': All';
+        },
+
         onDialogSuccess: function () {
           this.loadResults();
           this.loadOptions();
@@ -985,9 +1003,9 @@ panel.plugin('open-foundations/kirby-base', {
                 :key="field"
                 v-model="active[field]"
                 @change="onFilterChange"
-                style="padding:0.4rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.875rem;background:var(--color-white);color:var(--color-text);cursor:pointer;"
+                :style="'padding:0.4rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.875rem;background:var(--color-white);color:var(--color-text);cursor:pointer;' + (isExcludeFilter(field) && active[field] ? 'border-color:var(--color-negative,#c82829);' : '')"
               >
-                <option value="">{{ filterDefs[field].label }}: All</option>
+                <option value="">{{ filterDefaultLabel(field) }}</option>
                 <option v-for="opt in (options[field] || [])" :key="opt.value" :value="opt.value">{{ opt.text }}</option>
               </select>
               <button

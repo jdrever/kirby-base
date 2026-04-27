@@ -47,8 +47,10 @@ class FilteredPagesHelper
      * Each active filter value must appear in the corresponding filterValues
      * array (AND logic across filters; empty/null values are skipped).
      *
-     * Currently supports filter types 'pages' and 'siteStructure'.  Add further
-     * type branches here when additional types (year, etc.) are introduced.
+     * Supports filter types 'pages' and 'siteStructure'. Each filter definition
+     * may include an optional 'mode' key:
+     *  - 'include' (default): only keep pages that match the selected value.
+     *  - 'exclude': keep pages that do NOT match the selected value.
      *
      * @param array<int, array<string, mixed>>    $pages      Pages data arrays.
      * @param array<string, array<string, mixed>> $filterDefs Filter definitions keyed by field name.
@@ -68,15 +70,15 @@ class FilteredPagesHelper
                     continue;
                 }
                 $type       = $filterDefs[$field]['type'] ?? 'pages';
+                $exclude    = (($filterDefs[$field]['mode'] ?? 'include') === 'exclude');
                 $pageValues = $page['filterValues'][$field] ?? [];
 
-                if ($type === 'pages' && !in_array($value, $pageValues, true)) {
-                    $match = false;
-                    break;
-                }
-                if ($type === 'siteStructure' && !in_array($value, $pageValues, true)) {
-                    $match = false;
-                    break;
+                if ($type === 'pages' || $type === 'siteStructure') {
+                    $hit = in_array($value, $pageValues, true);
+                    if ($exclude ? $hit : !$hit) {
+                        $match = false;
+                        break;
+                    }
                 }
             }
             if ($match) {
