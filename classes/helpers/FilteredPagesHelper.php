@@ -47,8 +47,8 @@ class FilteredPagesHelper
      * Each active filter value must appear in the corresponding filterValues
      * array (AND logic across filters; empty/null values are skipped).
      *
-     * Supports filter types 'pages' and 'siteStructure'. Each filter definition
-     * may include an optional 'mode' key:
+     * Supports filter types 'pages', 'siteStructure', and 'dateYear'. Each filter
+     * definition may include an optional 'mode' key:
      *  - 'include' (default): only keep pages that match the selected value.
      *  - 'exclude': keep pages that do NOT match the selected value.
      *
@@ -73,7 +73,7 @@ class FilteredPagesHelper
                 $exclude    = (($filterDefs[$field]['mode'] ?? 'include') === 'exclude');
                 $pageValues = $page['filterValues'][$field] ?? [];
 
-                if ($type === 'pages' || $type === 'siteStructure') {
+                if ($type === 'pages' || $type === 'siteStructure' || $type === 'dateYear') {
                     $hit = in_array($value, $pageValues, true);
                     if ($exclude ? $hit : !$hit) {
                         $match = false;
@@ -166,10 +166,16 @@ class FilteredPagesHelper
      * returns [{value: itemValue, text: itemValue}, ...] using the configured
      * 'siteField' and 'valueField' keys.
      *
+     * Supports filter type 'dateYear': scans child pages of $modelId (filtered
+     * by $template when provided) and returns the distinct years found in the
+     * configured 'field', sorted descending (most recent first).
+     *
      * @param array<string, array<string, mixed>> $filterDefs Filter definitions keyed by field name.
+     * @param string                              $modelId    Kirby page ID of the parent page (required for dateYear).
+     * @param string                              $template   Intended template to filter children by (optional).
      * @return array<string, array<int, array{value: string, text: string}>>
      */
-    public static function getOptions(array $filterDefs): array
+    public static function getOptions(array $filterDefs, string $modelId = '', string $template = ''): array
     {
         $options = [];
         foreach ($filterDefs as $field => $def) {
@@ -198,6 +204,36 @@ class FilteredPagesHelper
                     $options[$field] = $items;
                 } catch (InvalidArgumentException) {
                     $options[$field] = [];
+                }
+            }
+            if ($type === 'dateYear' && $modelId !== '') {
+                $parentPage = kirby()->page($modelId);
+                if ($parentPage !== null) {
+                    $children = $parentPage->children();
+                    if ($template !== '') {
+                        $children = $children->filterBy('intendedTemplate', $template);
+                    }
+                    $fieldKey = (string)($def['field'] ?? $field);
+                    $years    = [];
+                    foreach ($children as $child) {
+                        try {
+                            $raw = $child->content()->get($fieldKey)->value() ?? '';
+                            if ($raw !== '') {
+                                $timestamp = strtotime($raw);
+                                if ($timestamp !== false) {
+                                    $years[date('Y', $timestamp)] = true;
+                                }
+                            }
+                        } catch (InvalidArgumentException) {
+                            // skip pages with unparseable date fields
+                        }
+                    }
+                    krsort($years);
+                    $items = [];
+                    foreach (array_keys($years) as $year) {
+                        $items[] = ['value' => $year, 'text' => $year];
+                    }
+                    $options[$field] = $items;
                 }
             }
         }
@@ -289,6 +325,16 @@ class FilteredPagesHelper
                 try {
                     $raw                      = $page->content()->get($fieldName)->value() ?? '';
                     $filterValues[$fieldName] = $raw !== '' ? array_map('trim', explode(',', $raw)) : [];
+                } catch (InvalidArgumentException) {
+                    $filterValues[$fieldName] = [];
+                }
+            }
+            if ($type === 'dateYear') {
+                $fieldKey = (string)($def['field'] ?? $fieldName);
+                try {
+                    $raw       = $page->content()->get($fieldKey)->value() ?? '';
+                    $timestamp = $raw !== '' ? strtotime($raw) : false;
+                    $filterValues[$fieldName] = $timestamp !== false ? [date('Y', $timestamp)] : [];
                 } catch (InvalidArgumentException) {
                     $filterValues[$fieldName] = [];
                 }

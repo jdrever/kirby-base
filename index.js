@@ -513,6 +513,7 @@ panel.plugin('open-foundations/kirby-base', {
           try {
             this.options = await this.$api.get('filtered-pages/options', {
               model_id: this.modelId,
+              template: this.template,
               filters:  JSON.stringify(this.filterDefs)
             });
           } catch (e) {

@@ -76,7 +76,9 @@ $pluginConfig = [
                 'method'  => 'GET',
                 'action'  => function (): array {
                     $filterDefs = json_decode(get('filters', '{}'), true) ?? [];
-                    return FilteredPagesHelper::getOptions($filterDefs);
+                    $modelId    = (string)get('model_id', '');
+                    $template   = (string)get('template', '');
+                    return FilteredPagesHelper::getOptions($filterDefs, $modelId, $template);
                 },
             ],
             [

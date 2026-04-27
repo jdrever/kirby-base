@@ -261,6 +261,115 @@ final class FilteredPagesHelperTest extends TestCase
         $this->assertCount(0, $result);
     }
 
+    // ── applyFilters: dateYear ────────────────────────────────────────────
+
+    /** @return array<int, array<string, mixed>> */
+    private function makeDateYearPages(): array
+    {
+        return [
+            [
+                'id'            => 'events/summer-foray-2024',
+                'title'         => 'Summer Foray 2024',
+                'status'        => 'listed',
+                'panelUrl'      => '/panel/pages/events+summer-foray-2024',
+                'filterValues'  => ['startYear' => ['2024']],
+                'displayValues' => ['title' => 'Summer Foray 2024', 'status' => 'listed'],
+            ],
+            [
+                'id'            => 'events/winter-meeting-2024',
+                'title'         => 'Winter Meeting 2024',
+                'status'        => 'listed',
+                'panelUrl'      => '/panel/pages/events+winter-meeting-2024',
+                'filterValues'  => ['startYear' => ['2024']],
+                'displayValues' => ['title' => 'Winter Meeting 2024', 'status' => 'listed'],
+            ],
+            [
+                'id'            => 'events/spring-walk-2025',
+                'title'         => 'Spring Walk 2025',
+                'status'        => 'listed',
+                'panelUrl'      => '/panel/pages/events+spring-walk-2025',
+                'filterValues'  => ['startYear' => ['2025']],
+                'displayValues' => ['title' => 'Spring Walk 2025', 'status' => 'listed'],
+            ],
+            [
+                'id'            => 'events/undated-event',
+                'title'         => 'Undated Event',
+                'status'        => 'draft',
+                'panelUrl'      => '/panel/pages/events+undated-event',
+                'filterValues'  => ['startYear' => []],
+                'displayValues' => ['title' => 'Undated Event', 'status' => 'draft'],
+            ],
+        ];
+    }
+
+    /** @return array<string, array<string, mixed>> */
+    private function makeDateYearFilterDefs(): array
+    {
+        return [
+            'startYear' => ['type' => 'dateYear', 'field' => 'start_date'],
+        ];
+    }
+
+    public function testApplyFilters_dateYear_returnsMatchingPages(): void
+    {
+        $pages  = $this->makeDateYearPages();
+        $result = FilteredPagesHelper::applyFilters(
+            $pages,
+            $this->makeDateYearFilterDefs(),
+            ['startYear' => '2024']
+        );
+        $this->assertCount(2, $result);
+        $titles = array_column($result, 'title');
+        $this->assertContains('Summer Foray 2024',  $titles);
+        $this->assertContains('Winter Meeting 2024', $titles);
+    }
+
+    public function testApplyFilters_dateYear_singleYear_returnsOnePage(): void
+    {
+        $pages  = $this->makeDateYearPages();
+        $result = FilteredPagesHelper::applyFilters(
+            $pages,
+            $this->makeDateYearFilterDefs(),
+            ['startYear' => '2025']
+        );
+        $this->assertCount(1, $result);
+        $this->assertSame('Spring Walk 2025', $result[0]['title']);
+    }
+
+    public function testApplyFilters_dateYear_emptyValue_returnsAll(): void
+    {
+        $pages  = $this->makeDateYearPages();
+        $result = FilteredPagesHelper::applyFilters(
+            $pages,
+            $this->makeDateYearFilterDefs(),
+            ['startYear' => '']
+        );
+        $this->assertCount(4, $result);
+    }
+
+    public function testApplyFilters_dateYear_noMatch_returnsEmpty(): void
+    {
+        $pages  = $this->makeDateYearPages();
+        $result = FilteredPagesHelper::applyFilters(
+            $pages,
+            $this->makeDateYearFilterDefs(),
+            ['startYear' => '2099']
+        );
+        $this->assertCount(0, $result);
+    }
+
+    public function testApplyFilters_dateYear_undatedPageExcluded(): void
+    {
+        $pages  = $this->makeDateYearPages();
+        $result = FilteredPagesHelper::applyFilters(
+            $pages,
+            $this->makeDateYearFilterDefs(),
+            ['startYear' => '2024']
+        );
+        $titles = array_column($result, 'title');
+        $this->assertNotContains('Undated Event', $titles);
+    }
+
     // ── applySearch ───────────────────────────────────────────────────────
 
     public function testApplySearch_emptyString_returnsAllPages(): void
