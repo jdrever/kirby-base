@@ -172,6 +172,57 @@ class FilteredFilesHelper
     // ── Kirby-dependent methods ────────────────────────────────────────────
 
     /**
+     * Parses standard API route parameters for an options request.
+     *
+     * Reads filterDefs and model_id from the current HTTP request using Kirby's
+     * get() helper. Intended for use in Kirby API route actions.
+     *
+     * @return array{filterDefs: array<string, array<string, mixed>>, modelId: string}
+     */
+    public static function parseOptionsParams(): array
+    {
+        return [
+            'filterDefs' => json_decode(get('filters', '{}'), true) ?? [],
+            'modelId'    => (string)get('model_id', ''),
+        ];
+    }
+
+    /**
+     * Parses standard API route parameters for a results request.
+     *
+     * Reads all query parameters from the current HTTP request using Kirby's
+     * get() helper, applying defaults and sanity bounds. Intended for use in
+     * Kirby API route actions.
+     *
+     * @return array{
+     *   modelId: string,
+     *   filterDefs: array<string, array<string, mixed>>,
+     *   columnDefs: array<int, array<string, mixed>>,
+     *   active: array<string, string>,
+     *   search: string,
+     *   sortField: string,
+     *   sortDir: string,
+     *   page: int,
+     *   pageSize: int
+     * }
+     */
+    public static function parseResultsParams(): array
+    {
+        $sortParts = explode(' ', (string)get('sort', 'filename asc'), 2);
+        return [
+            'modelId'    => (string)get('model_id', ''),
+            'filterDefs' => json_decode(get('filters', '{}'), true) ?? [],
+            'columnDefs' => json_decode(get('columns', '[]'), true) ?? [],
+            'active'     => json_decode(get('active', '{}'), true) ?? [],
+            'search'     => (string)get('search', ''),
+            'sortField'  => $sortParts[0] ?? 'filename',
+            'sortDir'    => strtolower($sortParts[1] ?? 'asc') === 'desc' ? 'desc' : 'asc',
+            'page'       => max(1, (int)get('page', 1)),
+            'pageSize'   => max(1, min(200, (int)get('page_size', 25))),
+        ];
+    }
+
+    /**
      * Returns available options for each configured filter dropdown.
      *
      * Supports filter type 'pages': loads the named Kirby collection and

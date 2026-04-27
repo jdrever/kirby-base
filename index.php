@@ -49,36 +49,25 @@ $pluginConfig = [
                 'pattern' => 'filtered-files/options',
                 'method'  => 'GET',
                 'action'  => function (): array {
-                    $filterDefs = json_decode(get('filters', '{}'), true) ?? [];
-                    $modelId    = (string)get('model_id', '');
-                    return FilteredFilesHelper::getOptions($filterDefs, $modelId);
+                    $params = FilteredFilesHelper::parseOptionsParams();
+                    return FilteredFilesHelper::getOptions($params['filterDefs'], $params['modelId']);
                 },
             ],
             [
                 'pattern' => 'filtered-files/results',
                 'method'  => 'GET',
                 'action'  => function (): array {
-                    $modelId    = (string)get('model_id', '');
-                    $filterDefs = json_decode(get('filters', '{}'), true) ?? [];
-                    $columnDefs = json_decode(get('columns', '[]'), true) ?? [];
-                    $active     = json_decode(get('active', '{}'), true) ?? [];
-                    $search     = (string)get('search', '');
-                    $sortParts  = explode(' ', (string)get('sort', 'filename asc'), 2);
-                    $sortField  = $sortParts[0] ?? 'filename';
-                    $sortDir    = strtolower($sortParts[1] ?? 'asc') === 'desc' ? 'desc' : 'asc';
-                    $page       = max(1, (int)get('page', 1));
-                    $pageSize   = max(1, min(200, (int)get('page_size', 25)));
-
+                    $p = FilteredFilesHelper::parseResultsParams();
                     return FilteredFilesHelper::getResults(
-                        $modelId,
-                        $filterDefs,
-                        $columnDefs,
-                        $active,
-                        $search,
-                        $sortField,
-                        $sortDir,
-                        $page,
-                        $pageSize
+                        $p['modelId'],
+                        $p['filterDefs'],
+                        $p['columnDefs'],
+                        $p['active'],
+                        $p['search'],
+                        $p['sortField'],
+                        $p['sortDir'],
+                        $p['page'],
+                        $p['pageSize']
                     );
                 },
             ],
