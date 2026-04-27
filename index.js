@@ -927,6 +927,11 @@ panel.plugin('open-foundations/kirby-base', {
       template: `
         <section class="k-section k-filteredfiles-section">
 
+          <style>
+            .k-filteredfiles-section .k-ff-row:hover { background: var(--color-gray-100); }
+            .k-filteredfiles-section .k-ff-col-header { text-align:left; padding:0.45rem 0.75rem; font-size:0.7rem; font-weight:600; color:var(--color-text-dimmed); text-transform:uppercase; letter-spacing:0.05em; border-bottom:1px solid var(--color-border); }
+          </style>
+
           <!-- Header -->
           <header class="k-section-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
             <h2 class="k-headline">{{ headline }}</h2>
@@ -940,31 +945,33 @@ panel.plugin('open-foundations/kirby-base', {
             />
           </header>
 
-          <!-- Toolbar: search + filter dropdowns + clear button -->
-          <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem;align-items:center;">
-            <input
-              v-if="searchEnabled"
-              type="text"
-              v-model="search"
-              @input="onSearchInput"
-              placeholder="Search..."
-              style="flex:1;min-width:160px;padding:0.4rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.875rem;background:var(--color-background);color:var(--color-text);"
-            />
-            <select
-              v-for="field in filterFields"
-              :key="field"
-              v-model="active[field]"
-              @change="onFilterChange"
-              style="padding:0.4rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.875rem;background:var(--color-background);color:var(--color-text);cursor:pointer;"
-            >
-              <option value="">{{ filterDefs[field].label }}: All</option>
-              <option v-for="opt in (options[field] || [])" :key="opt.value" :value="opt.value">{{ opt.text }}</option>
-            </select>
-            <button
-              v-if="hasActiveFilters || search"
-              @click="resetFilters"
-              style="padding:0.35rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.8rem;background:transparent;color:var(--color-text-dimmed);cursor:pointer;"
-            >Clear</button>
+          <!-- Filter bar: distinct lighter background to stand out from results -->
+          <div style="background:var(--color-gray-100);border-radius:var(--rounded);padding:0.65rem 0.75rem;margin-bottom:0.75rem;">
+            <div style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;">
+              <input
+                v-if="searchEnabled"
+                type="text"
+                v-model="search"
+                @input="onSearchInput"
+                placeholder="Search..."
+                style="flex:1;min-width:160px;padding:0.4rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.875rem;background:var(--color-white);color:var(--color-text);"
+              />
+              <select
+                v-for="field in filterFields"
+                :key="field"
+                v-model="active[field]"
+                @change="onFilterChange"
+                style="padding:0.4rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.875rem;background:var(--color-white);color:var(--color-text);cursor:pointer;"
+              >
+                <option value="">{{ filterDefs[field].label }}: All</option>
+                <option v-for="opt in (options[field] || [])" :key="opt.value" :value="opt.value">{{ opt.text }}</option>
+              </select>
+              <button
+                v-if="hasActiveFilters || search"
+                @click="resetFilters"
+                style="padding:0.35rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.8rem;background:var(--color-white);color:var(--color-text-dimmed);cursor:pointer;"
+              >Clear</button>
+            </div>
           </div>
 
           <!-- Loading -->
@@ -974,15 +981,16 @@ panel.plugin('open-foundations/kirby-base', {
           <template v-else-if="items.length > 0">
             <table style="width:100%;border-collapse:collapse;">
               <thead>
-                <tr style="border-bottom:2px solid var(--color-border);">
-                  <th style="width:60px;"></th>
+                <tr>
+                  <th class="k-ff-col-header" style="width:64px;"></th>
                   <th
+                    class="k-ff-col-header"
                     v-for="col in columnDefs"
                     :key="col.field"
-                    :style="'text-align:left;padding:0.5rem 0.75rem;font-size:0.75rem;color:var(--color-text-dimmed);font-weight:600;width:' + colWidth(col.width) + ';' + (isSortable(col.field) ? 'cursor:pointer;user-select:none;' : '')"
+                    :style="'width:' + colWidth(col.width) + ';' + (isSortable(col.field) ? 'cursor:pointer;user-select:none;' : '')"
                     @click="isSortable(col.field) && changeSort(col.field)"
                   >
-                    {{ col.label }}<span v-if="isSortable(col.field)" style="opacity:0.6;margin-left:0.25rem;">{{ sortIcon(col.field) }}</span>
+                    {{ col.label }}<span v-if="isSortable(col.field)" style="opacity:0.5;margin-left:0.25rem;font-weight:400;">{{ sortIcon(col.field) }}</span>
                   </th>
                 </tr>
               </thead>
@@ -990,23 +998,23 @@ panel.plugin('open-foundations/kirby-base', {
                 <tr
                   v-for="item in items"
                   :key="item.id"
+                  class="k-ff-row"
                   style="border-bottom:1px solid var(--color-border);cursor:pointer;"
                   @click="navigateTo(item.panelUrl)"
                 >
-                  <td style="padding:0.4rem 0.5rem;width:60px;">
+                  <td style="padding:0.35rem 0.5rem;width:64px;">
                     <div
-                      v-if="item.thumbUrl"
-                      :style="'width:48px;height:48px;border-radius:3px;background-image:url(' + JSON.stringify(item.thumbUrl) + ');background-size:cover;background-position:center;'"
+                      :style="'width:48px;height:48px;border-radius:var(--rounded);background-color:var(--color-gray-200);' + (item.thumbUrl ? 'background-image:url(' + JSON.stringify(item.thumbUrl) + ');background-size:cover;background-position:center;' : '')"
                     ></div>
                   </td>
                   <td
                     v-for="(col, idx) in columnDefs"
                     :key="col.field"
-                    style="padding:0.6rem 0.75rem;font-size:0.875rem;"
+                    style="padding:0.5rem 0.75rem;font-size:0.875rem;"
                   >
                     <a v-if="idx === 0" :href="item.panelUrl" @click.stop
-                       style="color:var(--color-text);text-decoration:none;font-weight:500;">{{ displayValue(item, col) }}</a>
-                    <span v-else>{{ displayValue(item, col) }}</span>
+                       style="color:var(--color-text);text-decoration:none;">{{ displayValue(item, col) }}</a>
+                    <span v-else style="color:var(--color-text-dimmed);">{{ displayValue(item, col) }}</span>
                   </td>
                 </tr>
               </tbody>
