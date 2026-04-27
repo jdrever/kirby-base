@@ -899,6 +899,15 @@ panel.plugin('open-foundations/kirby-base', {
           return width;
         },
 
+        colFlex: function (width) {
+          if (!width) return '1 1 0';
+          var parts = String(width).split('/');
+          if (parts.length === 2) {
+            return '0 0 ' + (parseInt(parts[0]) / parseInt(parts[1]) * 100).toFixed(2) + '%';
+          }
+          return '0 0 ' + width;
+        },
+
         resetFilters: function () {
           var initialActive = {};
           Object.keys(this.filterDefs).forEach(function (field) { initialActive[field] = ''; });
@@ -928,8 +937,7 @@ panel.plugin('open-foundations/kirby-base', {
         <section class="k-section k-filteredfiles-section">
 
           <style>
-            .k-filteredfiles-section .k-ff-row:hover { background: var(--color-gray-100); }
-            .k-filteredfiles-section .k-ff-col-header { text-align:left; padding:0.45rem 0.75rem; font-size:0.7rem; font-weight:600; color:var(--color-text-dimmed); text-transform:uppercase; letter-spacing:0.05em; border-bottom:1px solid var(--color-border); }
+            .k-filteredfiles-section .k-ff-item:hover { background: var(--color-gray-200) !important; }
           </style>
 
           <!-- Header -->
@@ -977,48 +985,49 @@ panel.plugin('open-foundations/kirby-base', {
           <!-- Loading -->
           <div v-if="loading" style="padding:1rem 0;color:var(--color-text-dimmed);font-size:0.875rem;">Loading&hellip;</div>
 
-          <!-- Results table -->
+          <!-- Results list -->
           <template v-else-if="items.length > 0">
-            <table style="width:100%;border-collapse:collapse;">
-              <thead>
-                <tr>
-                  <th class="k-ff-col-header" style="width:64px;"></th>
-                  <th
-                    class="k-ff-col-header"
-                    v-for="col in columnDefs"
-                    :key="col.field"
-                    :style="'width:' + colWidth(col.width) + ';' + (isSortable(col.field) ? 'cursor:pointer;user-select:none;' : '')"
-                    @click="isSortable(col.field) && changeSort(col.field)"
-                  >
-                    {{ col.label }}<span v-if="isSortable(col.field)" style="opacity:0.5;margin-left:0.25rem;font-weight:400;">{{ sortIcon(col.field) }}</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="item in items"
-                  :key="item.id"
-                  class="k-ff-row"
-                  style="border-bottom:1px solid var(--color-border);cursor:pointer;"
-                  @click="navigateTo(item.panelUrl)"
+
+            <!-- Column header row (only shown when there are sortable columns or multiple columns) -->
+            <div v-if="columnDefs.length > 1 || sortOptions.length > 0" style="display:flex;align-items:center;padding:0.25rem 0.75rem 0.25rem 0;margin-bottom:0.15rem;">
+              <div style="width:64px;flex-shrink:0;"></div>
+              <div
+                v-for="col in columnDefs"
+                :key="col.field"
+                :style="'flex:' + colFlex(col.width) + ';min-width:0;font-size:0.7rem;font-weight:600;color:var(--color-text-dimmed);text-transform:uppercase;letter-spacing:0.05em;padding:0 0.5rem;' + (isSortable(col.field) ? 'cursor:pointer;user-select:none;' : '')"
+                @click="isSortable(col.field) && changeSort(col.field)"
+              >
+                {{ col.label }}<span v-if="isSortable(col.field)" style="opacity:0.5;margin-left:0.2rem;">{{ sortIcon(col.field) }}</span>
+              </div>
+            </div>
+
+            <!-- Item cards -->
+            <div style="display:flex;flex-direction:column;gap:0.25rem;">
+              <div
+                v-for="item in items"
+                :key="item.id"
+                class="k-ff-item"
+                style="display:flex;align-items:stretch;background:var(--color-white);border-radius:var(--rounded);overflow:hidden;cursor:pointer;"
+                @click="navigateTo(item.panelUrl)"
+              >
+                <!-- Thumbnail: flush left, full row height -->
+                <div style="width:64px;flex-shrink:0;overflow:hidden;">
+                  <div
+                    :style="'width:64px;height:100%;min-height:56px;background-color:var(--color-gray-200);' + (item.thumbUrl ? 'background-image:url(' + JSON.stringify(item.thumbUrl) + ');background-size:cover;background-position:center;' : '')"
+                  ></div>
+                </div>
+                <!-- Column cells -->
+                <div
+                  v-for="(col, idx) in columnDefs"
+                  :key="col.field"
+                  :style="'flex:' + colFlex(col.width) + ';min-width:0;display:flex;align-items:center;padding:0.75rem 0.75rem;font-size:0.875rem;overflow:hidden;'"
                 >
-                  <td style="padding:0.35rem 0.5rem;width:64px;">
-                    <div
-                      :style="'width:48px;height:48px;border-radius:var(--rounded);background-color:var(--color-gray-200);' + (item.thumbUrl ? 'background-image:url(' + JSON.stringify(item.thumbUrl) + ');background-size:cover;background-position:center;' : '')"
-                    ></div>
-                  </td>
-                  <td
-                    v-for="(col, idx) in columnDefs"
-                    :key="col.field"
-                    style="padding:0.5rem 0.75rem;font-size:0.875rem;"
-                  >
-                    <a v-if="idx === 0" :href="item.panelUrl" @click.stop
-                       style="color:var(--color-text);text-decoration:none;">{{ displayValue(item, col) }}</a>
-                    <span v-else style="color:var(--color-text-dimmed);">{{ displayValue(item, col) }}</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                  <a v-if="idx === 0" :href="item.panelUrl" @click.stop
+                     style="color:var(--color-text);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ displayValue(item, col) }}</a>
+                  <span v-else style="color:var(--color-text-dimmed);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ displayValue(item, col) }}</span>
+                </div>
+              </div>
+            </div>
 
             <!-- Pagination -->
             <div v-if="totalPages > 1" style="display:flex;align-items:center;gap:1rem;padding:0.75rem 0;font-size:0.875rem;">
