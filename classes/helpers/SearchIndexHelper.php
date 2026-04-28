@@ -316,14 +316,19 @@ class SearchIndexHelper
      */
     private function ensureCurrentSchema(): void
     {
-        $result = $this->database->query(
-            "SELECT value FROM search_meta WHERE key = 'schema_version' LIMIT 1"
-        );
+        // Guard against databases that pre-date the search_meta table
+        try {
+            $result = $this->database->query(
+                "SELECT value FROM search_meta WHERE key = 'schema_version' LIMIT 1"
+            );
 
-        if ($result !== false) {
-            $row = $result->fetch(PDO::FETCH_ASSOC);
-            $stored = $row !== false ? (int)$row['value'] : 0;
-        } else {
+            if ($result !== false) {
+                $row = $result->fetch(PDO::FETCH_ASSOC);
+                $stored = $row !== false ? (int)$row['value'] : 0;
+            } else {
+                $stored = 0;
+            }
+        } catch (Throwable $e) {
             $stored = 0;
         }
 
@@ -358,6 +363,11 @@ class SearchIndexHelper
                 tokenize="porter unicode61"
             )
         ');
+
+        // search_meta may not exist in databases created before it was introduced
+        $this->database->exec(
+            'CREATE TABLE IF NOT EXISTS search_meta (key TEXT PRIMARY KEY, value TEXT)'
+        );
 
         $stmt = $this->database->prepare(
             'INSERT OR REPLACE INTO search_meta (key, value) VALUES (:key, :value)'
