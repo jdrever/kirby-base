@@ -333,7 +333,14 @@ class SearchIndexHelper
         }
 
         if ($stored < self::CURRENT_SCHEMA_VERSION) {
-            $this->migrateToCurrentSchema();
+            try {
+                $this->migrateToCurrentSchema();
+            } catch (Throwable $e) {
+                // Migration failure (e.g. read-only DB file) — log and continue with the
+                // existing schema rather than propagating an exception that would cause
+                // SearchService to fall back to an unfiltered search.
+                KirbyBaseHelper::writeToLogFile('content-index', 'Search schema migration failed: ' . $e->getMessage());
+            }
         }
     }
 

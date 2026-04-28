@@ -162,8 +162,10 @@ final readonly class SearchService
 
             return pages($pageIds)->paginate($perPage);
         } catch (Throwable $e) {
-            error_log('SQLite search failed: ' . $e->getMessage());
-            return $this->getSearchCollection($query, 'title|mainContent|description|keywords', $perPage);
+            KirbyBaseHelper::writeToLogFile('content-index', 'SQLite search failed: ' . $e->getMessage());
+            // Never fall back to an unfiltered search — return empty results to avoid leaking
+            // restricted content types (e.g. feedback, form_submission) through the fallback path.
+            return $this->site->index()->limit(0);
         }
     }
 
