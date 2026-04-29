@@ -39,7 +39,7 @@ final readonly class SearchService
     // region QUERY INPUT
 
     /**
-     * Get the query string (q) from the current request, sanitised.
+     * Get the query string (q) from the current request, sanitised and normalised.
      *
      * @return string
      */
@@ -49,7 +49,26 @@ final readonly class SearchService
         if (!is_string($query) || empty($query)) {
             $query = '';
         }
-        return strip_tags($query);
+        return self::normaliseQueryPunctuation(strip_tags($query));
+    }
+
+    /**
+     * Normalise punctuation in a search query so it does not interfere with
+     * FTS5 query parsing or tokenisation.
+     *
+     * Hyphens are replaced with spaces because FTS5 treats `-` as a NOT operator,
+     * so "red dead-nettle" would otherwise be parsed as "red dead NOT nettle".
+     * Parentheses, commas, slashes, and square brackets are also replaced with
+     * spaces since they are not meaningful in user-facing search. Multiple
+     * consecutive spaces are collapsed to one.
+     *
+     * @param string $query Raw query string (HTML already stripped)
+     * @return string Normalised query
+     */
+    public static function normaliseQueryPunctuation(string $query): string
+    {
+        $query = str_replace(['-', '(', ')', ',', '/', '[', ']'], ' ', $query);
+        return trim((string) preg_replace('/\s+/', ' ', $query));
     }
 
     // endregion
@@ -164,7 +183,7 @@ final readonly class SearchService
         } catch (Throwable $e) {
             KirbyBaseHelper::writeToLogFile('content-index', 'SQLite search failed: ' . $e->getMessage());
             // Never fall back to an unfiltered search — return empty results to avoid leaking
-            // restricted content types (e.g. feedback, form_submission) through the fallback path.
+            // restricted content types (e.g. form_submission) through the fallback path.
             return $this->site->index()->limit(0);
         }
     }
