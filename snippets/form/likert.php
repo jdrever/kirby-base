@@ -26,8 +26,8 @@ $required     = $required ?? false;
                     // Unique ID for label/input pairing
                     $inputId = $name . '-' . $i;
                     ?>
-                    <label for="<?= $inputId ?>" class="likert-item">
-                        <span class="likert-label"><?= $i ?></span>
+                    <label for="<?= $inputId ?>" class="d-flex flex-column align-items-center gap-1">
+                        <span class="form-label mb-0"><?= $i ?></span>
                         <input
                                 class="form-check-input"
                                 type="radio"
