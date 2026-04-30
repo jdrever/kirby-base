@@ -2841,7 +2841,7 @@ abstract class KirbyBaseHelper
         return $this->imageService->getSvgImage($page, $fieldName, $imageClass);
     }
 
-    protected function getImage(Page       $page,
+    public function getImage(Page       $page,
                                 string     $fieldName,
                                 int        $width,
                                 ?int       $height,
