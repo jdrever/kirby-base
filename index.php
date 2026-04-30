@@ -18,6 +18,7 @@ $pluginConfig = [
     'routes' => require __DIR__ . '/routes.php',
     'templates' => [
         'file_link' => __DIR__ . '/templates/file_link.php',
+        'form_submission' => __DIR__ . '/templates/form_submission.php',
         'page_link' => __DIR__ . '/templates/page_link.php',
         'emails/form-notification.html' => __DIR__ . '/templates/emails/form-notification.html.php',
         'emails/form-notification.text' => __DIR__ . '/templates/emails/form-notification.text.php',

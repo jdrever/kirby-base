@@ -49,7 +49,7 @@ function handlePageChange($newPage, $oldPage) {
 
         // Update content indexes
         try {
-            $managers = ContentIndexRegistry::getManagersForTemplate($newPage->template()->name());
+            $managers = ContentIndexRegistry::getManagersForTemplate($newPage->intendedTemplate()->name());
             foreach ($managers as $manager) {
                 // If the page ID changed (e.g. slug rename), remove the stale old entry first
                 if ($oldPage !== null && $oldPage->id() !== $newPage->id()) {
@@ -104,7 +104,7 @@ return [
 
         // Add to content indexes
         try {
-            $managers = ContentIndexRegistry::getManagersForTemplate($page->template()->name());
+            $managers = ContentIndexRegistry::getManagersForTemplate($page->intendedTemplate()->name());
             foreach ($managers as $manager) {
                 $manager->indexPage($page, $helper);
             }
@@ -129,7 +129,7 @@ return [
 
         // Update content indexes
         try {
-            $managers = ContentIndexRegistry::getManagersForTemplate($newPage->template()->name());
+            $managers = ContentIndexRegistry::getManagersForTemplate($newPage->intendedTemplate()->name());
             foreach ($managers as $manager) {
                 $manager->indexPage($newPage, $helper);
             }
@@ -151,7 +151,7 @@ return [
 
         // Remove from content indexes
         try {
-            $managers = ContentIndexRegistry::getManagersForTemplate($page->template()->name());
+            $managers = ContentIndexRegistry::getManagersForTemplate($page->intendedTemplate()->name());
             foreach ($managers as $manager) {
                 $manager->removePage($page->id());
             }
