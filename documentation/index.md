@@ -42,6 +42,11 @@ $userService = new UserService(kirby(), $fieldReader, fn () => isset($_COOKIE['k
 $currentUser = $userService->getCurrentUser();
 ```
 
+# Content Indexes
+
+See [content-index.md](content-index.md) for a full guide to creating content indexes.
+
+
 # Extending KirbyBase
 
 - Create a WebPage model class that extends BaseWebPage. Add the fields each page for your site will need.
@@ -124,6 +129,7 @@ There is a tab blueprint called permissions.yml which can be added to any page.
 
 The requiredRoles field allows only users with specified roles to be able to access the page.
 The password allows the setting of a simple password for that page only.
+
 ### Login page
 The login functionality requires a page called login to be in the site root.  It should use the base/login snippet to 
 display the login form.
