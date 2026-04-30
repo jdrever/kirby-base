@@ -37,7 +37,7 @@ use BSBI\WebBase\forms\ResolvedFormField;
                         name="<?= html($inputName) ?>"
                         id="<?= $inputId ?>"
                         value="<?= html($column) ?>"
-                        <?php if ($field->required && $colIndex === 0) : ?>aria-required="true"<?php endif; ?>
+                        <?php if ($field->required && $colIndex === 0) : ?>required<?php endif; ?>
                     >
                 </td>
                 <?php endforeach; ?>
