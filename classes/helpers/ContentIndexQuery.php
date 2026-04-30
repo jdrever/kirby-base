@@ -148,6 +148,33 @@ class ContentIndexQuery
     }
 
     /**
+     * Filter rows where a column value matches any value in the given list (SQL IN).
+     *
+     * Returns $this unchanged if $values is empty, so callers do not need to guard
+     * against empty arrays — the query will simply return all rows.
+     *
+     * @param string $column Column name
+     * @param string[] $values List of values to match against
+     * @return $this
+     */
+    public function whereIn(string $column, array $values): static
+    {
+        if (empty($values)) {
+            return $this;
+        }
+
+        $placeholders = [];
+        foreach ($values as $value) {
+            $param = $this->nextParam($column);
+            $placeholders[] = $param;
+            $this->params[$param] = $value;
+        }
+
+        $this->whereClauses[] = "$column IN (" . implode(', ', $placeholders) . ")";
+        return $this;
+    }
+
+    /**
      * Filter rows where a date column falls between two dates (inclusive).
      *
      * @param string $column Column name containing date values (Y-m-d format)

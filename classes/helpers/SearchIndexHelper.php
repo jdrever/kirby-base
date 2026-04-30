@@ -27,6 +27,7 @@ use Throwable;
  * - fieldWeights: Array mapping field names to BM25 weights (has sensible defaults)
  * - exactMatchBoost: Boost value for exact matches on title/vernacular_name (default: 100)
  * - exactMatchFields: Array of field names that receive exact match boost (default: ['vernacular_name', 'title'])
+ * - keyPhraseBoost: Boost value when a search query exactly matches a key_search_phrases entry (default: 100000)
  */
 class SearchIndexHelper
 {
@@ -61,6 +62,7 @@ class SearchIndexHelper
         'keywords' => 5.0,
         'main_content' => 1.0,
         'additional_content' => 5.0,
+        'key_search_phrases' => 10000.0,
         'url' => 0.0,
         'is_members_only' => 0.0,
         'template' => 0.0,
@@ -71,6 +73,12 @@ class SearchIndexHelper
 
     /** @var int Default boost value for exact matches */
     private const int DEFAULT_EXACT_MATCH_BOOST = 100;
+
+    /** @var int Default boost value when a search query exactly matches a key search phrase */
+    private const int DEFAULT_KEY_PHRASE_BOOST = 100000;
+
+    /** @var int Current schema version — increment when FTS5 columns change */
+    private const int CURRENT_SCHEMA_VERSION = 2;
 
     /** @var string Default path prefix for members-only content */
     private const string DEFAULT_MEMBERS_PATH_PREFIX = 'members';
@@ -140,7 +148,7 @@ class SearchIndexHelper
      *
      * @return array<string> Stop words to filter from search queries
      */
-    private function getStopWords(): array
+    protected function getStopWords(): array
     {
         return option('search.stopWords', self::DEFAULT_STOP_WORDS);
     }
@@ -150,7 +158,7 @@ class SearchIndexHelper
      *
      * @return array<string, float> Field name to weight mapping
      */
-    private function getFieldWeights(): array
+    protected function getFieldWeights(): array
     {
         return option('search.fieldWeights', self::DEFAULT_FIELD_WEIGHTS);
     }
@@ -160,7 +168,7 @@ class SearchIndexHelper
      *
      * @return int Boost value for exact matches (subtracted from BM25 score)
      */
-    private function getExactMatchBoost(): int
+    protected function getExactMatchBoost(): int
     {
         return option('search.exactMatchBoost', self::DEFAULT_EXACT_MATCH_BOOST);
     }
@@ -170,7 +178,7 @@ class SearchIndexHelper
      *
      * @return array<string> Field names that receive exact match boost
      */
-    private function getExactMatchFields(): array
+    protected function getExactMatchFields(): array
     {
         return option('search.exactMatchFields', self::DEFAULT_EXACT_MATCH_FIELDS);
     }
@@ -193,6 +201,7 @@ class SearchIndexHelper
             $weights['keywords'] ?? 5.0,
             $weights['main_content'] ?? 1.0,
             $weights['additional_content'] ?? 5.0,
+            $weights['key_search_phrases'] ?? 10000.0,
             $weights['url'] ?? 0.0,
             $weights['is_members_only'] ?? 0.0,
             $weights['template'] ?? 0.0,
@@ -204,20 +213,34 @@ class SearchIndexHelper
     /**
      * Build the exact match boost SQL clause
      *
-     * @return string SQL CASE statements for exact match boosting
+     * Generates CASE expressions that subtract a boost value from the BM25 score
+     * (making it more negative = higher ranked) when:
+     * - the query exactly matches a configured field (title, vernacular_name), or
+     * - the query exactly matches any pipe-delimited phrase in key_search_phrases.
+     *
+     * @return string SQL CASE statements for exact match boosting, or empty string
      */
     private function buildExactMatchClause(): string
     {
+        $clauses = [];
+
         $fields = $this->getExactMatchFields();
         $boost = $this->getExactMatchBoost();
-
-        if (empty($fields) || $boost === 0) {
-            return '';
+        if (!empty($fields) && $boost > 0) {
+            foreach ($fields as $field) {
+                $clauses[] = "CASE WHEN LOWER($field) = LOWER(:exact_query) THEN $boost ELSE 0 END";
+            }
         }
 
-        $clauses = [];
-        foreach ($fields as $field) {
-            $clauses[] = "CASE WHEN LOWER($field) = LOWER(:exact_query) THEN $boost ELSE 0 END";
+        $keyPhraseBoost = $this->getKeyPhraseBoost();
+        if ($keyPhraseBoost > 0) {
+            $clauses[] = "CASE WHEN (key_search_phrases != '' AND "
+                . "('|' || LOWER(key_search_phrases) || '|') LIKE ('%|' || LOWER(:exact_query) || '|%')) "
+                . "THEN $keyPhraseBoost ELSE 0 END";
+        }
+
+        if (empty($clauses)) {
+            return '';
         }
 
         return ' - ' . implode(' - ', $clauses);
@@ -246,6 +269,9 @@ class SearchIndexHelper
             'keywords' => (string)($content->keywords()->value() ?? ''),
             'main_content' => $mainContent,
             'additional_content' => $additionalContent,
+            'key_search_phrases' => self::normaliseKeySearchPhrases(
+                (string)($content->get('key_search_phrases')->value() ?? '')
+            ),
             'url' => $page->url(),
             'is_members_only' => $isMembersOnly,
             'template' => $page->template()->name(),
@@ -255,6 +281,9 @@ class SearchIndexHelper
 
     /**
      * Initialize database connection, creating file and schema if needed
+     *
+     * After opening the connection, migrates the schema to the current version
+     * if an older database file already exists.
      *
      * @throws Exception If database directory cannot be created or database connection fails
      */
@@ -274,6 +303,93 @@ class SearchIndexHelper
 
         $this->database = new PDO('sqlite:' . $file);
         $this->database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $this->ensureCurrentSchema();
+    }
+
+    /**
+     * Ensure the database schema is at the current version, migrating if needed
+     *
+     * Reads the schema_version key from search_meta. If it is absent or below
+     * CURRENT_SCHEMA_VERSION the search_index FTS5 table is dropped and recreated
+     * with the current column set. The index will be empty until a full rebuild
+     * is triggered from the Panel.
+     */
+    private function ensureCurrentSchema(): void
+    {
+        // Guard against databases that pre-date the search_meta table
+        try {
+            $result = $this->database->query(
+                "SELECT value FROM search_meta WHERE key = 'schema_version' LIMIT 1"
+            );
+
+            if ($result !== false) {
+                $row = $result->fetch(PDO::FETCH_ASSOC);
+                $stored = $row !== false ? (int)$row['value'] : 0;
+            } else {
+                $stored = 0;
+            }
+        } catch (Throwable $e) {
+            $stored = 0;
+        }
+
+        if ($stored < self::CURRENT_SCHEMA_VERSION) {
+            try {
+                $this->migrateToCurrentSchema();
+            } catch (Throwable $e) {
+                // Migration failure (e.g. read-only DB file) — log and continue with the
+                // existing schema rather than propagating an exception that would cause
+                // SearchService to fall back to an unfiltered search.
+                KirbyBaseHelper::writeToLogFile('content-index', 'Search schema migration failed: ' . $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Drop and recreate the search_index FTS5 table with the current schema
+     *
+     * Called when the stored schema version is older than CURRENT_SCHEMA_VERSION.
+     * The table is left empty — a full rebuild must be triggered afterwards.
+     */
+    private function migrateToCurrentSchema(): void
+    {
+        $this->database->exec('DROP TABLE IF EXISTS search_index');
+        $this->database->exec('
+            CREATE VIRTUAL TABLE search_index USING fts5(
+                page_id,
+                title,
+                vernacular_name,
+                description,
+                keywords,
+                main_content,
+                additional_content,
+                key_search_phrases,
+                url,
+                is_members_only,
+                template,
+                last_updated UNINDEXED,
+                tokenize="porter unicode61"
+            )
+        ');
+
+        // search_meta may not exist in databases created before it was introduced
+        $this->database->exec(
+            'CREATE TABLE IF NOT EXISTS search_meta (key TEXT PRIMARY KEY, value TEXT)'
+        );
+
+        $stmt = $this->database->prepare(
+            'INSERT OR REPLACE INTO search_meta (key, value) VALUES (:key, :value)'
+        );
+        $stmt->execute(['key' => 'schema_version', 'value' => (string)self::CURRENT_SCHEMA_VERSION]);
+    }
+
+    /**
+     * Get the key phrase boost value from configuration
+     *
+     * @return int Boost value subtracted from BM25 score when a key phrase matches exactly
+     */
+    protected function getKeyPhraseBoost(): int
+    {
+        return option('search.keyPhraseBoost', self::DEFAULT_KEY_PHRASE_BOOST);
     }
 
     /**
@@ -293,6 +409,7 @@ class SearchIndexHelper
                 keywords,
                 main_content,
                 additional_content,
+                key_search_phrases,
                 url,
                 is_members_only,
                 template,
@@ -316,6 +433,32 @@ class SearchIndexHelper
                 title TEXT NOT NULL DEFAULT ""
             );
         ');
+    }
+
+    /**
+     * Normalise a raw key_search_phrases field value for storage
+     *
+     * Splits the input on newlines (and optional carriage returns), trims each
+     * phrase, discards blank lines, and joins the results with '|' delimiters so
+     * that the exact-match LIKE clause can safely find individual phrases.
+     *
+     * Example: "rare plant register\nRare Plant Registers" → "rare plant register|Rare Plant Registers"
+     *
+     * @param string $raw Raw textarea value from the Kirby content field
+     * @return string Pipe-delimited, normalised phrase string (empty string if no phrases)
+     */
+    public static function normaliseKeySearchPhrases(string $raw): string
+    {
+        if (trim($raw) === '') {
+            return '';
+        }
+
+        $phrases = array_filter(
+            array_map('trim', preg_split('/\r?\n/', $raw) ?: []),
+            fn(string $p): bool => $p !== ''
+        );
+
+        return implode('|', $phrases);
     }
 
     /**
@@ -375,8 +518,8 @@ class SearchIndexHelper
         $indexData = $this->getPageIndexData($page, $membersPrefix);
 
         $stmt = $this->database->prepare('
-            INSERT INTO search_index (page_id, title, vernacular_name, description, keywords, main_content, additional_content, url, is_members_only, template, last_updated)
-            VALUES (:page_id, :title, :vernacular_name, :description, :keywords, :main_content, :additional_content, :url, :is_members_only, :template, :last_updated)
+            INSERT INTO search_index (page_id, title, vernacular_name, description, keywords, main_content, additional_content, key_search_phrases, url, is_members_only, template, last_updated)
+            VALUES (:page_id, :title, :vernacular_name, :description, :keywords, :main_content, :additional_content, :key_search_phrases, :url, :is_members_only, :template, :last_updated)
         ');
 
         $result = $stmt->execute($indexData);
@@ -487,6 +630,48 @@ class SearchIndexHelper
             return $result ? $result['page_id'] : null;
         } catch (Throwable) {
             return null;
+        }
+    }
+
+    /**
+     * Batch lookup of page IDs from a list of DDb identifiers.
+     *
+     * Returns a map of ddb_id => page_id for all IDs that are found.
+     * DDb IDs with no matching entry are omitted from the result.
+     * Uses the same cached connection as lookupPageIdByDdbId.
+     *
+     * @param string[] $ddbIds The DDb identifiers to look up
+     * @return array<string, string> Map of ddb_id => page_id
+     */
+    public static function lookupPageIdsByDdbIds(array $ddbIds): array
+    {
+        if (empty($ddbIds)) {
+            return [];
+        }
+
+        if (self::$staticDb === null) {
+            $databasePath = option('search.databasePath', self::DEFAULT_DATABASE_PATH);
+            $file = kirby()->root('site') . $databasePath;
+            if (!F::exists($file)) {
+                return [];
+            }
+            self::$staticDb = new PDO('sqlite:' . $file);
+            self::$staticDb->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        }
+
+        try {
+            $placeholders = implode(', ', array_fill(0, count($ddbIds), '?'));
+            $stmt = self::$staticDb->prepare(
+                "SELECT ddb_id, page_id FROM page_lookup WHERE ddb_id IN ($placeholders)"
+            );
+            $stmt->execute(array_values($ddbIds));
+            $result = [];
+            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                $result[(string) $row['ddb_id']] = (string) $row['page_id'];
+            }
+            return $result;
+        } catch (Throwable) {
+            return [];
         }
     }
 
@@ -758,8 +943,8 @@ class SearchIndexHelper
 
             // Prepare statements once for reuse
             $stmt = $this->database->prepare('
-                INSERT INTO search_index (page_id, title, vernacular_name, description, keywords, main_content, additional_content, url, is_members_only, template, last_updated)
-                VALUES (:page_id, :title, :vernacular_name, :description, :keywords, :main_content, :additional_content, :url, :is_members_only, :template, :last_updated)
+                INSERT INTO search_index (page_id, title, vernacular_name, description, keywords, main_content, additional_content, key_search_phrases, url, is_members_only, template, last_updated)
+                VALUES (:page_id, :title, :vernacular_name, :description, :keywords, :main_content, :additional_content, :key_search_phrases, :url, :is_members_only, :template, :last_updated)
             ');
 
             $lookupStmt = $this->database->prepare('INSERT OR REPLACE INTO page_lookup (ddb_id, page_id) VALUES (:ddb_id, :page_id)');

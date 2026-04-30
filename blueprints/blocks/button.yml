@@ -7,3 +7,7 @@ tabs:
         type: link
       text:
         type: text
+      openInNewTab:
+        type: toggle
+        label: Open in new tab
+        default: false

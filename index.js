@@ -408,6 +408,683 @@ panel.plugin('open-foundations/kirby-base', {
       `
     },
 
+    filteredpages: {
+      data: function () {
+        return {
+          // Config loaded from PHP section
+          headline:      '',
+          modelId:       '',
+          filterDefs:    {},
+          columnDefs:    [],
+          pageSize:      25,
+          searchEnabled: false,
+          defaultSort:   'title asc',
+          sortOptions:   [],
+          template:      '',
+
+          // Toolbar state (persisted in localStorage)
+          active:      {},
+          search:      '',
+          currentSort: 'title asc',
+          currentPage: 1,
+
+          // Dropdown options fetched from API
+          options: {},
+
+          // Results
+          items:      [],
+          total:      0,
+          totalPages: 0,
+          loading:    false,
+
+          _searchTimer: null
+        };
+      },
+
+      created: async function () {
+        try {
+          var response = await this.load();
+          this.headline      = response.headline      || '';
+          this.modelId       = response.modelId       || '';
+          this.filterDefs    = response.filters       || {};
+          this.columnDefs    = response.columns       || [];
+          this.pageSize      = response.pageSize      || 25;
+          this.searchEnabled = response.search        || false;
+          this.defaultSort   = response.sortBy        || 'title asc';
+          this.sortOptions   = response.sortOptions   || [];
+          this.template      = response.template      || '';
+          this.currentSort   = response.sortBy        || 'title asc';
+
+          // Initialise every filter field to '' so each select shows "Label: All"
+          var initialActive = {};
+          Object.keys(this.filterDefs).forEach(function (field) { initialActive[field] = ''; });
+          this.active = initialActive;
+
+          // Then overlay any persisted selections
+          var saved = this.loadSavedState();
+          if (saved.active)  Object.assign(this.active, saved.active);
+          if (saved.search)  this.search      = saved.search;
+          if (saved.sort)    this.currentSort = saved.sort;
+          if (saved.page)    this.currentPage = saved.page;
+
+          await Promise.all([this.loadOptions(), this.loadResults()]);
+        } catch (error) {
+          console.error('Failed to initialise filteredpages section:', error);
+        }
+      },
+
+      computed: {
+        filterFields: function () {
+          return Object.keys(this.filterDefs);
+        },
+        sortField: function () {
+          return this.currentSort.split(' ')[0] || 'title';
+        },
+        sortDir: function () {
+          return (this.currentSort.split(' ')[1] || 'asc');
+        },
+        hasActiveFilters: function () {
+          var self = this;
+          return Object.keys(self.active).some(function (k) { return self.active[k] !== ''; });
+        }
+      },
+
+      methods: {
+        loadSavedState: function () {
+          try {
+            return JSON.parse(localStorage.getItem('bsbi-filteredpages-' + this.modelId) || '{}');
+          } catch (e) {
+            return {};
+          }
+        },
+
+        saveState: function () {
+          try {
+            localStorage.setItem('bsbi-filteredpages-' + this.modelId, JSON.stringify({
+              active:  this.active,
+              search:  this.search,
+              sort:    this.currentSort,
+              page:    this.currentPage
+            }));
+          } catch (e) { /* storage unavailable */ }
+        },
+
+        loadOptions: async function () {
+          try {
+            this.options = await this.$api.get('filtered-pages/options', {
+              model_id: this.modelId,
+              template: this.template,
+              filters:  JSON.stringify(this.filterDefs)
+            });
+          } catch (e) {
+            console.error('Failed to load filter options:', e);
+          }
+        },
+
+        loadResults: async function () {
+          if (!this.modelId) return;
+          this.loading = true;
+          try {
+            var result = await this.$api.get('filtered-pages/results', {
+              model_id:  this.modelId,
+              template:  this.template,
+              filters:   JSON.stringify(this.filterDefs),
+              columns:   JSON.stringify(this.columnDefs),
+              active:    JSON.stringify(this.active),
+              search:    this.search,
+              sort:      this.currentSort,
+              page:      this.currentPage,
+              page_size: this.pageSize
+            });
+            this.items      = result.items      || [];
+            this.total      = result.total      || 0;
+            this.totalPages = result.totalPages || 0;
+            this.saveState();
+          } catch (e) {
+            console.error('Failed to load filtered pages results:', e);
+          } finally {
+            this.loading = false;
+          }
+        },
+
+        onFilterChange: function () {
+          this.currentPage = 1;
+          this.loadResults();
+        },
+
+        onSearchInput: function () {
+          var self = this;
+          clearTimeout(self._searchTimer);
+          self._searchTimer = setTimeout(function () {
+            self.currentPage = 1;
+            self.loadResults();
+          }, 300);
+        },
+
+        goToPage: function (page) {
+          if (page < 1 || page > this.totalPages) return;
+          this.currentPage = page;
+          this.loadResults();
+        },
+
+        changeSort: function (field) {
+          var parts = this.currentSort.split(' ');
+          if (parts[0] === field) {
+            this.currentSort = field + ' ' + (parts[1] === 'asc' ? 'desc' : 'asc');
+          } else {
+            this.currentSort = field + ' asc';
+          }
+          this.currentPage = 1;
+          this.loadResults();
+        },
+
+        sortIcon: function (field) {
+          var parts = this.currentSort.split(' ');
+          if (parts[0] !== field) return '\u2195';
+          return parts[1] === 'asc' ? '\u2191' : '\u2193';
+        },
+
+        isSortable: function (field) {
+          return this.sortOptions.some(function (opt) { return opt.field === field; });
+        },
+
+        colWidth: function (width) {
+          if (!width) return 'auto';
+          var parts = String(width).split('/');
+          if (parts.length === 2) {
+            return (parseInt(parts[0]) / parseInt(parts[1]) * 100).toFixed(2) + '%';
+          }
+          return width;
+        },
+
+        colFlex: function (width) {
+          if (!width) return '1 1 0';
+          var parts = String(width).split('/');
+          if (parts.length === 2) {
+            return '0 0 ' + (parseInt(parts[0]) / parseInt(parts[1]) * 100).toFixed(2) + '%';
+          }
+          return '0 0 ' + width;
+        },
+
+        resetFilters: function () {
+          this.active      = {};
+          this.search      = '';
+          this.currentPage = 1;
+          this.loadResults();
+        },
+
+        navigateTo: function (url) {
+          window.location.href = url;
+        },
+
+        displayValue: function (item, col) {
+          if (col.field === 'title')  return item.title;
+          if (col.field === 'status') return item.status;
+          return (item.displayValues && item.displayValues[col.field]) || '';
+        },
+
+        isExcludeFilter: function (field) {
+          return (this.filterDefs[field] && this.filterDefs[field].mode === 'exclude');
+        },
+
+        filterDefaultLabel: function (field) {
+          var label = this.filterDefs[field] ? this.filterDefs[field].label : field;
+          return this.isExcludeFilter(field) ? 'Exclude ' + label + ': None' : label + ': All';
+        }
+      },
+
+      template: `
+        <section class="k-section k-filteredpages-section">
+
+          <style>
+            .k-filteredpages-section .k-fp-item:hover { background: var(--color-gray-200) !important; }
+          </style>
+
+          <!-- Header -->
+          <header class="k-section-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+            <h2 class="k-headline">{{ headline }}</h2>
+            <k-button
+              v-if="modelId"
+              :dialog="'pages/create?parent=pages/' + modelId.split('/').join('+') + (template ? '&template=' + template : '')"
+              icon="add"
+              text="Add"
+              size="sm"
+              variant="filled"
+            />
+          </header>
+
+          <!-- Filter bar: distinct lighter background -->
+          <div style="background:var(--color-gray-100);border-radius:var(--rounded);padding:0.65rem 0.75rem;margin-bottom:0.75rem;">
+            <div style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;">
+              <input
+                v-if="searchEnabled"
+                type="text"
+                v-model="search"
+                @input="onSearchInput"
+                placeholder="Search..."
+                style="flex:1;min-width:160px;padding:0.4rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.875rem;background:var(--color-white);color:var(--color-text);"
+              />
+              <select
+                v-for="field in filterFields"
+                :key="field"
+                v-model="active[field]"
+                @change="onFilterChange"
+                :style="'padding:0.4rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.875rem;background:var(--color-white);color:var(--color-text);cursor:pointer;' + (isExcludeFilter(field) && active[field] ? 'border-color:var(--color-negative,#c82829);' : '')"
+              >
+                <option value="">{{ filterDefaultLabel(field) }}</option>
+                <option v-for="opt in (options[field] || [])" :key="opt.value" :value="opt.value">{{ opt.text }}</option>
+              </select>
+              <button
+                v-if="hasActiveFilters || search"
+                @click="resetFilters"
+                style="padding:0.35rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.8rem;background:var(--color-white);color:var(--color-text-dimmed);cursor:pointer;"
+              >Clear</button>
+            </div>
+          </div>
+
+          <!-- Loading -->
+          <div v-if="loading" style="padding:1rem 0;color:var(--color-text-dimmed);font-size:0.875rem;">Loading&hellip;</div>
+
+          <!-- Results list -->
+          <template v-else-if="items.length > 0">
+
+            <!-- Column header row -->
+            <div v-if="columnDefs.length > 1 || sortOptions.length > 0" style="display:flex;align-items:center;padding:0.25rem 0.75rem;margin-bottom:0.15rem;">
+              <div
+                v-for="col in columnDefs"
+                :key="col.field"
+                :style="'flex:' + colFlex(col.width) + ';min-width:0;font-size:0.7rem;font-weight:600;color:var(--color-text-dimmed);text-transform:uppercase;letter-spacing:0.05em;padding:0 0;' + (isSortable(col.field) ? 'cursor:pointer;user-select:none;' : '')"
+                @click="isSortable(col.field) && changeSort(col.field)"
+              >
+                {{ col.label }}<span v-if="isSortable(col.field)" style="opacity:0.5;margin-left:0.2rem;">{{ sortIcon(col.field) }}</span>
+              </div>
+            </div>
+
+            <!-- Item cards -->
+            <div style="display:flex;flex-direction:column;gap:0.25rem;">
+              <div
+                v-for="item in items"
+                :key="item.id"
+                class="k-fp-item"
+                style="display:flex;align-items:center;background:var(--color-white);border-radius:var(--rounded);overflow:hidden;cursor:pointer;"
+                @click="navigateTo(item.panelUrl)"
+              >
+                <div
+                  v-for="(col, idx) in columnDefs"
+                  :key="col.field"
+                  :style="'flex:' + colFlex(col.width) + ';min-width:0;display:flex;align-items:center;padding:0.75rem;font-size:0.875rem;overflow:hidden;'"
+                >
+                  <a v-if="idx === 0" :href="item.panelUrl" @click.stop
+                     style="color:var(--color-text);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ displayValue(item, col) }}</a>
+                  <span v-else style="color:var(--color-text-dimmed);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ displayValue(item, col) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pagination -->
+            <div v-if="totalPages > 1" style="display:flex;align-items:center;gap:1rem;padding:0.75rem 0;font-size:0.875rem;">
+              <button @click="goToPage(currentPage - 1)" :disabled="currentPage <= 1"
+                      :style="'padding:0.35rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.8rem;background:transparent;cursor:pointer;opacity:' + (currentPage <= 1 ? '0.4' : '1') + ';'"
+              >&larr; Prev</button>
+              <span style="color:var(--color-text-dimmed);">Page {{ currentPage }} of {{ totalPages }} &middot; {{ total }} total</span>
+              <button @click="goToPage(currentPage + 1)" :disabled="currentPage >= totalPages"
+                      :style="'padding:0.35rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.8rem;background:transparent;cursor:pointer;opacity:' + (currentPage >= totalPages ? '0.4' : '1') + ';'"
+              >Next &rarr;</button>
+            </div>
+          </template>
+
+          <!-- Empty state -->
+          <k-empty v-else icon="page">
+            No pages found{{ hasActiveFilters || search ? ' matching the current filters' : '' }}.
+          </k-empty>
+
+        </section>
+      `
+    },
+
+    filteredfiles: {
+      data: function () {
+        return {
+          headline:      '',
+          modelId:       '',
+          apiEndpoint:   'filtered-files',
+          filterDefs:    {},
+          columnDefs:    [],
+          pageSize:      25,
+          searchEnabled: false,
+          defaultSort:   'filename asc',
+          sortOptions:   [],
+          uploadTemplate: 'image',
+
+          active:      {},
+          search:      '',
+          currentSort: 'filename asc',
+          currentPage: 1,
+
+          options: {},
+
+          items:      [],
+          total:      0,
+          totalPages: 0,
+          loading:    false,
+
+          _searchTimer: null
+        };
+      },
+
+      created: async function () {
+        try {
+          var response = await this.load();
+          this.headline      = response.headline             || '';
+          this.modelId       = response.modelId             || '';
+          this.apiEndpoint    = response.resolvedApiEndpoint  || 'filtered-files';
+          this.uploadTemplate = response.uploadTemplate      || 'image';
+          this.filterDefs    = response.filters             || {};
+          this.columnDefs    = response.columns             || [];
+          this.pageSize      = response.pageSize            || 25;
+          this.searchEnabled = response.search              || false;
+          this.defaultSort   = response.sortBy              || 'filename asc';
+          this.sortOptions   = response.sortOptions         || [];
+          this.currentSort   = response.sortBy              || 'filename asc';
+
+          var initialActive = {};
+          Object.keys(this.filterDefs).forEach(function (field) { initialActive[field] = ''; });
+          this.active = initialActive;
+
+          var saved = this.loadSavedState();
+          if (saved.active)  Object.assign(this.active, saved.active);
+          if (saved.search)  this.search      = saved.search;
+          if (saved.sort)    this.currentSort = saved.sort;
+          if (saved.page)    this.currentPage = saved.page;
+
+          await Promise.all([this.loadOptions(), this.loadResults()]);
+        } catch (error) {
+          console.error('Failed to initialise filteredfiles section:', error);
+        }
+      },
+
+      computed: {
+        filterFields: function () {
+          return Object.keys(this.filterDefs);
+        },
+        sortField: function () {
+          return this.currentSort.split(' ')[0] || 'filename';
+        },
+        sortDir: function () {
+          return (this.currentSort.split(' ')[1] || 'asc');
+        },
+        hasActiveFilters: function () {
+          var self = this;
+          return Object.keys(self.active).some(function (k) { return self.active[k] !== ''; });
+        }
+      },
+
+      methods: {
+        loadSavedState: function () {
+          try {
+            return JSON.parse(localStorage.getItem('bsbi-filteredfiles-' + this.modelId) || '{}');
+          } catch (e) {
+            return {};
+          }
+        },
+
+        saveState: function () {
+          try {
+            localStorage.setItem('bsbi-filteredfiles-' + this.modelId, JSON.stringify({
+              active:  this.active,
+              search:  this.search,
+              sort:    this.currentSort,
+              page:    this.currentPage
+            }));
+          } catch (e) { /* storage unavailable */ }
+        },
+
+        loadOptions: async function () {
+          try {
+            this.options = await this.$api.get(this.apiEndpoint + '/options', {
+              model_id: this.modelId,
+              filters:  JSON.stringify(this.filterDefs)
+            });
+          } catch (e) {
+            console.error('Failed to load filter options:', e);
+          }
+        },
+
+        loadResults: async function () {
+          if (!this.modelId) return;
+          this.loading = true;
+          try {
+            var result = await this.$api.get(this.apiEndpoint + '/results', {
+              model_id:  this.modelId,
+              filters:   JSON.stringify(this.filterDefs),
+              columns:   JSON.stringify(this.columnDefs),
+              active:    JSON.stringify(this.active),
+              search:    this.search,
+              sort:      this.currentSort,
+              page:      this.currentPage,
+              page_size: this.pageSize
+            });
+            this.items      = result.items      || [];
+            this.total      = result.total      || 0;
+            this.totalPages = result.totalPages || 0;
+            this.saveState();
+          } catch (e) {
+            console.error('Failed to load filtered files results:', e);
+          } finally {
+            this.loading = false;
+          }
+        },
+
+        onFilterChange: function () {
+          this.currentPage = 1;
+          this.loadResults();
+        },
+
+        onSearchInput: function () {
+          var self = this;
+          clearTimeout(self._searchTimer);
+          self._searchTimer = setTimeout(function () {
+            self.currentPage = 1;
+            self.loadResults();
+          }, 300);
+        },
+
+        goToPage: function (page) {
+          if (page < 1 || page > this.totalPages) return;
+          this.currentPage = page;
+          this.loadResults();
+        },
+
+        changeSort: function (field) {
+          var parts = this.currentSort.split(' ');
+          if (parts[0] === field) {
+            this.currentSort = field + ' ' + (parts[1] === 'asc' ? 'desc' : 'asc');
+          } else {
+            this.currentSort = field + ' asc';
+          }
+          this.currentPage = 1;
+          this.loadResults();
+        },
+
+        sortIcon: function (field) {
+          var parts = this.currentSort.split(' ');
+          if (parts[0] !== field) return '\u2195';
+          return parts[1] === 'asc' ? '\u2191' : '\u2193';
+        },
+
+        isSortable: function (field) {
+          return this.sortOptions.some(function (opt) { return opt.field === field; });
+        },
+
+        colWidth: function (width) {
+          if (!width) return 'auto';
+          var parts = String(width).split('/');
+          if (parts.length === 2) {
+            return (parseInt(parts[0]) / parseInt(parts[1]) * 100).toFixed(2) + '%';
+          }
+          return width;
+        },
+
+        colFlex: function (width) {
+          if (!width) return '1 1 0';
+          var parts = String(width).split('/');
+          if (parts.length === 2) {
+            return '0 0 ' + (parseInt(parts[0]) / parseInt(parts[1]) * 100).toFixed(2) + '%';
+          }
+          return '0 0 ' + width;
+        },
+
+        resetFilters: function () {
+          var initialActive = {};
+          Object.keys(this.filterDefs).forEach(function (field) { initialActive[field] = ''; });
+          this.active      = initialActive;
+          this.search      = '';
+          this.currentPage = 1;
+          this.loadResults();
+        },
+
+        navigateTo: function (url) {
+          window.location.href = url;
+        },
+
+        displayValue: function (item, col) {
+          if (col.field === 'filename') return item.filename;
+          if (col.field === 'title')    return item.title;
+          return (item.displayValues && item.displayValues[col.field]) || '';
+        },
+
+        isExcludeFilter: function (field) {
+          return (this.filterDefs[field] && this.filterDefs[field].mode === 'exclude');
+        },
+
+        filterDefaultLabel: function (field) {
+          var label = this.filterDefs[field] ? this.filterDefs[field].label : field;
+          return this.isExcludeFilter(field) ? 'Exclude ' + label + ': None' : label + ': All';
+        },
+
+        onDialogSuccess: function () {
+          this.loadResults();
+          this.loadOptions();
+        }
+      },
+
+      template: `
+        <section class="k-section k-filteredfiles-section">
+
+          <style>
+            .k-filteredfiles-section .k-ff-item:hover { background: var(--color-gray-200) !important; }
+          </style>
+
+          <!-- Header -->
+          <header class="k-section-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+            <h2 class="k-headline">{{ headline }}</h2>
+            <k-button
+              v-if="modelId"
+              icon="upload"
+              text="Add"
+              size="sm"
+              variant="filled"
+              :dialog="'files/upload?parent=pages/' + modelId.split('/').join('+') + '&template=' + uploadTemplate"
+            />
+          </header>
+
+          <!-- Filter bar: distinct lighter background to stand out from results -->
+          <div style="background:var(--color-gray-100);border-radius:var(--rounded);padding:0.65rem 0.75rem;margin-bottom:0.75rem;">
+            <div style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;">
+              <input
+                v-if="searchEnabled"
+                type="text"
+                v-model="search"
+                @input="onSearchInput"
+                placeholder="Search..."
+                style="flex:1;min-width:160px;padding:0.4rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.875rem;background:var(--color-white);color:var(--color-text);"
+              />
+              <select
+                v-for="field in filterFields"
+                :key="field"
+                v-model="active[field]"
+                @change="onFilterChange"
+                :style="'padding:0.4rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.875rem;background:var(--color-white);color:var(--color-text);cursor:pointer;' + (isExcludeFilter(field) && active[field] ? 'border-color:var(--color-negative,#c82829);' : '')"
+              >
+                <option value="">{{ filterDefaultLabel(field) }}</option>
+                <option v-for="opt in (options[field] || [])" :key="opt.value" :value="opt.value">{{ opt.text }}</option>
+              </select>
+              <button
+                v-if="hasActiveFilters || search"
+                @click="resetFilters"
+                style="padding:0.35rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.8rem;background:var(--color-white);color:var(--color-text-dimmed);cursor:pointer;"
+              >Clear</button>
+            </div>
+          </div>
+
+          <!-- Loading -->
+          <div v-if="loading" style="padding:1rem 0;color:var(--color-text-dimmed);font-size:0.875rem;">Loading&hellip;</div>
+
+          <!-- Results list -->
+          <template v-else-if="items.length > 0">
+
+            <!-- Column header row (only shown when there are sortable columns or multiple columns) -->
+            <div v-if="columnDefs.length > 1 || sortOptions.length > 0" style="display:flex;align-items:center;padding:0.25rem 0.75rem 0.25rem 0;margin-bottom:0.15rem;">
+              <div style="width:64px;flex-shrink:0;"></div>
+              <div
+                v-for="col in columnDefs"
+                :key="col.field"
+                :style="'flex:' + colFlex(col.width) + ';min-width:0;font-size:0.7rem;font-weight:600;color:var(--color-text-dimmed);text-transform:uppercase;letter-spacing:0.05em;padding:0 0.5rem;' + (isSortable(col.field) ? 'cursor:pointer;user-select:none;' : '')"
+                @click="isSortable(col.field) && changeSort(col.field)"
+              >
+                {{ col.label }}<span v-if="isSortable(col.field)" style="opacity:0.5;margin-left:0.2rem;">{{ sortIcon(col.field) }}</span>
+              </div>
+            </div>
+
+            <!-- Item cards -->
+            <div style="display:flex;flex-direction:column;gap:0.25rem;">
+              <div
+                v-for="item in items"
+                :key="item.id"
+                class="k-ff-item"
+                style="display:flex;align-items:stretch;background:var(--color-white);border-radius:var(--rounded);overflow:hidden;cursor:pointer;"
+                @click="navigateTo(item.panelUrl)"
+              >
+                <!-- Thumbnail: flush left, full row height -->
+                <div style="width:64px;flex-shrink:0;overflow:hidden;">
+                  <div
+                    :style="'width:64px;height:100%;min-height:56px;background-color:var(--color-gray-200);' + (item.thumbUrl ? 'background-image:url(' + JSON.stringify(item.thumbUrl) + ');background-size:cover;background-position:center;' : '')"
+                  ></div>
+                </div>
+                <!-- Column cells -->
+                <div
+                  v-for="(col, idx) in columnDefs"
+                  :key="col.field"
+                  :style="'flex:' + colFlex(col.width) + ';min-width:0;display:flex;align-items:center;padding:0.75rem 0.75rem;font-size:0.875rem;overflow:hidden;'"
+                >
+                  <a v-if="idx === 0" :href="item.panelUrl" @click.stop
+                     style="color:var(--color-text);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ displayValue(item, col) }}</a>
+                  <span v-else style="color:var(--color-text-dimmed);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ displayValue(item, col) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pagination -->
+            <div v-if="totalPages > 1" style="display:flex;align-items:center;gap:1rem;padding:0.75rem 0;font-size:0.875rem;">
+              <button @click="goToPage(currentPage - 1)" :disabled="currentPage <= 1"
+                      :style="'padding:0.35rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.8rem;background:transparent;cursor:pointer;opacity:' + (currentPage <= 1 ? '0.4' : '1') + ';'"
+              >&larr; Prev</button>
+              <span style="color:var(--color-text-dimmed);">Page {{ currentPage }} of {{ totalPages }} &middot; {{ total }} total</span>
+              <button @click="goToPage(currentPage + 1)" :disabled="currentPage >= totalPages"
+                      :style="'padding:0.35rem 0.65rem;border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.8rem;background:transparent;cursor:pointer;opacity:' + (currentPage >= totalPages ? '0.4' : '1') + ';'"
+              >Next &rarr;</button>
+            </div>
+          </template>
+
+          <!-- Empty state -->
+          <k-empty v-else icon="image">
+            No images found{{ hasActiveFilters || search ? ' matching the current filters' : '' }}.
+          </k-empty>
+
+        </section>
+      `
+    },
+
     translatedpages: {
       data: function () {
         return {

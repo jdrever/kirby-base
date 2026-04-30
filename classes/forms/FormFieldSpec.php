@@ -30,6 +30,7 @@ class FormFieldSpec
     public const TYPE_LIKERT         = 'likert';
     public const TYPE_SELECT         = 'select';
     public const TYPE_INFO           = 'info';
+    public const TYPE_RATING_MATRIX  = 'rating-matrix';
 
     /** @var array<string, mixed> Overridable property defaults keyed by property name */
     private array $overridable = [];
@@ -49,6 +50,10 @@ class FormFieldSpec
     private string $defaultRightLabel  = 'Strongly agree';
     private int $defaultScaleMin    = 1;
     private int $defaultScaleMax    = 5;
+    /** @var string[] */
+    private array $defaultRows    = [];
+    /** @var string[] */
+    private array $defaultColumns = [];
 
     // ── Constructor ─────────────────────────────────────────────────────────
 
@@ -184,6 +189,29 @@ class FormFieldSpec
     {
         $spec = new static(self::TYPE_INFO, $name, '');
         $spec->defaultContent = $content;
+        return $spec;
+    }
+
+    /**
+     * Creates a rating matrix spec (grid of rows × columns, one radio per row).
+     *
+     * Suitable for event-rating grids, before/after skill scales, and action matrices.
+     * Each row is submitted as {name}[{sanitized_row_label}].
+     *
+     * @param string   $name         HTML input name (used as base for row keys)
+     * @param string   $defaultLabel Default question label
+     * @param string[] $rows         Row labels (items to rate)
+     * @param string[] $columns      Column labels (scale options)
+     */
+    public static function ratingMatrix(
+        string $name,
+        string $defaultLabel,
+        array $rows = [],
+        array $columns = [],
+    ): static {
+        $spec = new static(self::TYPE_RATING_MATRIX, $name, $defaultLabel);
+        $spec->defaultRows    = $rows;
+        $spec->defaultColumns = $columns;
         return $spec;
     }
 
@@ -332,6 +360,15 @@ class FormFieldSpec
                 name:    $this->name,
                 label:   '',
                 content: $this->defaultContent,
+            ),
+            self::TYPE_RATING_MATRIX => new ResolvedFormField(
+                type:     $this->type,
+                name:     $this->name,
+                label:    $label,
+                required: $this->required,
+                help:     $this->defaultHelp,
+                rows:     $this->defaultRows,
+                columns:  $this->defaultColumns,
             ),
             default => throw new \InvalidArgumentException("Unknown FormFieldSpec type: {$this->type}"),
         };

@@ -183,6 +183,15 @@ trait ErrorHandling
     }
 
     /**
+     * Returns true if the status property has been explicitly set (true or false).
+     * @return bool
+     */
+    public function hasStatus(): bool
+    {
+        return isset($this->status);
+    }
+
+    /**
      * Get the value of status
      */
     public function getStatus(): bool

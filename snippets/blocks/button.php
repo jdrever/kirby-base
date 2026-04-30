@@ -10,7 +10,9 @@ use Kirby\Cms\Block;
 
 ?>
 <p>
-    <a href="<?= $block->link()->toUrl() ?>" class="btn btn-primary">
+    <a href="<?= $block->link()->toUrl() ?>"
+       class="btn btn-primary"
+       <?= $block->openInNewTab()->isTrue() ? 'target="_blank" rel="noopener noreferrer"' : '' ?>>
     <?= $block->text() ?>
     </a>
 </p>

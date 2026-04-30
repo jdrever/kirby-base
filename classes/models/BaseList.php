@@ -178,6 +178,133 @@ abstract class BaseList
         return $this;
     }
 
+    /** @var string The current sort column key */
+    private string $sortBy = '';
+
+    /** @var string The current sort direction ('asc' or 'desc') */
+    private string $sortDirection = 'asc';
+
+    /** @var string[] Allowed sort column keys for this list */
+    private array $sortableColumns = [];
+
+    /** @var string Base page URL with sort/pagination params stripped, used to build sort links */
+    private string $sortBaseUrl = '';
+
+    /**
+     * @return string
+     */
+    public function getSortBy(): string
+    {
+        return $this->sortBy;
+    }
+
+    /**
+     * @param string $sortBy
+     * @return $this
+     */
+    public function setSortBy(string $sortBy): static
+    {
+        $this->sortBy = $sortBy;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSortDirection(): string
+    {
+        return $this->sortDirection;
+    }
+
+    /**
+     * @param string $sortDirection
+     * @return $this
+     */
+    public function setSortDirection(string $sortDirection): static
+    {
+        $this->sortDirection = $sortDirection;
+        return $this;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getSortableColumns(): array
+    {
+        return $this->sortableColumns;
+    }
+
+    /**
+     * @param string[] $sortableColumns
+     * @return $this
+     */
+    public function setSortableColumns(array $sortableColumns): static
+    {
+        $this->sortableColumns = $sortableColumns;
+        return $this;
+    }
+
+    /**
+     * Returns true if this list has any sortable columns defined.
+     *
+     * @return bool
+     */
+    public function isSortable(): bool
+    {
+        return !empty($this->sortableColumns);
+    }
+
+    /**
+     * Returns true if the given column key is in the sortable columns list.
+     *
+     * @param string $columnKey
+     * @return bool
+     */
+    public function isSortableColumn(string $columnKey): bool
+    {
+        return in_array($columnKey, $this->sortableColumns, true);
+    }
+
+    /**
+     * Returns the effective sort direction for the given column:
+     * 'asc' or 'desc' if it is the active sort column, otherwise empty string.
+     *
+     * @param string $columnKey
+     * @return string
+     */
+    public function getSortDirectionForColumn(string $columnKey): string
+    {
+        return ($this->sortBy === $columnKey) ? $this->sortDirection : '';
+    }
+
+    /**
+     * Returns the URL to sort by the given column, toggling direction if already active.
+     * Requires setSortBaseUrl() to have been called first.
+     *
+     * @param string $columnKey
+     * @return string
+     */
+    public function getSortUrl(string $columnKey): string
+    {
+        $currentDir = $this->getSortDirectionForColumn($columnKey);
+        $nextDir    = ($currentDir === 'asc') ? 'desc' : 'asc';
+        $separator  = str_contains($this->sortBaseUrl, '?') ? '&' : '?';
+        return $this->sortBaseUrl . $separator . 'sort_by=' . urlencode($columnKey) . '&sort_dir=' . urlencode($nextDir);
+    }
+
+    /**
+     * Set the base URL used for building sort links.
+     * Should be the current page URL with page/sort_by/sort_dir params already stripped.
+     *
+     * @param string $sortBaseUrl
+     * @return $this
+     */
+    public function setSortBaseUrl(string $sortBaseUrl): static
+    {
+        $this->sortBaseUrl = $sortBaseUrl;
+        return $this;
+    }
+
     /**
      * @return bool
      */

@@ -529,6 +529,30 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * Creates a new top-level page directly under the site root.
+     *
+     * @param array $pageData Page data (slug, template, content, etc.)
+     * @param bool $createAsListed Whether to publish the page immediately as listed
+     * @return Page The newly created Page object
+     * @throws KirbyRetrievalException If the page cannot be created
+     */
+    protected function createPageInSiteRoot(array $pageData, bool $createAsListed = false): Page
+    {
+        try {
+            $createdPage = $this->kirby->impersonate('kirby', function () use ($pageData, $createAsListed) {
+                $newPage = site()->createChild($pageData);
+                if ($createAsListed) {
+                    $newPage = $newPage->changeStatus('listed');
+                }
+                return $newPage;
+            });
+        } catch (Throwable $e) {
+            throw new KirbyRetrievalException($e->getMessage());
+        }
+        return $createdPage;
+    }
+
+    /**
      * @param Page $page
      * @param array $pageData
      * @return Page
@@ -1519,7 +1543,8 @@ abstract class KirbyBaseHelper
      */
     protected function getStructureAsWebPageLinks(Page      $page,
                                                   string    $fieldName = 'related',
-                                                  ImageType $imageType = ImageType::SQUARE): WebPageLinks
+                                                  ImageType $imageType = ImageType::SQUARE,
+                                                  string $pageFieldName = 'page'): WebPageLinks
     {
         $webPageLinks = new WebPageLinks();
         try {
@@ -1527,8 +1552,8 @@ abstract class KirbyBaseHelper
 
             foreach ($webPageLinksStructure as $item) {
                 $itemTitle = $this->getStructureFieldAsString($item, 'title');
-                if ($this->hasStructureField($item, 'page')) {
-                    $page = $this->getStructureFieldAsPage($item, 'page');
+                if ($this->hasStructureField($item, $pageFieldName)) {
+                    $page = $this->getStructureFieldAsPage($item, $pageFieldName);
                     $itemTitle = empty($itemTitle) ? $page->title()->value() : $itemTitle;
                     $description = $this->getStructureFieldAsString($item, 'description');
                     $webPageLink = $this->getWebPageLink($page, true, $itemTitle, $description);
@@ -2545,6 +2570,7 @@ abstract class KirbyBaseHelper
      * @param bool $childrenOnly
      * @param string $sortBy (default is no sorting applied)
      * @param string $sortDirection
+     * @param string[] $sortableColumns Allowed sort column keys; stored on the list and used to preserve sort state in pagination URLs
      * @return BaseList
      * @throws KirbyRetrievalException
      * @noinspection PhpUnused
@@ -2556,7 +2582,8 @@ abstract class KirbyBaseHelper
                                             Page|null       $parentPage = null,
                                             bool            $childrenOnly = true,
                                             string          $sortBy = '',
-                                            string          $sortDirection = ''
+                                            string          $sortDirection = '',
+                                            array           $sortableColumns = []
     ): BaseList
     {
 
@@ -2621,13 +2648,30 @@ abstract class KirbyBaseHelper
             }
         }
 
+        if (!empty($sortableColumns)) {
+            $currentUrl = (string) $this->kirby->request()->url();
+            $baseUrl = preg_replace('/([?&])(page|sort_by|sort_dir)=[^&]*(&|$)/', '$1', $currentUrl) ?? $currentUrl;
+            $baseUrl = preg_replace('/[?&]$/', '', $baseUrl) ?? $baseUrl;
+
+            $modelList->setSortableColumns($sortableColumns)
+                      ->setSortBy($sortBy)
+                      ->setSortDirection($sortDirection)
+                      ->setSortBaseUrl($baseUrl);
+        }
+
         if ($modelList->usePagination() && !$filter->doStopPagination()) {
 
             $collectionPages = $collectionPages->paginate($modelList->getPaginatePerPage());
             $paginationFromKirby = $collectionPages->pagination();
 
             if (isset($paginationFromKirby)) {
-                $modelList->setPagination($this->getPagination($paginationFromKirby));
+                $pagination = $this->getPagination($paginationFromKirby);
+
+                if (!empty($sortBy)) {
+                    $pagination->appendQueryParams('sort_by=' . urlencode($sortBy) . '&sort_dir=' . urlencode($sortDirection));
+                }
+
+                $modelList->setPagination($pagination);
             }
         }
 
@@ -3160,6 +3204,37 @@ abstract class KirbyBaseHelper
         return get($key) ?: cookie::get($key) ?: $fallBack;
     }
 
+    /**
+     * Read and validate sort parameters from the current request.
+     *
+     * Reads 'sort_by' and 'sort_dir' GET parameters and validates them against
+     * an allowed-columns whitelist to prevent arbitrary field injection.
+     * Falls back to the supplied defaults when parameters are absent or invalid.
+     *
+     * @param string[] $allowedColumns Column keys that may be sorted on
+     * @param string $defaultSortBy Default column key when none is supplied or the supplied value is invalid
+     * @param string $defaultSortDir Default direction ('asc' or 'desc')
+     * @return array{0: string, 1: string} Tuple of [sortBy, sortDir]
+     */
+    protected function readSortFromRequest(
+        array  $allowedColumns,
+        string $defaultSortBy = '',
+        string $defaultSortDir = 'asc'
+    ): array {
+        $sortBy  = $this->getRequestAsString('sort_by', $defaultSortBy);
+        $sortDir = $this->getRequestAsString('sort_dir', $defaultSortDir);
+
+        if (!in_array($sortBy, $allowedColumns, true)) {
+            $sortBy = $defaultSortBy;
+        }
+
+        if (!in_array($sortDir, ['asc', 'desc'], true)) {
+            $sortDir = $defaultSortDir;
+        }
+
+        return [$sortBy, $sortDir];
+    }
+
 
     #endregion
 
@@ -3394,19 +3469,31 @@ abstract class KirbyBaseHelper
      * @return void
      */
     public function writeToLog(string $logFile, string $message, bool $overwrite = false): void {
+        self::writeToLogFile($logFile, $message, $overwrite);
+    }
+
+    /**
+     * Write a message to a named log file (static version for use in hooks and other static contexts).
+     *
+     * @param string $logFile Log file name without extension (.log is appended)
+     * @param string $message Message to write
+     * @param bool $overwrite If true, overwrites the log file; otherwise appends
+     * @return void
+     */
+    public static function writeToLogFile(string $logFile, string $message, bool $overwrite = false): void {
         $logDir = kirby()->root('logs');
 
         if (!is_dir($logDir)) {
             mkdir($logDir, 0755, true);
         }
 
-        $logFile = $logDir .'/'. $logFile.'.log';
+        $logPath = $logDir . '/' . $logFile . '.log';
 
         $date = new DateTime();
-        $date = $date->format("y:m:d h:i:s");
+        $dateStr = $date->format("y:m:d h:i:s");
 
         $flags = $overwrite ? 0 : FILE_APPEND;
-        file_put_contents($logFile, $date. ' '. $message, $flags);
+        file_put_contents($logPath, $dateStr . ' ' . $message . PHP_EOL, $flags);
     }
 
     /**

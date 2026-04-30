@@ -966,12 +966,15 @@ final readonly class KirbyFieldReader
      */
     public function getStructureFieldAsLinkUrl(StructureObject $structure, string $fieldName): string
     {
-        $structureField = $this->getStructureField($structure, $fieldName);
-        if ($structureField->isNotEmpty()) {
-            /** @noinspection PhpUndefinedMethodInspection */
-            return $structureField->toUrl();
+        try {
+            $structureField = $this->getStructureField($structure, $fieldName);
+            if ($structureField->isNotEmpty()) {
+                /** @noinspection PhpUndefinedMethodInspection */
+                return $structureField->toUrl();
+            }
+        } finally {
+            return '';
         }
-        return '';
     }
 
     /**

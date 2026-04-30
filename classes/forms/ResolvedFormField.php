@@ -13,7 +13,7 @@ namespace BSBI\WebBase\forms;
 readonly class ResolvedFormField
 {
     /**
-     * @param string        $type        One of: textbox, textarea, checkbox-group, radio-group, likert, select, info
+     * @param string        $type        One of: textbox, textarea, checkbox-group, radio-group, likert, select, info, rating-matrix
      * @param string        $name        The HTML input name attribute and POST key
      * @param string        $label       The human-readable question label
      * @param bool          $required    Whether the field is required
@@ -26,6 +26,8 @@ readonly class ResolvedFormField
      * @param int           $scaleMin    For likert: minimum scale value
      * @param int           $scaleMax    For likert: maximum scale value
      * @param string        $content     For info: markdown content to display (not a form input)
+     * @param string[]      $rows        For rating-matrix: row labels (items to rate)
+     * @param string[]      $columns     For rating-matrix: column labels (scale options)
      */
     public function __construct(
         public readonly string $type,
@@ -41,6 +43,8 @@ readonly class ResolvedFormField
         public readonly int $scaleMin = 1,
         public readonly int $scaleMax = 5,
         public readonly string $content = '',
+        public readonly array $rows = [],
+        public readonly array $columns = [],
     ) {
     }
 
@@ -109,6 +113,23 @@ readonly class ResolvedFormField
             'rightLabel'  => $this->rightLabel,
             'scaleMin'    => $this->scaleMin,
             'scaleMax'    => $this->scaleMax,
+        ];
+    }
+
+    /**
+     * Returns the arguments array to pass directly to the form/rating-matrix snippet.
+     *
+     * @return array<string, mixed>
+     */
+    public function toRatingMatrixArgs(): array
+    {
+        return [
+            'name'     => $this->name,
+            'label'    => $this->label,
+            'required' => $this->required,
+            'help'     => $this->help,
+            'rows'     => $this->rows,
+            'columns'  => $this->columns,
         ];
     }
 }

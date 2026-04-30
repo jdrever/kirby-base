@@ -398,16 +398,20 @@ final readonly class ImageService
                         /** @noinspection PhpUndefinedMethodInspection */
                         $width = $blockImage->width();
                     }
-                    $blockImage = $blockImage->resize($width);
-                    $src = $blockImage->url();
+                    $resizedImage = $blockImage->resize($width);
+                    $src = $resizedImage->url();
                     $srcSet = $blockImage->srcset([
                         '1x' => ['width' => $width],
                         '2x' => ['width' => $width * 2],
                         '3x' => ['width' => $width * 3],
                     ]);
                     /** @noinspection PhpUndefinedMethodInspection */
-                    $height = $blockImage->height();
-                    $webpSrcSet = $blockImage->srcset('webp');
+                    $height = $resizedImage->height();
+                    $webpSrcSet = $blockImage->srcset([
+                        '1x' => ['width' => $width, 'format' => 'webp'],
+                        '2x' => ['width' => $width * 2, 'format' => 'webp'],
+                        '3x' => ['width' => $width * 3, 'format' => 'webp'],
+                    ]);
                 } else {
                     $srcSetType = ($imageType === ImageType::SQUARE) ? 'square' : 'main';
                     $src = $blockImage->crop($width, $height)->url();

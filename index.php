@@ -2,6 +2,8 @@
 
 use BSBI\WebBase\helpers\ContentIndexDefinition;
 use BSBI\WebBase\helpers\ContentIndexRegistry;
+use BSBI\WebBase\helpers\FilteredFilesHelper;
+use BSBI\WebBase\helpers\FilteredPagesHelper;
 use BSBI\WebBase\helpers\FormSubmissionIndexDefinition;
 use BSBI\WebBase\helpers\SearchIndexHelper;
 use Kirby\Cms\App as Kirby;
@@ -16,6 +18,7 @@ $pluginConfig = [
     'routes' => require __DIR__ . '/routes.php',
     'templates' => [
         'file_link' => __DIR__ . '/templates/file_link.php',
+        'form_submission' => __DIR__ . '/templates/form_submission.php',
         'page_link' => __DIR__ . '/templates/page_link.php',
         'emails/form-notification.html' => __DIR__ . '/templates/emails/form-notification.html.php',
         'emails/form-notification.text' => __DIR__ . '/templates/emails/form-notification.text.php',
@@ -38,6 +41,78 @@ $pluginConfig = [
         'searchindexstats' => require __DIR__ . '/sections/searchindexstats.php',
         'contentindexstats' => require __DIR__ . '/sections/contentindexstats.php',
         'translatedpages' => require __DIR__ . '/sections/translatedpages.php',
+        'filteredpages'   => require __DIR__ . '/sections/filteredpages.php',
+        'filteredfiles'   => require __DIR__ . '/sections/filteredfiles.php',
+    ],
+    'api' => [
+        'routes' => [
+            [
+                'pattern' => 'filtered-files/options',
+                'method'  => 'GET',
+                'action'  => function (): array {
+                    $params = FilteredFilesHelper::parseOptionsParams();
+                    return FilteredFilesHelper::getOptions($params['filterDefs'], $params['modelId']);
+                },
+            ],
+            [
+                'pattern' => 'filtered-files/results',
+                'method'  => 'GET',
+                'action'  => function (): array {
+                    $p = FilteredFilesHelper::parseResultsParams();
+                    return FilteredFilesHelper::getResults(
+                        $p['modelId'],
+                        $p['filterDefs'],
+                        $p['columnDefs'],
+                        $p['active'],
+                        $p['search'],
+                        $p['sortField'],
+                        $p['sortDir'],
+                        $p['page'],
+                        $p['pageSize']
+                    );
+                },
+            ],
+            [
+                'pattern' => 'filtered-pages/options',
+                'method'  => 'GET',
+                'action'  => function (): array {
+                    $filterDefs = json_decode(get('filters', '{}'), true) ?? [];
+                    $modelId    = (string)get('model_id', '');
+                    $template   = (string)get('template', '');
+                    return FilteredPagesHelper::getOptions($filterDefs, $modelId, $template);
+                },
+            ],
+            [
+                'pattern' => 'filtered-pages/results',
+                'method'  => 'GET',
+                'action'  => function (): array {
+                    $modelId    = (string)get('model_id', '');
+                    $template   = (string)get('template', '');
+                    $filterDefs = json_decode(get('filters', '{}'), true) ?? [];
+                    $columnDefs = json_decode(get('columns', '[]'), true) ?? [];
+                    $active     = json_decode(get('active', '{}'), true) ?? [];
+                    $search     = (string)get('search', '');
+                    $sortParts  = explode(' ', (string)get('sort', 'title asc'), 2);
+                    $sortField  = $sortParts[0] ?? 'title';
+                    $sortDir    = strtolower($sortParts[1] ?? 'asc') === 'desc' ? 'desc' : 'asc';
+                    $page       = max(1, (int)get('page', 1));
+                    $pageSize   = max(1, min(200, (int)get('page_size', 25)));
+
+                    return FilteredPagesHelper::getResults(
+                        $modelId,
+                        $template,
+                        $filterDefs,
+                        $columnDefs,
+                        $active,
+                        $search,
+                        $sortField,
+                        $sortDir,
+                        $page,
+                        $pageSize
+                    );
+                },
+            ],
+        ],
     ],
 ];
 

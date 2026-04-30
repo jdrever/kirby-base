@@ -32,6 +32,8 @@ class Image extends BaseModel
     /** @var string The CSS class */
     private string $class;
 
+    private string $style;
+
     /** @var string The ALT text */
     private string $alt;
 
@@ -299,6 +301,22 @@ class Image extends BaseModel
         $this->class = $class;
         return $this;
     }
+
+    public function hasStyle(): bool {
+        return !empty($this->style);
+    }
+
+    public function getStyle(): string
+    {
+        return $this->style;
+    }
+
+    public function setStyle(string $style): void
+    {
+        $this->style = $style;
+    }
+
+
 
     /**
      * @return string

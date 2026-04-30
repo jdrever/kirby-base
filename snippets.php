@@ -30,6 +30,7 @@ return [
     'base/full-width-block-starts' => __DIR__ . '/snippets/full-width-block-starts.php',
     'base/full-width-block-ends' => __DIR__ . '/snippets/full-width-block-ends.php',
     'base/pagination' => __DIR__ . '/snippets/pagination.php',
+    'base/sortable-columns' => __DIR__ . '/snippets/sortable-columns.php',
 
     //colour mode
     'colour-mode/selector' => __DIR__ . '/snippets/colour-mode/selector.php',
@@ -55,6 +56,7 @@ return [
     'form/field-checkbox-group' => __DIR__ . '/snippets/form/field-checkbox-group.php',
     'form/field-radio-group' => __DIR__ . '/snippets/form/field-radio-group.php',
     'form/field-info' => __DIR__ . '/snippets/form/field-info.php',
+    'form/field-rating-matrix' => __DIR__ . '/snippets/form/field-rating-matrix.php',
     'form/definition-form' => __DIR__ . '/snippets/form/definition-form.php',
 
     //search blocks

@@ -18,35 +18,30 @@ $required     = $required ?? false;
         <?= html($label) ?>
     </p>
     <?php endif ?>
-    <div class="row g-2 g-sm-4 align-items-stretch">
-        <div class="col-6 col-sm-8 d-flex justify-content-center">
-            <div class="d-flex justify-content-between w-100" style="max-width: 500px;">
-                <?php for ($i = $scaleMin; $i <= $scaleMax; $i++): ?>
-                    <?php
-                    // Unique ID for label/input pairing
-                    $inputId = $name . '-' . $i;
-                    ?>
-                    <label for="<?= $inputId ?>" class="likert-item">
-                        <span class="likert-label"><?= $i ?></span>
-                        <input
-                                class="form-check-input"
-                                type="radio"
-                                name="<?= $name ?>"
-                                id="<?= $inputId ?>"
-                                value="<?= $i ?>"
-                                <?php if (!empty($required) && $i === $scaleMin) : ?>required<?php endif; ?>
-                        >
-                    </label>
-                <?php endfor; ?>
-            </div>
+    <div class="d-flex flex-column gap-2 px-2">
+        <div class="d-flex justify-content-between">
+            <?php for ($i = $scaleMin; $i <= $scaleMax; $i++): ?>
+                <?php $inputId = $name . '-' . $i; ?>
+                <label for="<?= $inputId ?>" class="d-flex flex-column align-items-center gap-1">
+                    <span class="form-label mb-0"><?= $i ?></span>
+                    <input
+                            class="form-check-input"
+                            type="radio"
+                            name="<?= $name ?>"
+                            id="<?= $inputId ?>"
+                            value="<?= $i ?>"
+                            <?php if (!empty($required) && $i === $scaleMin) : ?>required<?php endif; ?>
+                    >
+                </label>
+            <?php endfor; ?>
         </div>
-    </div>
 
-    <div class="row mt-3">
-        <div class="col-12 d-flex justify-content-between mx-auto px-0 px-sm-5" style="max-width: 600px;">
-            <small class="text-danger fw-medium"><?=$leftLabel?></small>
-            <small class="text-secondary fw-medium"><?=$middleLabel?></small>
-            <small class="text-success fw-medium"><?=$rightLabel?></small>
+        <div class="d-flex justify-content-between">
+            <small class="text-danger fw-medium"><?= $leftLabel ?></small>
+            <?php if ($middleLabel !== '') : ?>
+                <small class="text-secondary fw-medium"><?= $middleLabel ?></small>
+            <?php endif; ?>
+            <small class="text-success fw-medium"><?= $rightLabel ?></small>
         </div>
     </div>
 </div>
