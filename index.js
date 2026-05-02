@@ -1236,10 +1236,11 @@ panel.plugin('open-foundations/kirby-base', {
         }
       },
       template: `
-        <div style="padding: 1.5rem;">
+        <k-panel-inside class="k-index-stats-view">
+          <k-header>Indexes</k-header>
           <style>@keyframes k-idx-spin { to { transform: rotate(360deg); } }</style>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; padding: 1.5rem 0;">
 
             <!-- Search Index -->
             <div style="background: var(--color-background); border-radius: var(--rounded); padding: 1.25rem;">
@@ -1319,7 +1320,7 @@ panel.plugin('open-foundations/kirby-base', {
             </div>
 
           </div>
-        </div>
+        </k-panel-inside>
       `
     }
   }

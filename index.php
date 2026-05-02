@@ -182,7 +182,7 @@ if (option('contentIndex.showIndexStatsPanel', false)) {
     }
     $pluginConfig['areas']['index-stats'] = function () {
         return [
-            'label' => 'Index Stats',
+            'label' => 'Indexes',
             'icon'  => 'chart',
             'menu'  => true,
             'link'  => 'index-stats',
@@ -216,7 +216,7 @@ if (option('contentIndex.showIndexStatsPanel', false)) {
 
                         return [
                             'component' => 'k-index-stats-view',
-                            'title'     => 'Index Stats',
+                            'title'     => 'Indexes',
                             'props'     => [
                                 'searchStats'    => $searchStats,
                                 'contentIndexes' => $contentIndexes,
