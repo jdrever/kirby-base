@@ -1164,4 +1164,33 @@ class SearchIndexHelper
             'last_rebuild' => $lastRebuild['value'] ?? null
         ];
     }
+
+    /**
+     * Return a paginated list of records from the all_pages table.
+     *
+     * @param int $page  1-based page number.
+     * @param int $pageSize Number of rows per page.
+     * @return array{rows: array<int, array<string, mixed>>, columns: string[], total: int, page: int, pageSize: int, totalPages: int}
+     */
+    public function getRecords(int $page, int $pageSize): array
+    {
+        $total = (int)($this->database->query('SELECT COUNT(*) FROM all_pages')->fetchColumn() ?? 0);
+
+        $stmt = $this->database->prepare(
+            'SELECT page_id, title FROM all_pages ORDER BY page_id ASC LIMIT :limit OFFSET :offset'
+        );
+        $stmt->bindValue(':limit', $pageSize, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', ($page - 1) * $pageSize, PDO::PARAM_INT);
+        $stmt->execute();
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return [
+            'rows'       => $rows,
+            'columns'    => ['page_id', 'title'],
+            'total'      => $total,
+            'page'       => $page,
+            'pageSize'   => $pageSize,
+            'totalPages' => $pageSize > 0 ? (int)ceil($total / $pageSize) : 0,
+        ];
+    }
 }

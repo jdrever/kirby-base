@@ -1208,7 +1208,10 @@ panel.plugin('open-foundations/kirby-base', {
           currentSearchStats: this.searchStats,
           currentContentIndexes: this.contentIndexes,
           currentImageBankStats: this.imageBankStats,
-          rebuilding: null
+          rebuilding: null,
+          shownRecords: {},
+          recordData: {},
+          loadingRecords: {}
         }
       },
       methods: {
@@ -1233,6 +1236,40 @@ panel.plugin('open-foundations/kirby-base', {
           } finally {
             this.rebuilding = null;
           }
+        },
+
+        toggleRecords: async function (key, type, name) {
+          if (this.shownRecords[key]) {
+            this.shownRecords[key] = false;
+            this.recordData[key] = null;
+          } else {
+            await this.fetchRecords(key, type, name, 1);
+            this.shownRecords[key] = true;
+          }
+        },
+
+        fetchRecords: async function (key, type, name, page) {
+          this.loadingRecords[key] = true;
+          try {
+            var url;
+            if (type === 'search') {
+              url = '/search-index-records?page=' + page;
+            } else if (type === 'content') {
+              url = '/content-index-records?name=' + encodeURIComponent(name) + '&page=' + page;
+            } else {
+              url = '/imagebank-index-records?page=' + page;
+            }
+            var res = await fetch(url);
+            this.recordData[key] = await res.json();
+          } catch (e) {
+            console.error('Failed to fetch index records:', e);
+          } finally {
+            this.loadingRecords[key] = false;
+          }
+        },
+
+        goToPage: async function (key, type, name, page) {
+          await this.fetchRecords(key, type, name, page);
         }
       },
       template: `
@@ -1240,83 +1277,153 @@ panel.plugin('open-foundations/kirby-base', {
           <k-header>Indexes</k-header>
           <style>@keyframes k-idx-spin { to { transform: rotate(360deg); } }</style>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; padding: 1.5rem 0;">
+          <div style="display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem 0;">
 
             <!-- Search Index -->
             <div style="background: var(--color-background); border-radius: var(--rounded); padding: 1.25rem;">
-              <h2 style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-dimmed); margin-bottom: 1rem;">Search Index</h2>
-              <template v-if="currentSearchStats">
-                <div style="margin-bottom: 0.75rem;">
-                  <div style="font-size: 1.5rem; font-weight: 700;">{{ currentSearchStats.total_pages }}</div>
-                  <div style="font-size: 0.8rem; color: var(--color-text-dimmed);">pages indexed</div>
-                </div>
-                <div style="font-size: 0.8rem; color: var(--color-text-dimmed); margin-bottom: 1rem;">
-                  Last rebuilt: {{ currentSearchStats.last_rebuild || 'Never' }}
-                </div>
-              </template>
-              <k-empty v-else icon="search" style="margin-bottom: 1rem;">Not yet built</k-empty>
-              <button
-                @click="rebuild('search')"
-                :disabled="rebuilding !== null"
-                style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.85rem; background: var(--color-black); color: var(--color-white); border: none; cursor: pointer; border-radius: var(--rounded); font-size: 0.8rem; opacity: 1;"
-                :style="{ opacity: rebuilding !== null && rebuilding !== 'search' ? '0.4' : '1' }"
-              >
-                <span v-if="rebuilding === 'search'" style="display: inline-block; width: 0.75rem; height: 0.75rem; border: 2px solid var(--color-white); border-top-color: transparent; border-radius: 50%; animation: k-idx-spin 0.6s linear infinite;"></span>
-                {{ rebuilding === 'search' ? 'Rebuilding...' : 'Rebuild' }}
-              </button>
-            </div>
-
-            <!-- Content Indexes -->
-            <div style="background: var(--color-background); border-radius: var(--rounded); padding: 1.25rem;">
-              <h2 style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-dimmed); margin-bottom: 1rem;">Content Indexes</h2>
-              <div v-if="currentContentIndexes && currentContentIndexes.length > 0">
-                <div
-                  v-for="idx in currentContentIndexes"
-                  :key="idx.name"
-                  style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid var(--color-border);"
-                >
-                  <div style="flex: 1; min-width: 0;">
-                    <div style="font-size: 0.85rem; font-weight: 500;">{{ idx.name }}</div>
-                    <div style="font-size: 0.75rem; color: var(--color-text-dimmed);">
-                      {{ idx.total_rows }} rows · Last rebuilt: {{ idx.last_rebuild || 'Never' }}
-                    </div>
-                  </div>
+              <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                <h2 style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-dimmed); min-width: 120px; margin: 0;">Search Index</h2>
+                <span v-if="currentSearchStats" style="font-size: 0.85rem; color: var(--color-text-dimmed);">{{ currentSearchStats.total_pages }} pages &middot; Last rebuilt: {{ currentSearchStats.last_rebuild || 'Never' }}</span>
+                <span v-else style="font-size: 0.85rem; color: var(--color-text-dimmed);">Not yet built</span>
+                <div style="margin-left: auto; display: flex; gap: 0.5rem; flex-shrink: 0;">
                   <button
-                    @click="rebuild('content', idx.name)"
-                    :disabled="rebuilding !== null"
-                    style="flex-shrink: 0; display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.6rem; background: var(--color-black); color: var(--color-white); border: none; cursor: pointer; border-radius: var(--rounded); font-size: 0.75rem;"
-                    :style="{ opacity: rebuilding !== null && rebuilding !== idx.name ? '0.4' : '1' }"
+                    v-if="currentSearchStats"
+                    @click="toggleRecords('search', 'search', null)"
+                    :disabled="loadingRecords['search']"
+                    style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.6rem; background: transparent; color: var(--color-text); border: 1px solid var(--color-border); cursor: pointer; border-radius: var(--rounded); font-size: 0.75rem;"
                   >
-                    <span v-if="rebuilding === idx.name" style="display: inline-block; width: 0.65rem; height: 0.65rem; border: 2px solid var(--color-white); border-top-color: transparent; border-radius: 50%; animation: k-idx-spin 0.6s linear infinite;"></span>
-                    {{ rebuilding === idx.name ? 'Rebuilding...' : 'Rebuild' }}
+                    <span v-if="loadingRecords['search']" style="display: inline-block; width: 0.65rem; height: 0.65rem; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: k-idx-spin 0.6s linear infinite;"></span>
+                    {{ shownRecords['search'] ? 'Hide' : 'Show' }}
+                  </button>
+                  <button
+                    @click="rebuild('search')"
+                    :disabled="rebuilding !== null"
+                    style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.6rem; background: var(--color-black); color: var(--color-white); border: none; cursor: pointer; border-radius: var(--rounded); font-size: 0.75rem;"
+                    :style="{ opacity: rebuilding !== null && rebuilding !== 'search' ? '0.4' : '1' }"
+                  >
+                    <span v-if="rebuilding === 'search'" style="display: inline-block; width: 0.65rem; height: 0.65rem; border: 2px solid var(--color-white); border-top-color: transparent; border-radius: 50%; animation: k-idx-spin 0.6s linear infinite;"></span>
+                    {{ rebuilding === 'search' ? 'Rebuilding...' : 'Rebuild' }}
                   </button>
                 </div>
               </div>
-              <k-empty v-else icon="table">No content indexes registered</k-empty>
+              <div v-if="shownRecords['search'] && recordData['search']" style="margin-top: 1rem; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+                  <thead>
+                    <tr style="border-bottom: 2px solid var(--color-border);">
+                      <th v-for="col in recordData['search'].columns" :key="col" style="text-align: left; padding: 0.4rem 0.5rem; color: var(--color-text-dimmed); font-weight: 600; white-space: nowrap;">{{ col }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(row, i) in recordData['search'].rows" :key="i" style="border-bottom: 1px solid var(--color-border);">
+                      <td v-for="col in recordData['search'].columns" :key="col" style="padding: 0.4rem 0.5rem; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ row[col] }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div v-if="recordData['search'].totalPages > 1" style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0; font-size: 0.8rem; color: var(--color-text-dimmed);">
+                  <button @click="goToPage('search', 'search', null, recordData['search'].page - 1)" :disabled="recordData['search'].page <= 1" style="padding: 0.25rem 0.5rem; border: 1px solid var(--color-border); border-radius: var(--rounded); background: transparent; cursor: pointer; font-size: 0.75rem;" :style="{ opacity: recordData['search'].page <= 1 ? '0.4' : '1' }">&larr; Prev</button>
+                  <span>Page {{ recordData['search'].page }} of {{ recordData['search'].totalPages }} &middot; {{ recordData['search'].total }} total</span>
+                  <button @click="goToPage('search', 'search', null, recordData['search'].page + 1)" :disabled="recordData['search'].page >= recordData['search'].totalPages" style="padding: 0.25rem 0.5rem; border: 1px solid var(--color-border); border-radius: var(--rounded); background: transparent; cursor: pointer; font-size: 0.75rem;" :style="{ opacity: recordData['search'].page >= recordData['search'].totalPages ? '0.4' : '1' }">Next &rarr;</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Content Indexes -->
+            <template v-if="currentContentIndexes && currentContentIndexes.length > 0">
+              <div v-for="idx in currentContentIndexes" :key="idx.name" style="background: var(--color-background); border-radius: var(--rounded); padding: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                  <h2 style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-dimmed); min-width: 120px; margin: 0;">{{ idx.name }}</h2>
+                  <span style="font-size: 0.85rem; color: var(--color-text-dimmed);">{{ idx.total_rows }} rows &middot; Last rebuilt: {{ idx.last_rebuild || 'Never' }}</span>
+                  <div style="margin-left: auto; display: flex; gap: 0.5rem; flex-shrink: 0;">
+                    <button
+                      @click="toggleRecords('content:' + idx.name, 'content', idx.name)"
+                      :disabled="loadingRecords['content:' + idx.name]"
+                      style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.6rem; background: transparent; color: var(--color-text); border: 1px solid var(--color-border); cursor: pointer; border-radius: var(--rounded); font-size: 0.75rem;"
+                    >
+                      <span v-if="loadingRecords['content:' + idx.name]" style="display: inline-block; width: 0.65rem; height: 0.65rem; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: k-idx-spin 0.6s linear infinite;"></span>
+                      {{ shownRecords['content:' + idx.name] ? 'Hide' : 'Show' }}
+                    </button>
+                    <button
+                      @click="rebuild('content', idx.name)"
+                      :disabled="rebuilding !== null"
+                      style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.6rem; background: var(--color-black); color: var(--color-white); border: none; cursor: pointer; border-radius: var(--rounded); font-size: 0.75rem;"
+                      :style="{ opacity: rebuilding !== null && rebuilding !== idx.name ? '0.4' : '1' }"
+                    >
+                      <span v-if="rebuilding === idx.name" style="display: inline-block; width: 0.65rem; height: 0.65rem; border: 2px solid var(--color-white); border-top-color: transparent; border-radius: 50%; animation: k-idx-spin 0.6s linear infinite;"></span>
+                      {{ rebuilding === idx.name ? 'Rebuilding...' : 'Rebuild' }}
+                    </button>
+                  </div>
+                </div>
+                <div v-if="shownRecords['content:' + idx.name] && recordData['content:' + idx.name]" style="margin-top: 1rem; overflow-x: auto;">
+                  <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+                    <thead>
+                      <tr style="border-bottom: 2px solid var(--color-border);">
+                        <th v-for="col in recordData['content:' + idx.name].columns" :key="col" style="text-align: left; padding: 0.4rem 0.5rem; color: var(--color-text-dimmed); font-weight: 600; white-space: nowrap;">{{ col }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(row, i) in recordData['content:' + idx.name].rows" :key="i" style="border-bottom: 1px solid var(--color-border);">
+                        <td v-for="col in recordData['content:' + idx.name].columns" :key="col" style="padding: 0.4rem 0.5rem; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ row[col] }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div v-if="recordData['content:' + idx.name].totalPages > 1" style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0; font-size: 0.8rem; color: var(--color-text-dimmed);">
+                    <button @click="goToPage('content:' + idx.name, 'content', idx.name, recordData['content:' + idx.name].page - 1)" :disabled="recordData['content:' + idx.name].page <= 1" style="padding: 0.25rem 0.5rem; border: 1px solid var(--color-border); border-radius: var(--rounded); background: transparent; cursor: pointer; font-size: 0.75rem;" :style="{ opacity: recordData['content:' + idx.name].page <= 1 ? '0.4' : '1' }">&larr; Prev</button>
+                    <span>Page {{ recordData['content:' + idx.name].page }} of {{ recordData['content:' + idx.name].totalPages }} &middot; {{ recordData['content:' + idx.name].total }} total</span>
+                    <button @click="goToPage('content:' + idx.name, 'content', idx.name, recordData['content:' + idx.name].page + 1)" :disabled="recordData['content:' + idx.name].page >= recordData['content:' + idx.name].totalPages" style="padding: 0.25rem 0.5rem; border: 1px solid var(--color-border); border-radius: var(--rounded); background: transparent; cursor: pointer; font-size: 0.75rem;" :style="{ opacity: recordData['content:' + idx.name].page >= recordData['content:' + idx.name].totalPages ? '0.4' : '1' }">Next &rarr;</button>
+                  </div>
+                </div>
+              </div>
+            </template>
+            <div v-else style="background: var(--color-background); border-radius: var(--rounded); padding: 1.25rem;">
+              <k-empty icon="table">No content indexes registered</k-empty>
             </div>
 
             <!-- Image Bank Index -->
             <div style="background: var(--color-background); border-radius: var(--rounded); padding: 1.25rem;">
-              <h2 style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-dimmed); margin-bottom: 1rem;">Image Bank Index</h2>
-              <template v-if="currentImageBankStats">
-                <div style="margin-bottom: 0.75rem;">
-                  <div style="font-size: 1.5rem; font-weight: 700;">{{ currentImageBankStats.total_files }}</div>
-                  <div style="font-size: 0.8rem; color: var(--color-text-dimmed);">files indexed · {{ currentImageBankStats.total_taxa }} taxa linked</div>
+              <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                <h2 style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-dimmed); min-width: 120px; margin: 0;">Image Bank Index</h2>
+                <span v-if="currentImageBankStats" style="font-size: 0.85rem; color: var(--color-text-dimmed);">{{ currentImageBankStats.total_files }} files &middot; {{ currentImageBankStats.total_taxa }} taxa &middot; Last rebuilt: {{ currentImageBankStats.last_rebuild || 'Never' }}</span>
+                <span v-else style="font-size: 0.85rem; color: var(--color-text-dimmed);">Not yet built</span>
+                <div style="margin-left: auto; display: flex; gap: 0.5rem; flex-shrink: 0;">
+                  <button
+                    v-if="currentImageBankStats"
+                    @click="toggleRecords('imagebank', 'imagebank', null)"
+                    :disabled="loadingRecords['imagebank']"
+                    style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.6rem; background: transparent; color: var(--color-text); border: 1px solid var(--color-border); cursor: pointer; border-radius: var(--rounded); font-size: 0.75rem;"
+                  >
+                    <span v-if="loadingRecords['imagebank']" style="display: inline-block; width: 0.65rem; height: 0.65rem; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: k-idx-spin 0.6s linear infinite;"></span>
+                    {{ shownRecords['imagebank'] ? 'Hide' : 'Show' }}
+                  </button>
+                  <button
+                    @click="rebuild('imagebank')"
+                    :disabled="rebuilding !== null"
+                    style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.6rem; background: var(--color-black); color: var(--color-white); border: none; cursor: pointer; border-radius: var(--rounded); font-size: 0.75rem;"
+                    :style="{ opacity: rebuilding !== null && rebuilding !== 'imagebank' ? '0.4' : '1' }"
+                  >
+                    <span v-if="rebuilding === 'imagebank'" style="display: inline-block; width: 0.65rem; height: 0.65rem; border: 2px solid var(--color-white); border-top-color: transparent; border-radius: 50%; animation: k-idx-spin 0.6s linear infinite;"></span>
+                    {{ rebuilding === 'imagebank' ? 'Rebuilding...' : 'Rebuild' }}
+                  </button>
                 </div>
-                <div style="font-size: 0.8rem; color: var(--color-text-dimmed); margin-bottom: 1rem;">
-                  Last rebuilt: {{ currentImageBankStats.last_rebuild || 'Never' }}
+              </div>
+              <div v-if="shownRecords['imagebank'] && recordData['imagebank']" style="margin-top: 1rem; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+                  <thead>
+                    <tr style="border-bottom: 2px solid var(--color-border);">
+                      <th v-for="col in recordData['imagebank'].columns" :key="col" style="text-align: left; padding: 0.4rem 0.5rem; color: var(--color-text-dimmed); font-weight: 600; white-space: nowrap;">{{ col }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(row, i) in recordData['imagebank'].rows" :key="i" style="border-bottom: 1px solid var(--color-border);">
+                      <td v-for="col in recordData['imagebank'].columns" :key="col" style="padding: 0.4rem 0.5rem; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ row[col] }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div v-if="recordData['imagebank'].totalPages > 1" style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0; font-size: 0.8rem; color: var(--color-text-dimmed);">
+                  <button @click="goToPage('imagebank', 'imagebank', null, recordData['imagebank'].page - 1)" :disabled="recordData['imagebank'].page <= 1" style="padding: 0.25rem 0.5rem; border: 1px solid var(--color-border); border-radius: var(--rounded); background: transparent; cursor: pointer; font-size: 0.75rem;" :style="{ opacity: recordData['imagebank'].page <= 1 ? '0.4' : '1' }">&larr; Prev</button>
+                  <span>Page {{ recordData['imagebank'].page }} of {{ recordData['imagebank'].totalPages }} &middot; {{ recordData['imagebank'].total }} total</span>
+                  <button @click="goToPage('imagebank', 'imagebank', null, recordData['imagebank'].page + 1)" :disabled="recordData['imagebank'].page >= recordData['imagebank'].totalPages" style="padding: 0.25rem 0.5rem; border: 1px solid var(--color-border); border-radius: var(--rounded); background: transparent; cursor: pointer; font-size: 0.75rem;" :style="{ opacity: recordData['imagebank'].page >= recordData['imagebank'].totalPages ? '0.4' : '1' }">Next &rarr;</button>
                 </div>
-              </template>
-              <k-empty v-else icon="image" style="margin-bottom: 1rem;">Not yet built</k-empty>
-              <button
-                @click="rebuild('imagebank')"
-                :disabled="rebuilding !== null"
-                style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.85rem; background: var(--color-black); color: var(--color-white); border: none; cursor: pointer; border-radius: var(--rounded); font-size: 0.8rem;"
-                :style="{ opacity: rebuilding !== null && rebuilding !== 'imagebank' ? '0.4' : '1' }"
-              >
-                <span v-if="rebuilding === 'imagebank'" style="display: inline-block; width: 0.75rem; height: 0.75rem; border: 2px solid var(--color-white); border-top-color: transparent; border-radius: 50%; animation: k-idx-spin 0.6s linear infinite;"></span>
-                {{ rebuilding === 'imagebank' ? 'Rebuilding...' : 'Rebuild' }}
-              </button>
+              </div>
             </div>
 
           </div>

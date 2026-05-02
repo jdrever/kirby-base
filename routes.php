@@ -429,4 +429,88 @@ return [
             }
         }
     ],
+    [
+        'pattern' => 'content-index-records',
+        'method'  => 'GET',
+        'action'  => function () {
+            $helper = new KirbyInternalHelper();
+            if (!$helper->isCurrentUserAdminOrEditor()) {
+                return new Response('You must be an administrator to access this page.', 'text/plain', 403);
+            }
+            try {
+                $name     = (string)kirby()->request()->get('name', '');
+                $page     = max(1, (int)kirby()->request()->get('page', 1));
+                $pageSize = 20;
+
+                $manager = ContentIndexRegistry::get($name);
+                if ($manager === null) {
+                    return new Response(json_encode(['error' => "Index '$name' not found."]), 'application/json', 404);
+                }
+
+                $total   = $manager->query()->count();
+                $rows    = $manager->query()->limit($pageSize)->offset(($page - 1) * $pageSize)->get();
+                $columns = $rows !== [] ? array_keys($rows[0]) : [];
+
+                return new Response(
+                    json_encode([
+                        'rows'       => $rows,
+                        'columns'    => $columns,
+                        'total'      => $total,
+                        'page'       => $page,
+                        'pageSize'   => $pageSize,
+                        'totalPages' => $pageSize > 0 ? (int)ceil($total / $pageSize) : 0,
+                    ], JSON_PRETTY_PRINT),
+                    'application/json',
+                    200
+                );
+            } catch (Exception $e) {
+                return new Response(json_encode(['error' => $e->getMessage()]), 'application/json', 500);
+            }
+        }
+    ],
+    [
+        'pattern' => 'search-index-records',
+        'method'  => 'GET',
+        'action'  => function () {
+            $helper = new KirbyInternalHelper();
+            if (!$helper->isCurrentUserAdminOrEditor()) {
+                return new Response('You must be an administrator to access this page.', 'text/plain', 403);
+            }
+            try {
+                $page     = max(1, (int)kirby()->request()->get('page', 1));
+                $pageSize = 20;
+
+                $searchIndex = new SearchIndexHelper();
+                $result      = $searchIndex->getRecords($page, $pageSize);
+
+                return new Response(json_encode($result, JSON_PRETTY_PRINT), 'application/json', 200);
+            } catch (Exception $e) {
+                return new Response(json_encode(['error' => $e->getMessage()]), 'application/json', 500);
+            }
+        }
+    ],
+    [
+        'pattern' => 'imagebank-index-records',
+        'method'  => 'GET',
+        'action'  => function () {
+            $helper = new KirbyInternalHelper();
+            if (!$helper->isCurrentUserAdminOrEditor()) {
+                return new Response('You must be an administrator to access this page.', 'text/plain', 403);
+            }
+            try {
+                if (!\BSBI\WebBase\helpers\ImageBankIndexHelper::isIndexReady()) {
+                    return new Response(json_encode(['rows' => [], 'columns' => [], 'total' => 0, 'page' => 1, 'pageSize' => 20, 'totalPages' => 0]), 'application/json', 200);
+                }
+                $page     = max(1, (int)kirby()->request()->get('page', 1));
+                $pageSize = 20;
+
+                $imageBankIndex = new \BSBI\WebBase\helpers\ImageBankIndexHelper();
+                $result         = $imageBankIndex->getRecords($page, $pageSize);
+
+                return new Response(json_encode($result, JSON_PRETTY_PRINT), 'application/json', 200);
+            } catch (Exception $e) {
+                return new Response(json_encode(['error' => $e->getMessage()]), 'application/json', 500);
+            }
+        }
+    ],
 ];
