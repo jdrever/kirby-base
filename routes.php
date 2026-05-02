@@ -373,4 +373,60 @@ return [
             return new Response('You must be an administrator to access this page.', 'text/plain', 403);
         }
     ],
+    [
+        'pattern' => 'imagebank-index-rebuild',
+        'method'  => 'GET',
+        'action'  => function () {
+            $helper = new KirbyInternalHelper();
+            if (!$helper->isCurrentUserAdminOrEditor()) {
+                return new Response('You must be an administrator to access this page.', 'text/plain', 403);
+            }
+            try {
+                $imageBankIndex = new \BSBI\WebBase\helpers\ImageBankIndexHelper();
+                $count = $imageBankIndex->rebuildIndex();
+                return new Response(
+                    "imageBank index rebuilt successfully. $count files indexed.",
+                    'text/plain',
+                    200
+                );
+            } catch (Exception $e) {
+                return new Response(
+                    'Failed to rebuild imageBank index: ' . $e->getMessage(),
+                    'text/plain',
+                    500
+                );
+            }
+        }
+    ],
+    [
+        'pattern' => 'imagebank-index-stats',
+        'method'  => 'GET',
+        'action'  => function () {
+            $helper = new KirbyInternalHelper();
+            if (!$helper->isCurrentUserAdminOrEditor()) {
+                return new Response('You must be an administrator to access this page.', 'text/plain', 403);
+            }
+            try {
+                if (!\BSBI\WebBase\helpers\ImageBankIndexHelper::isIndexReady()) {
+                    return new Response(
+                        json_encode(null),
+                        'application/json',
+                        200
+                    );
+                }
+                $imageBankIndex = new \BSBI\WebBase\helpers\ImageBankIndexHelper();
+                return new Response(
+                    json_encode($imageBankIndex->getStats(), JSON_PRETTY_PRINT),
+                    'application/json',
+                    200
+                );
+            } catch (Exception $e) {
+                return new Response(
+                    json_encode(['error' => $e->getMessage()]),
+                    'application/json',
+                    500
+                );
+            }
+        }
+    ],
 ];

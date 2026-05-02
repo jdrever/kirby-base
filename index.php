@@ -2,6 +2,7 @@
 
 use BSBI\WebBase\helpers\ContentIndexDefinition;
 use BSBI\WebBase\helpers\ContentIndexRegistry;
+use BSBI\WebBase\helpers\ImageBankIndexHelper;
 use BSBI\WebBase\helpers\FilteredFilesHelper;
 use BSBI\WebBase\helpers\FilteredPagesHelper;
 use BSBI\WebBase\helpers\FormSubmissionIndexDefinition;
@@ -39,7 +40,8 @@ $pluginConfig = [
         'quicklinks' => require __DIR__ . '/sections/quicklinks.php',
         'searchanalytics' => require __DIR__ . '/sections/searchanalytics.php',
         'searchindexstats' => require __DIR__ . '/sections/searchindexstats.php',
-        'contentindexstats' => require __DIR__ . '/sections/contentindexstats.php',
+        'contentindexstats'   => require __DIR__ . '/sections/contentindexstats.php',
+        'imagebankindexstats' => require __DIR__ . '/sections/imagebankindexstats.php',
         'translatedpages' => require __DIR__ . '/sections/translatedpages.php',
         'filteredpages'   => require __DIR__ . '/sections/filteredpages.php',
         'filteredfiles'   => require __DIR__ . '/sections/filteredfiles.php',
@@ -171,6 +173,61 @@ if (option('search.panelSearch', false)) {
             ];
         }
     ];
+}
+
+// Index stats panel area — opt-in via contentIndex.showIndexStatsPanel config
+if (option('contentIndex.showIndexStatsPanel', false)) {
+    if (!array_key_exists('areas', $pluginConfig)) {
+        $pluginConfig['areas'] = [];
+    }
+    $pluginConfig['areas']['index-stats'] = function () {
+        return [
+            'label' => 'Index Stats',
+            'icon'  => 'chart',
+            'menu'  => true,
+            'link'  => 'index-stats',
+            'views' => [
+                [
+                    'pattern' => 'index-stats',
+                    'action'  => function () {
+                        $searchStats = null;
+                        try {
+                            $searchHelper = new SearchIndexHelper();
+                            $searchStats  = $searchHelper->getStats();
+                        } catch (Throwable) {
+                        }
+
+                        $contentIndexes = [];
+                        try {
+                            foreach (ContentIndexRegistry::all() as $manager) {
+                                $contentIndexes[] = $manager->getStats();
+                            }
+                        } catch (Throwable) {
+                        }
+
+                        $imageBankStats = null;
+                        try {
+                            if (ImageBankIndexHelper::isIndexReady()) {
+                                $imageBankHelper = new ImageBankIndexHelper();
+                                $imageBankStats  = $imageBankHelper->getStats();
+                            }
+                        } catch (Throwable) {
+                        }
+
+                        return [
+                            'component' => 'k-index-stats-view',
+                            'title'     => 'Index Stats',
+                            'props'     => [
+                                'searchStats'    => $searchStats,
+                                'contentIndexes' => $contentIndexes,
+                                'imageBankStats' => $imageBankStats,
+                            ],
+                        ];
+                    },
+                ],
+            ],
+        ];
+    };
 }
 
 Kirby::plugin('open-foundations/kirby-base', $pluginConfig);

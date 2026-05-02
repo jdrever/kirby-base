@@ -235,6 +235,18 @@ class ContentIndexQuery
     }
 
     /**
+     * Filter rows where a boolean/integer column is falsy (= 0).
+     *
+     * @param string $column Column name
+     * @return $this
+     */
+    public function whereFalse(string $column): static
+    {
+        $this->whereClauses[] = "$column = 0";
+        return $this;
+    }
+
+    /**
      * Filter rows where a column is not empty.
      *
      * @param string $column Column name

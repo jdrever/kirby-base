@@ -1119,6 +1119,208 @@ panel.plugin('open-foundations/kirby-base', {
           </section>
         </div>
       `
+    },
+
+    imagebankindexstats: {
+      data: function () {
+        return {
+          headline: null,
+          stats: null,
+          rebuilding: false
+        }
+      },
+      created: async function () {
+        try {
+          const response = await this.load();
+          this.headline = response.headline;
+          this.stats = response.stats;
+        } catch (error) {
+          console.error('Failed to load imageBank index stats:', error);
+        }
+      },
+      methods: {
+        rebuild: async function () {
+          this.rebuilding = true;
+          try {
+            await fetch('/imagebank-index-rebuild');
+            const response = await this.load();
+            this.stats = response.stats;
+          } catch (error) {
+            console.error('Failed to rebuild imageBank index:', error);
+          } finally {
+            this.rebuilding = false;
+          }
+        }
+      },
+      template: `
+        <section class="k-section k-imagebankindexstats-section">
+          <header class="k-section-header">
+            <h2 class="k-headline">{{ headline }}</h2>
+          </header>
+
+          <div v-if="stats" style="padding: 0.75rem 0 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 0.75rem; padding: 0.75rem 1rem; background: var(--color-background); border-radius: var(--rounded);">
+              <div style="color: var(--color-text-dimmed); font-size: 0.875rem;">
+                {{ stats.total_files }} files indexed
+              </div>
+              <div style="color: var(--color-text-dimmed); font-size: 0.875rem;">
+                {{ stats.total_taxa }} taxa linked
+              </div>
+              <div style="color: var(--color-text-dimmed); font-size: 0.875rem;">
+                Last rebuilt: {{ stats.last_rebuild || 'Never' }}
+              </div>
+              <div style="margin-left: auto;">
+                <button
+                  @click="rebuild"
+                  :disabled="rebuilding"
+                  style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.4rem 0.75rem; background: var(--color-black); color: var(--color-white); border: none; cursor: pointer; border-radius: var(--rounded); font-size: 0.8rem;"
+                >
+                  <span v-if="rebuilding" style="display: inline-block; width: 0.8rem; height: 0.8rem; border: 2px solid var(--color-white); border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite;"></span>
+                  {{ rebuilding ? 'Rebuilding...' : 'Rebuild' }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <k-empty v-else icon="image">
+            Image bank index not yet built. Click Rebuild to create it.
+            <button
+              @click="rebuild"
+              :disabled="rebuilding"
+              style="display: inline-flex; align-items: center; gap: 0.3rem; margin-top: 0.75rem; padding: 0.4rem 0.75rem; background: var(--color-black); color: var(--color-white); border: none; cursor: pointer; border-radius: var(--rounded); font-size: 0.8rem;"
+            >
+              <span v-if="rebuilding" style="display: inline-block; width: 0.8rem; height: 0.8rem; border: 2px solid var(--color-white); border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite;"></span>
+              {{ rebuilding ? 'Rebuilding...' : 'Rebuild' }}
+            </button>
+          </k-empty>
+
+          <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+        </section>
+      `
+    }
+  },
+
+  components: {
+    'k-index-stats-view': {
+      props: ['searchStats', 'contentIndexes', 'imageBankStats'],
+      data: function () {
+        return {
+          currentSearchStats: this.searchStats,
+          currentContentIndexes: this.contentIndexes,
+          currentImageBankStats: this.imageBankStats,
+          rebuilding: null
+        }
+      },
+      methods: {
+        rebuild: async function (type, name) {
+          this.rebuilding = type === 'content' ? name : type;
+          try {
+            if (type === 'search') {
+              await fetch('/search-rebuild');
+              const res = await fetch('/search-stats');
+              this.currentSearchStats = await res.json();
+            } else if (type === 'content') {
+              await fetch('/content-index-rebuild?name=' + encodeURIComponent(name));
+              const res = await fetch('/content-index-stats');
+              this.currentContentIndexes = await res.json();
+            } else if (type === 'imagebank') {
+              await fetch('/imagebank-index-rebuild');
+              const res = await fetch('/imagebank-index-stats');
+              this.currentImageBankStats = await res.json();
+            }
+          } catch (error) {
+            console.error('Index rebuild failed:', error);
+          } finally {
+            this.rebuilding = null;
+          }
+        }
+      },
+      template: `
+        <div style="padding: 1.5rem;">
+          <style>@keyframes k-idx-spin { to { transform: rotate(360deg); } }</style>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+
+            <!-- Search Index -->
+            <div style="background: var(--color-background); border-radius: var(--rounded); padding: 1.25rem;">
+              <h2 style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-dimmed); margin-bottom: 1rem;">Search Index</h2>
+              <template v-if="currentSearchStats">
+                <div style="margin-bottom: 0.75rem;">
+                  <div style="font-size: 1.5rem; font-weight: 700;">{{ currentSearchStats.total_pages }}</div>
+                  <div style="font-size: 0.8rem; color: var(--color-text-dimmed);">pages indexed</div>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--color-text-dimmed); margin-bottom: 1rem;">
+                  Last rebuilt: {{ currentSearchStats.last_rebuild || 'Never' }}
+                </div>
+              </template>
+              <k-empty v-else icon="search" style="margin-bottom: 1rem;">Not yet built</k-empty>
+              <button
+                @click="rebuild('search')"
+                :disabled="rebuilding !== null"
+                style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.85rem; background: var(--color-black); color: var(--color-white); border: none; cursor: pointer; border-radius: var(--rounded); font-size: 0.8rem; opacity: 1;"
+                :style="{ opacity: rebuilding !== null && rebuilding !== 'search' ? '0.4' : '1' }"
+              >
+                <span v-if="rebuilding === 'search'" style="display: inline-block; width: 0.75rem; height: 0.75rem; border: 2px solid var(--color-white); border-top-color: transparent; border-radius: 50%; animation: k-idx-spin 0.6s linear infinite;"></span>
+                {{ rebuilding === 'search' ? 'Rebuilding...' : 'Rebuild' }}
+              </button>
+            </div>
+
+            <!-- Content Indexes -->
+            <div style="background: var(--color-background); border-radius: var(--rounded); padding: 1.25rem;">
+              <h2 style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-dimmed); margin-bottom: 1rem;">Content Indexes</h2>
+              <div v-if="currentContentIndexes && currentContentIndexes.length > 0">
+                <div
+                  v-for="idx in currentContentIndexes"
+                  :key="idx.name"
+                  style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid var(--color-border);"
+                >
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-size: 0.85rem; font-weight: 500;">{{ idx.name }}</div>
+                    <div style="font-size: 0.75rem; color: var(--color-text-dimmed);">
+                      {{ idx.total_rows }} rows · Last rebuilt: {{ idx.last_rebuild || 'Never' }}
+                    </div>
+                  </div>
+                  <button
+                    @click="rebuild('content', idx.name)"
+                    :disabled="rebuilding !== null"
+                    style="flex-shrink: 0; display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.6rem; background: var(--color-black); color: var(--color-white); border: none; cursor: pointer; border-radius: var(--rounded); font-size: 0.75rem;"
+                    :style="{ opacity: rebuilding !== null && rebuilding !== idx.name ? '0.4' : '1' }"
+                  >
+                    <span v-if="rebuilding === idx.name" style="display: inline-block; width: 0.65rem; height: 0.65rem; border: 2px solid var(--color-white); border-top-color: transparent; border-radius: 50%; animation: k-idx-spin 0.6s linear infinite;"></span>
+                    {{ rebuilding === idx.name ? 'Rebuilding...' : 'Rebuild' }}
+                  </button>
+                </div>
+              </div>
+              <k-empty v-else icon="table">No content indexes registered</k-empty>
+            </div>
+
+            <!-- Image Bank Index -->
+            <div style="background: var(--color-background); border-radius: var(--rounded); padding: 1.25rem;">
+              <h2 style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-dimmed); margin-bottom: 1rem;">Image Bank Index</h2>
+              <template v-if="currentImageBankStats">
+                <div style="margin-bottom: 0.75rem;">
+                  <div style="font-size: 1.5rem; font-weight: 700;">{{ currentImageBankStats.total_files }}</div>
+                  <div style="font-size: 0.8rem; color: var(--color-text-dimmed);">files indexed · {{ currentImageBankStats.total_taxa }} taxa linked</div>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--color-text-dimmed); margin-bottom: 1rem;">
+                  Last rebuilt: {{ currentImageBankStats.last_rebuild || 'Never' }}
+                </div>
+              </template>
+              <k-empty v-else icon="image" style="margin-bottom: 1rem;">Not yet built</k-empty>
+              <button
+                @click="rebuild('imagebank')"
+                :disabled="rebuilding !== null"
+                style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.85rem; background: var(--color-black); color: var(--color-white); border: none; cursor: pointer; border-radius: var(--rounded); font-size: 0.8rem;"
+                :style="{ opacity: rebuilding !== null && rebuilding !== 'imagebank' ? '0.4' : '1' }"
+              >
+                <span v-if="rebuilding === 'imagebank'" style="display: inline-block; width: 0.75rem; height: 0.75rem; border: 2px solid var(--color-white); border-top-color: transparent; border-radius: 50%; animation: k-idx-spin 0.6s linear infinite;"></span>
+                {{ rebuilding === 'imagebank' ? 'Rebuilding...' : 'Rebuild' }}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      `
     }
   }
 });
