@@ -1240,16 +1240,16 @@ panel.plugin('open-foundations/kirby-base', {
 
         toggleRecords: async function (key, type, name) {
           if (this.shownRecords[key]) {
-            this.shownRecords[key] = false;
-            this.recordData[key] = null;
+            this.shownRecords = Object.assign({}, this.shownRecords, { [key]: false });
+            this.recordData   = Object.assign({}, this.recordData,   { [key]: null });
           } else {
             await this.fetchRecords(key, type, name, 1);
-            this.shownRecords[key] = true;
+            this.shownRecords = Object.assign({}, this.shownRecords, { [key]: true });
           }
         },
 
         fetchRecords: async function (key, type, name, page) {
-          this.loadingRecords[key] = true;
+          this.loadingRecords = Object.assign({}, this.loadingRecords, { [key]: true });
           try {
             var url;
             if (type === 'search') {
@@ -1260,11 +1260,15 @@ panel.plugin('open-foundations/kirby-base', {
               url = '/imagebank-index-records?page=' + page;
             }
             var res = await fetch(url);
-            this.recordData[key] = await res.json();
+            if (!res.ok) {
+              throw new Error('HTTP ' + res.status + ' fetching ' + url);
+            }
+            var data = await res.json();
+            this.recordData = Object.assign({}, this.recordData, { [key]: data });
           } catch (e) {
             console.error('Failed to fetch index records:', e);
           } finally {
-            this.loadingRecords[key] = false;
+            this.loadingRecords = Object.assign({}, this.loadingRecords, { [key]: false });
           }
         },
 
