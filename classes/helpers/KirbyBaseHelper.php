@@ -2664,7 +2664,7 @@ abstract class KirbyBaseHelper
             $collectionPages = $collectionPages->paginate($modelList->getPaginatePerPage());
             $paginationFromKirby = $collectionPages->pagination();
 
-            if (isset($paginationFromKirby)) {
+            if (isset($paginationFromKirby) && $paginationFromKirby->pages() > 0) {
                 $pagination = $this->getPagination($paginationFromKirby);
 
                 if (!empty($sortBy)) {

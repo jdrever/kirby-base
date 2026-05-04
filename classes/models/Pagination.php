@@ -20,7 +20,7 @@ class Pagination
 
     private int $pageCount;
 
-    private array $pageUrls;
+    private array $pageUrls = [];
 
     /** @var bool has a next page? */
     private bool $hasNextPage;
