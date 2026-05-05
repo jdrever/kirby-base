@@ -965,6 +965,27 @@ panel.plugin('open-foundations/kirby-base', {
         onDialogSuccess: function () {
           this.loadResults();
           this.loadOptions();
+        },
+
+        triggerUpload: function () {
+          var self = this;
+          var uploadUrl = this.$panel.urls.api + '/pages/' + this.modelId.split('/').join('+') + '/files';
+          this.$panel.upload.pick({
+            url: uploadUrl,
+            accept: this.uploadTemplate === 'image' ? 'image/*' : '*',
+            multiple: false,
+            on: {
+              done: function (files) {
+                if (files && files.length > 0 && files[0].link) {
+                  var panelBase = (document.querySelector('base')?.href || '').replace(/\/$/, '');
+                  window.location.href = panelBase + files[0].link;
+                } else {
+                  self.loadResults();
+                  self.loadOptions();
+                }
+              }
+            }
+          });
         }
       },
 
@@ -984,7 +1005,7 @@ panel.plugin('open-foundations/kirby-base', {
               text="Add"
               size="sm"
               variant="filled"
-              :dialog="'files/upload?parent=pages/' + modelId.split('/').join('+') + '&template=' + uploadTemplate"
+              @click="triggerUpload"
             />
           </header>
 
