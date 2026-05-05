@@ -1242,6 +1242,20 @@ abstract class KirbyBaseHelper
         return $this->fieldReader->getUserNames($page, $fieldName);
     }
 
+    /**
+     * Returns a comma-separated string of display names for users stored in a Kirby users field.
+     *
+     * Returns 'Unknown' if the field is empty, or an empty string if an error occurs.
+     *
+     * @param Page $page
+     * @param string $fieldName
+     * @return string
+     */
+    public function getPageFieldAsUserNames(Page $page, string $fieldName): string
+    {
+        return $this->fieldReader->getUserNames($page, $fieldName);
+    }
+
 
 
     #endregion
