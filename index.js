@@ -970,12 +970,21 @@ panel.plugin('open-foundations/kirby-base', {
         triggerUpload: function () {
           var self = this;
           var uploadUrl = this.$panel.urls.api + '/pages/' + this.modelId.split('/').join('+') + '/files';
+
+          var onError = function (file) {
+            self.$panel.notification.error(file.error || 'Upload failed');
+            self.$panel.events.off('file.upload.error', onError);
+          };
+          this.$panel.events.on('file.upload.error', onError);
+
           this.$panel.upload.pick({
             url: uploadUrl,
             accept: this.uploadTemplate === 'image' ? 'image/*' : '*',
+            attributes: { template: this.uploadTemplate },
             multiple: false,
             on: {
               done: function (files) {
+                self.$panel.events.off('file.upload.error', onError);
                 if (files && files.length > 0 && files[0].link) {
                   var panelBase = (document.querySelector('base')?.href || '').replace(/\/$/, '');
                   window.location.href = panelBase + files[0].link;
