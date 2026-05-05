@@ -279,7 +279,7 @@ class FilteredPagesHelper
             return $empty;
         }
 
-        $children = $parentPage->children()->filterBy('intendedTemplate', $template);
+        $children = $parentPage->childrenAndDrafts()->filterBy('intendedTemplate', $template);
 
         $pages = [];
         foreach ($children as $child) {
