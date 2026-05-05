@@ -1273,6 +1273,20 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * Returns a site field value as an integer.
+     *
+     * @param string $fieldName
+     * @param bool $required
+     * @param int $default
+     * @return int
+     * @throws KirbyRetrievalException
+     */
+    public function getSiteFieldAsInt(string $fieldName, bool $required = false, int $default = 0): int
+    {
+        return $this->fieldReader->getSiteFieldAsInt($fieldName, $required, $default);
+    }
+
+    /**
      * @param string $fieldName
      * @return Structure
      * @throws KirbyRetrievalException

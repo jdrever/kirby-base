@@ -731,6 +731,29 @@ final readonly class KirbyFieldReader
     }
 
     /**
+     * Returns a site field value as an integer.
+     *
+     * @param string $fieldName
+     * @param bool $required
+     * @param int $default
+     * @return int
+     * @throws KirbyRetrievalException
+     */
+    public function getSiteFieldAsInt(string $fieldName, bool $required = false, int $default = 0): int
+    {
+        try {
+            $siteField = $this->getSiteField($fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $siteField->toInt();
+        } catch (KirbyRetrievalException $e) {
+            if ($required) {
+                throw $e;
+            }
+            return $default;
+        }
+    }
+
+    /**
      * Returns a site field value as a Kirby Structure.
      *
      * @throws KirbyRetrievalException
