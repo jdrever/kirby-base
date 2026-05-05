@@ -875,6 +875,24 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * Returns a plain-HTML excerpt from a blocks field, suitable for use in content index definitions.
+     *
+     * @param Page $page
+     * @param string $fieldName
+     * @param int $length Maximum character length of the excerpt (0 = no limit)
+     * @param bool $required
+     * @return string
+     * @throws KirbyRetrievalException
+     */
+    public function getPageFieldAsBlocksExcerpt(Page   $page,
+                                                string $fieldName,
+                                                int    $length = 200,
+                                                bool   $required = false): string
+    {
+        return $this->fieldReader->getPageFieldAsBlocksHtml($page, $fieldName, $required, $length);
+    }
+
+    /**
      * @param Page $page
      * @param string $fieldName
      * @param int $length
