@@ -2,6 +2,14 @@ name: field.blocks.gallery.name
 icon: dashboard
 preview: gallery
 fields:
+  location:
+    label: Image Source
+    type: radio
+    columns: 2
+    default: "kirby"
+    options:
+      kirby: Page Images
+      bank: Image Bank
   fullWidth:
     type: toggle
     label: Full Width?
@@ -17,9 +25,27 @@ fields:
       template: blocks/image-clip
     image:
       ratio: 1/1
+    when:
+      location: kirby
     help: |
       If you would like to a photographer credit, or change the focal point of the image, click into the
       image, make your changes and save, then go back in your browser to return to this page.
+      You can change the order of the images in your gallery by putting your mouse over the image and using the
+      six dot icon to drag the image.
+  bank:
+    type: files
+    label: Select Images from Image Bank
+    query: site.children.filterBy("template", "image_bank").first.files
+    multiple: true
+    layout: cards
+    image:
+      cover: true
+    info: "{{ file.filename }}"
+    text: "{{ file.alt.or(file.filename) }}"
+    when:
+      location: bank
+    help: |
+      Select one or more images from the Image Bank.
       You can change the order of the images in your gallery by putting your mouse over the image and using the
       six dot icon to drag the image.
   caption:

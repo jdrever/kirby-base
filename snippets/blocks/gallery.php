@@ -23,8 +23,15 @@ $ratio   = $block->ratio()->or('auto')->value();
 $fullWidth = $block->fullWidth()->toBool();
 $figCaptionClass = '';
 
-$allImages = $block->images()->toFiles();
-$hideSeeAllButton = $block->hideSeeAllButton()->toBool(); // NEW: Check for the new field
+$location = $block->location()->value() ?: 'kirby';
+if ($location === 'bank') {
+    $bankIds = $block->bank()->value() ?: [];
+    $resolvedFiles = array_filter(array_map(fn($id) => kirby()->file($id), $bankIds));
+    $allImages = new Collection($resolvedFiles);
+} else {
+    $allImages = $block->images()->toFiles();
+}
+$hideSeeAllButton = $block->hideSeeAllButton()->toBool();
 
 /** @var Collection<Kirby\Cms\File> $visibleImages */
 $visibleImages = $allImages;
