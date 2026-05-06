@@ -139,6 +139,75 @@ abstract class BaseList
 
 
     /**
+     * Returns the category string for a given list item.
+     * Override in subclasses to enable groupByCategory() support.
+     *
+     * @param BaseModel $item
+     * @return string
+     * @noinspection PhpUnusedParameterInspection
+     */
+    protected function getCategoryForItem(BaseModel $item): string
+    {
+        return '';
+    }
+
+    /**
+     * Returns the fixed display order for categories.
+     * Override in subclasses to enforce a specific order.
+     * An empty array means categories are sorted alphabetically.
+     *
+     * @return array<int, string>
+     */
+    protected function getCategoryOrder(): array
+    {
+        return [];
+    }
+
+    /**
+     * Groups list items by category, using getCategoryForItem() and getCategoryOrder().
+     * Items with no category (empty string) are placed last under $uncategorisedLabel.
+     * If getCategoryOrder() is non-empty, categories follow that order; otherwise alphabetical.
+     *
+     * @param string $uncategorisedLabel Key used for items with no category
+     * @return array<string, BaseModel[]>
+     */
+    public function groupByCategory(string $uncategorisedLabel = 'Other'): array
+    {
+        $grouped = [];
+        $uncategorised = [];
+
+        foreach ($this->list as $item) {
+            $category = $this->getCategoryForItem($item);
+            if ($category === '') {
+                $uncategorised[] = $item;
+            } else {
+                $grouped[$category][] = $item;
+            }
+        }
+
+        $categoryOrder = $this->getCategoryOrder();
+        if (empty($categoryOrder)) {
+            ksort($grouped);
+        } else {
+            $ordered = [];
+            foreach ($categoryOrder as $category) {
+                if (isset($grouped[$category])) {
+                    $ordered[$category] = $grouped[$category];
+                }
+            }
+            $remaining = array_diff_key($grouped, $ordered);
+            ksort($remaining);
+            $grouped = array_merge($ordered, $remaining);
+        }
+
+        if (!empty($uncategorised)) {
+            $grouped[$uncategorisedLabel] = $uncategorised;
+        }
+
+        return $grouped;
+    }
+
+    /**
      * the default sort for the list (by title, intended to be overriden
      * for specific lists)
      * @return $this
