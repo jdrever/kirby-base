@@ -2,7 +2,7 @@ type: fields
 fields:
   emailRecepient:
     type: email
-    label: Email Receipient
+    label: Email Recepient
   onSubmission:
     type: select
     label: After submission
