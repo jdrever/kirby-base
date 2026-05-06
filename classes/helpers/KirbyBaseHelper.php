@@ -5092,6 +5092,29 @@ abstract class KirbyBaseHelper
         }
     }
 
+    /**
+     * Adds an OnThisPageLink for each category returned by groupByCategory(),
+     * in the order they appear. Intended for pages that render grouped content
+     * with per-category headings (e.g. policies, vacancies).
+     *
+     * @param BaseWebPage $webPage Page to add links to
+     * @param BaseList $list List whose groupByCategory() drives the links
+     * @param string $headingLevel HTML heading level used in the snippet (e.g. 'h2', 'h3')
+     * @param string $uncategorisedLabel Label for items with no category (default 'Other')
+     */
+    protected function addGroupedCategoryOnPageLinks(
+        BaseWebPage $webPage,
+        BaseList $list,
+        string $headingLevel = 'h2',
+        string $uncategorisedLabel = 'Other'
+    ): void {
+        foreach (array_keys($list->groupByCategory($uncategorisedLabel)) as $category) {
+            $webPage->addOnPageLinkAfterMain(
+                new OnThisPageLink($category, Str::slug($category), $headingLevel, 'main')
+            );
+        }
+    }
+
     #endregion
 
     #region FORMS
