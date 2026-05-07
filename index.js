@@ -1,4 +1,320 @@
 panel.plugin('open-foundations/kirby-base', {
+  fields: {
+    maplocation: {
+      props: {
+        value: {
+          type: [Object, String],
+          default: function () { return null; }
+        }
+      },
+
+      data: function () {
+        return {
+          lat: '',
+          lon: '',
+          zoom: 13,
+          geocodeQuery: '',
+          geocodeResults: [],
+          geocodeError: '',
+          isGeocoding: false,
+          hoveredGeoIndex: -1,
+          map: null,
+          mapMarker: null,
+          mapId: 'bsbi-maploc-' + Math.random().toString(36).substr(2, 9)
+        };
+      },
+
+      computed: {
+        hasCoords: function () {
+          var lat = parseFloat(this.lat);
+          var lon = parseFloat(this.lon);
+          return !isNaN(lat) && !isNaN(lon) && this.lat !== '' && this.lon !== '';
+        },
+        displayCoords: function () {
+          if (!this.hasCoords) return 'No location set';
+          return parseFloat(this.lat).toFixed(6) + ', ' + parseFloat(this.lon).toFixed(6);
+        }
+      },
+
+      watch: {
+        value: {
+          immediate: true,
+          handler: function (val) {
+            var lat = '', lon = '', zoom = 13;
+            if (val && typeof val === 'object') {
+              lat  = val.lat  !== undefined ? String(val.lat)  : '';
+              lon  = val.lon  !== undefined ? String(val.lon)  : '';
+              zoom = val.zoom || 13;
+            } else if (typeof val === 'string' && val.trim() !== '') {
+              // Fallback: parse raw YAML string (locator plugin stores this format)
+              val.split('\n').forEach(function (line) {
+                var colon = line.indexOf(':');
+                if (colon > 0) {
+                  var key = line.substring(0, colon).trim();
+                  var value = line.substring(colon + 1).trim();
+                  if (key === 'lat') lat = value;
+                  else if (key === 'lon') lon = value;
+                  else if (key === 'zoom') zoom = parseInt(value) || 13;
+                }
+              });
+            }
+            this.lat = lat; this.lon = lon; this.zoom = zoom;
+            this.syncMapToCoords();
+          }
+        }
+      },
+
+      mounted: function () {
+        var self = this;
+        self.ensureLeaflet().then(function () {
+          self.initMap();
+        });
+      },
+
+      beforeDestroy: function () {
+        this.destroyMap();
+      },
+
+      methods: {
+        ensureLeaflet: function () {
+          if (typeof window.L !== 'undefined') {
+            return Promise.resolve();
+          }
+          return new Promise(function (resolve, reject) {
+            var link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            document.head.appendChild(link);
+            var script = document.createElement('script');
+            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+        },
+
+        initMap: function () {
+          var self = this;
+          var el = document.getElementById(self.mapId);
+          if (!el || typeof L === 'undefined') return;
+          self.destroyMap();
+          var lat = parseFloat(self.lat);
+          var lon = parseFloat(self.lon);
+          var hasCoords = !isNaN(lat) && !isNaN(lon) && self.lat !== '' && self.lon !== '';
+          self.map = L.map(el).setView(
+            hasCoords ? [lat, lon] : [54.5, -4],
+            hasCoords ? (self.zoom || 13) : 5
+          );
+          var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 19
+          });
+          var satellite = L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            { attribution: 'Tiles &copy; Esri', maxZoom: 18 }
+          );
+          osm.addTo(self.map);
+          L.control.layers({ 'Map': osm, 'Satellite': satellite }).addTo(self.map);
+          if (!document.getElementById('bsbi-leaflet-layers-fix')) {
+            var style = document.createElement('style');
+            style.id = 'bsbi-leaflet-layers-fix';
+            style.textContent = '.leaflet-control-layers-toggle{background-image:none!important;}.leaflet-control-layers-toggle::before{content:"☰";font-size:20px;line-height:36px;display:block;text-align:center;color:#333;}';
+            document.head.appendChild(style);
+          }
+          if (hasCoords) {
+            self.addDraggableMarker(lat, lon);
+          }
+          self.map.on('click', function (e) {
+            self.lat  = e.latlng.lat.toFixed(7);
+            self.lon  = e.latlng.lng.toFixed(7);
+            self.zoom = self.map.getZoom();
+            if (self.mapMarker) {
+              self.mapMarker.setLatLng(e.latlng);
+            } else {
+              self.addDraggableMarker(e.latlng.lat, e.latlng.lng);
+            }
+            self.emitValue();
+          });
+          self.map.on('zoomend', function () {
+            self.zoom = self.map.getZoom();
+            if (self.hasCoords) { self.emitValue(); }
+          });
+          setTimeout(function () {
+            if (self.map) { self.map.invalidateSize(); }
+          }, 100);
+        },
+
+        destroyMap: function () {
+          if (this.map) {
+            this.map.remove();
+            this.map = null;
+            this.mapMarker = null;
+          }
+        },
+
+        markerIcon: function () {
+          return L.divIcon({
+            className: '',
+            html: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36"><path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24S24 21 24 12C24 5.373 18.627 0 12 0z" fill="#2563eb" stroke="#1d4ed8" stroke-width="1"/><circle cx="12" cy="12" r="5" fill="white"/></svg>',
+            iconSize: [24, 36],
+            iconAnchor: [12, 36],
+            popupAnchor: [0, -36]
+          });
+        },
+
+        addDraggableMarker: function (lat, lon) {
+          var self = this;
+          if (!self.map) return;
+          self.mapMarker = L.marker([lat, lon], { draggable: true, icon: self.markerIcon() }).addTo(self.map);
+          self.mapMarker.on('dragend', function () {
+            var pos = self.mapMarker.getLatLng();
+            self.lat = pos.lat.toFixed(7);
+            self.lon = pos.lng.toFixed(7);
+            self.emitValue();
+          });
+        },
+
+        syncMapToCoords: function () {
+          if (!this.map) return;
+          var lat = parseFloat(this.lat);
+          var lon = parseFloat(this.lon);
+          if (isNaN(lat) || isNaN(lon) || this.lat === '' || this.lon === '') return;
+          if (this.mapMarker) {
+            this.mapMarker.setLatLng([lat, lon]);
+          } else {
+            this.addDraggableMarker(lat, lon);
+          }
+          this.map.setView([lat, lon], this.zoom || this.map.getZoom() || 13);
+        },
+
+        geocode: function () {
+          var self = this;
+          if (!self.geocodeQuery) return;
+          self.isGeocoding    = true;
+          self.geocodeError   = '';
+          self.geocodeResults = [];
+          var url = 'https://nominatim.openstreetmap.org/search' +
+            '?q=' + encodeURIComponent(self.geocodeQuery) +
+            '&format=json&limit=5&addressdetails=0';
+          fetch(url, { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              self.geocodeResults = (data || []).map(function (item) {
+                return {
+                  lat:         String(item.lat          || ''),
+                  lon:         String(item.lon          || ''),
+                  displayName: String(item.display_name || '')
+                };
+              });
+              self.isGeocoding = false;
+              if (self.geocodeResults.length === 0) {
+                self.geocodeError = 'No results found. Try a more specific address.';
+              }
+            })
+            .catch(function () {
+              self.isGeocoding  = false;
+              self.geocodeError = 'Geocoding failed.';
+            });
+        },
+
+        selectGeocode: function (result) {
+          this.lat  = result.lat;
+          this.lon  = result.lon;
+          this.zoom = 13;
+          this.geocodeResults = [];
+          this.geocodeError   = '';
+          this.geocodeQuery   = '';
+          if (this.map) {
+            var lat = parseFloat(result.lat);
+            var lon = parseFloat(result.lon);
+            this.map.setView([lat, lon], 13);
+            if (this.mapMarker) {
+              this.mapMarker.setLatLng([lat, lon]);
+            } else {
+              this.addDraggableMarker(lat, lon);
+            }
+          }
+          this.emitValue();
+        },
+
+        clearLocation: function () {
+          this.lat  = '';
+          this.lon  = '';
+          this.zoom = 13;
+          if (this.mapMarker) {
+            this.mapMarker.remove();
+            this.mapMarker = null;
+          }
+          this.$emit('input', null);
+        },
+
+        emitValue: function () {
+          var lat = parseFloat(this.lat);
+          var lon = parseFloat(this.lon);
+          if (isNaN(lat) || isNaN(lon)) {
+            this.$emit('input', null);
+            return;
+          }
+          this.$emit('input', { lat: lat, lon: lon, zoom: this.zoom || 13 });
+        }
+      },
+
+      template: `
+        <div>
+
+          <!-- Coordinates display + clear -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;font-size:0.85em;color:var(--color-text-dimmed);">
+            <span>{{ displayCoords }}</span>
+            <k-button v-if="hasCoords" icon="cancel" size="xs" title="Clear location" @click="clearLocation" />
+          </div>
+
+          <!-- Geocode search -->
+          <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.25rem;">
+            <div class="k-input" style="flex:1;display:flex;align-items:center;padding:0 0.5rem;">
+              <k-icon type="search" style="flex-shrink:0;margin-right:0.4rem;" />
+              <input
+                type="text"
+                placeholder="Search for a location…"
+                :value="geocodeQuery"
+                @input="geocodeQuery = $event.target.value"
+                @keydown.enter.prevent="geocode"
+                style="flex:1;border:none;background:transparent;outline:none;padding:0.425em 0;font:inherit;"
+              />
+              <k-icon v-if="isGeocoding" type="loader" style="flex-shrink:0;" />
+            </div>
+            <k-button
+              icon="search"
+              size="sm"
+              :disabled="isGeocoding || !geocodeQuery"
+              @click="geocode"
+            />
+          </div>
+
+          <!-- Geocode results -->
+          <ul v-if="geocodeResults.length > 0" style="list-style:none;margin:0 0 0.5rem;padding:0;border:1px solid #cbd5e1;border-radius:4px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.12);overflow:hidden;">
+            <li
+              v-for="(result, index) in geocodeResults"
+              :key="result.lat + result.lon"
+              :style="{padding:'0.6rem 0.75rem',cursor:'pointer',borderBottom:index<geocodeResults.length-1?'1px solid #e2e8f0':'none',background:hoveredGeoIndex===index?'#f1f5f9':'#fff'}"
+              @click="selectGeocode(result)"
+              @mouseover="hoveredGeoIndex = index"
+              @mouseleave="hoveredGeoIndex = -1"
+            >
+              {{ result.displayName }}
+              <small style="opacity:0.6;margin-left:0.5rem;font-size:0.8em">{{ result.lat }}, {{ result.lon }}</small>
+            </li>
+          </ul>
+          <p v-if="geocodeError" style="color:var(--color-negative);font-size:0.85em;margin:0 0 0.5rem">{{ geocodeError }}</p>
+
+          <!-- Map -->
+          <div :id="mapId" style="height:300px;border-radius:4px;border:1px solid #cbd5e1;overflow:hidden;"></div>
+          <p style="font-size:0.75em;color:#64748b;margin-top:0.25rem">Click the map or drag the marker to set the exact position</p>
+
+        </div>
+      `
+    }
+  },
+
   sections: {
     quicklinks: {
       data: function () {
