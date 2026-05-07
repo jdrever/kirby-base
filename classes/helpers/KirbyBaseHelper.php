@@ -1016,7 +1016,7 @@ abstract class KirbyBaseHelper
         try {
             $pageField = $this->getPageField($page, $fieldName);
             /** @noinspection PhpUndefinedMethodInspection */
-            $pages = $pageField->toPages();
+            $pages = $pageField->toPages()->listed();
             return $this->getWebPageLinks($pages, $simpleLinks);
         } catch (KirbyRetrievalException $e) {
             if ($required) {
