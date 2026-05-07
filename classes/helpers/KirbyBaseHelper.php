@@ -271,7 +271,7 @@ abstract class KirbyBaseHelper
 
 
             if ($webPage->doSimpleGetSubPages()) {
-                $webPage->setSubPages($this->getSubPages($page, $webPage->isUsingSimpleLinksForSubPages()));
+                $webPage->setSubPages($this->getSubPages($page, $webPage->isUsingSimpleLinksForSubPages(), null, $webPage->doesLoadSubPageGrandchildren()));
             }
             if ($this->isPageFieldNotEmpty($page, 'mainContent')) {
                 $webPage->setMainContentBlocks($this->getContentBlocks($page));
@@ -2320,12 +2320,22 @@ abstract class KirbyBaseHelper
      * @return WebPageLinks
      * @throws KirbyRetrievalException
      */
-    protected function getSubPages(Page $page, bool $simpleLink = true, array|null $templates = null): WebPageLinks
+    /**
+     * @param Page $page
+     * @param bool $simpleLink
+     * @param array|null $templates
+     * @param bool $loadGrandchildren Whether to load each sub-page's own children.
+     *                                Set false for pages whose sidebar only shows direct children
+     *                                (e.g. content-page / sub-pages-menu) to avoid reading
+     *                                filesystem directories that are never displayed.
+     * @return WebPageLinks
+     */
+    protected function getSubPages(Page $page, bool $simpleLink = true, array|null $templates = null, bool $loadGrandchildren = true): WebPageLinks
     {
         $subPagesCollection = $templates ?
             $this->getSubPagesUsingTemplates($page, $templates) : $this->getSubPagesAsCollection($page);
         if ($subPagesCollection instanceof Collection) {
-            return $this->getWebPageLinks($subPagesCollection, $simpleLink, true);
+            return $this->getWebPageLinks($subPagesCollection, $simpleLink, $loadGrandchildren);
         }
         return new WebPageLinks();
     }

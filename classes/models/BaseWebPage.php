@@ -770,6 +770,17 @@ class BaseWebPage extends BaseModel
     }
 
     /**
+     * Override to false for pages whose sidebar only shows direct children
+     * (e.g. content-page.php / sub-pages-menu.php). Prevents loading all
+     * grandchild pages just to satisfy sub-pages-panel.php, which those
+     * pages never use.
+     * @return bool
+     */
+    public function doesLoadSubPageGrandchildren(): bool {
+        return true;
+    }
+
+    /**
      * @return string
      */
     public function getDisplayPageTitle(): string
