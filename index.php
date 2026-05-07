@@ -13,6 +13,15 @@ use Kirby\Toolkit\I18n;
 use Kirby\Toolkit\Tpl;
 
 $pluginConfig = [
+    'fields' => [
+        'maplocation' => [
+            'props' => [
+                'value' => function ($value = null) {
+                    return \Kirby\Data\Yaml::decode($value);
+                },
+            ],
+        ],
+    ],
     'blueprints' => require __DIR__ . '/blueprints.php',
     'snippets' => require __DIR__ . '/snippets.php',
     'hooks' => require __DIR__ . '/hooks.php',
