@@ -171,13 +171,20 @@ abstract class KirbyBaseHelper
                                     string $pageClass = BaseWebPage::class,
                                     bool   $checkUserRoles = true): BaseWebPage
     {
+        $timing = $this->kirby->option('membersAreaTiming', false);
+        $t = $timing ? microtime(true) : 0.0;
+
         try {
             $kirbyPage = $this->getKirbyPage($pageId);
+            $t1 = $timing ? microtime(true) : 0.0;
+
             $page = $this->getPage($kirbyPage, $pageClass, $checkUserRoles);
+            $t2 = $timing ? microtime(true) : 0.0;
 
             if (method_exists($this, 'setBasicPage')) {
                 $page = $this->setBasicPage($kirbyPage, $page);
             }
+            $t3 = $timing ? microtime(true) : 0.0;
 
             $this->applyPendingFormFlash($page);
 
@@ -186,7 +193,18 @@ abstract class KirbyBaseHelper
             if (method_exists($this, $setPageFunction)) {
                 $page = $this->$setPageFunction($kirbyPage, $page);
             }
+            $t4 = $timing ? microtime(true) : 0.0;
 
+            if ($timing) {
+                self::writeToLogFile('members-area-timing', sprintf(
+                    'getKirbyPage: %.3fs | getPage: %.3fs | setBasicPage: %.3fs | %s: %.3fs',
+                    $t1 - $t,
+                    $t2 - $t1,
+                    $t3 - $t2,
+                    $setPageFunction,
+                    $t4 - $t3
+                ));
+            }
 
         } catch (KirbyRetrievalException $e) {
             $page = $this->handlePageError($e);
