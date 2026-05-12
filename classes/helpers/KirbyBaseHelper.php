@@ -4234,6 +4234,9 @@ abstract class KirbyBaseHelper
         $kirbyPages = $this->getPageFieldAsPages($kirbyPage,$fieldName);
 
         if ($kirbyPages) {
+            // Exclude draft pages — toPages() resolves linked IDs and can return drafts
+            $kirbyPages = $kirbyPages->filter(fn($page) => !$page->isDraft());
+
             if ($filter) {
                 $modelList->setFilters($filter);
                 $filterFunction = 'filter' . $this->extractClassName($modelListClass);
