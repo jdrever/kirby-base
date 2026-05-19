@@ -48,6 +48,7 @@ columns:
           permanentUrl:
             label: Permanent URL
             type: slug
+            allow: a-z_-
             help: |
               Just give the final part of the url, e.g. the full url will be https://bsbi.org/files/ + whatever you have entered above
               NOTE -  will only work with files that are in the file archive
