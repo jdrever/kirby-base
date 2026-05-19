@@ -138,8 +138,13 @@ return [
         }
     },
     'page.delete:before' => function (Kirby\Cms\Page $page) {
-        $helper = new KirbyInternalHelper();
-        $helper->handleCaches($page);
+        // Cache clearing is best-effort — must not block index removal if it fails
+        try {
+            $helper = new KirbyInternalHelper();
+            $helper->handleCaches($page);
+        } catch (Throwable $e) {
+            KirbyBaseHelper::writeToLogFile('search-index', 'Failed to clear caches for deleted page ' . $page->id() . ': ' . $e->getMessage());
+        }
 
         // Remove from search index
         try {
@@ -158,6 +163,53 @@ return [
         } catch (Throwable $e) {
             KirbyBaseHelper::writeToLogFile('search-index', 'Failed to remove page from content index for page ' . $page->id() . ': ' . $e->getMessage());
         }
+    },
+
+    'page.changeTemplate:after' => function (Kirby\Cms\Page $newPage, Kirby\Cms\Page $oldPage) {
+        try {
+            $helper = new KirbyInternalHelper();
+
+            // Remove stale entry from any index associated with the OLD template
+            try {
+                $oldManagers = ContentIndexRegistry::getManagersForTemplate($oldPage->intendedTemplate()->name());
+                foreach ($oldManagers as $manager) {
+                    $manager->removePage($oldPage->id());
+                }
+            } catch (Throwable $e) {
+                KirbyBaseHelper::writeToLogFile('search-index', 'Failed to remove old-template index entry for page ' . $oldPage->id() . ': ' . $e->getMessage());
+            }
+
+            // Add/update entry in any index associated with the NEW template
+            try {
+                $newManagers = ContentIndexRegistry::getManagersForTemplate($newPage->intendedTemplate()->name());
+                foreach ($newManagers as $manager) {
+                    $manager->indexPage($newPage, $helper);
+                }
+            } catch (Throwable $e) {
+                KirbyBaseHelper::writeToLogFile('search-index', 'Failed to update new-template index entry for page ' . $newPage->id() . ': ' . $e->getMessage());
+            }
+        } catch (Throwable $e) {
+            KirbyBaseHelper::writeToLogFile('search-index', 'Failed to handle template change for page ' . $newPage->id() . ': ' . $e->getMessage());
+        }
+
+        return $newPage;
+    },
+
+    'page.move:after' => function (Kirby\Cms\Page $newPage, Kirby\Cms\Page $oldPage) {
+        try {
+            $helper = new KirbyInternalHelper();
+
+            $managers = ContentIndexRegistry::getManagersForTemplate($newPage->intendedTemplate()->name());
+            foreach ($managers as $manager) {
+                // Remove old entry (old page ID) and re-index under the new ID
+                $manager->removePage($oldPage->id());
+                $manager->indexPage($newPage, $helper);
+            }
+        } catch (Throwable $e) {
+            KirbyBaseHelper::writeToLogFile('search-index', 'Failed to update content index after page move for page ' . $newPage->id() . ': ' . $e->getMessage());
+        }
+
+        return $newPage;
     },
 
 ];
