@@ -47,10 +47,10 @@ columns:
             type: url
           permanentUrl:
             label: Permanent URL
-            type: slug
-            allow: a-z_-
+            type: text
             help: |
               Just give the final part of the url, e.g. the full url will be https://bsbi.org/files/ + whatever you have entered above
+              DON'T INCLUDE SPACES - it won't work.
               NOTE -  will only work with files that are in the file archive
           permanentUrlLink:
               type: info

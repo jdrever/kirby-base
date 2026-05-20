@@ -324,9 +324,11 @@ final readonly class ImageService
      */
     public function getFileURL(File $file): string
     {
-        return $this->isFileFieldNotEmpty($file, 'permanentUrl')
-            ? $this->getFileFieldAsString($file, 'permanentUrl')
-            : $file->url();
+        if ($this->isFileFieldNotEmpty($file, 'permanentUrl')) {
+            $slug = $this->getFileFieldAsString($file, 'permanentUrl');
+            return kirby()->url() . '/files/' . $slug;
+        }
+        return $file->url();
     }
 
     /**
