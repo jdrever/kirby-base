@@ -88,10 +88,11 @@ readonly class ResolvedFormField
     public function toSelectArgs(): array
     {
         return [
-            'id'      => $this->name,
-            'name'    => $this->name,
-            'label'   => $this->label,
-            'options' => array_map(
+            'id'       => $this->name,
+            'name'     => $this->name,
+            'label'    => $this->label,
+            'required' => $this->required,
+            'options'  => array_map(
                 static fn(string $o): array => ['value' => $o, 'display' => $o],
                 $this->options
             ),
@@ -108,6 +109,7 @@ readonly class ResolvedFormField
         return [
             'name'        => $this->name,
             'label'       => $this->label,
+            'required'    => $this->required,
             'leftLabel'   => $this->leftLabel,
             'middleLabel' => $this->middleLabel,
             'rightLabel'  => $this->rightLabel,

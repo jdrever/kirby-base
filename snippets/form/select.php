@@ -25,7 +25,7 @@ elseif ($size==='small') :
 endif;
 
 if (isset($label)) : ?>
-<label for="<?=$id?>" class="col-form-label"><?=$label?></label>
+<label for="<?=$id?>" class="col-form-label"><?=$label?><?php if (!empty($required)) : ?><span class="visually-hidden">(required)</span><span aria-hidden="true">*</span><?php endif ?></label>
 <?php endif ?>
 
 <select name="<?=$name?>" id="<?=$id?>" class="form-select <?=$size?>"<?php if (!empty($required)) : ?> required<?php endif; ?>>

@@ -7,7 +7,7 @@ use BSBI\WebBase\forms\ResolvedFormField;
 /** @var ResolvedFormField $field */
 
 ?>
-<p><strong><?= html($field->label) ?></strong></p>
+<p><strong><?= html($field->label) ?><?php if ($field->required) : ?><span class="visually-hidden">(required)</span><span aria-hidden="true">*</span><?php endif ?></strong></p>
 <?php if ($field->help !== '') : ?><div class="form-text mb-2"><?= $field->help ?></div><?php endif; ?>
 <?php foreach ($field->options as $index => $option) :
     snippet('form/checkbox', [
