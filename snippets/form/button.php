@@ -11,7 +11,7 @@ if (!isset($value)) :
 endif;
 
 if (!isset($class)) :
-    $class = 'btn btn-outline-success';
+    $class = 'btn btn-success btn-lg';
 endif; ?>
 
 <input type="submit" name="<?=$name?>" value="<?=$value?>" class="<?=$class?>">
