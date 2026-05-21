@@ -311,6 +311,29 @@ final class BaseFormDefinitionTest extends TestCase
         $this->assertSame(['top_level', 'inside_section', 'also_inside'], $names);
     }
 
+    // ── getFieldNames excludes display-only types ────────────────────────────
+
+    public function testGetFieldNamesExcludesInfoFields(): void
+    {
+        $definition = $this->makeDefinition([
+            FormFieldSpec::textbox('name', 'Name'),
+            FormFieldSpec::info('intro', 'Some intro text'),
+            FormFieldSpec::textbox('email', 'Email'),
+        ]);
+
+        $this->assertSame(['name', 'email'], $definition->getFieldNames());
+    }
+
+    public function testGetFieldNamesExcludesSiteBlocksFields(): void
+    {
+        $definition = $this->makeDefinition([
+            FormFieldSpec::siteBlocks('section_intro', 'some_site_field'),
+            FormFieldSpec::textbox('name', 'Name'),
+        ]);
+
+        $this->assertSame(['name'], $definition->getFieldNames());
+    }
+
     // ── toBlueprintFields with sections ──────────────────────────────────────
 
     public function testToBlueprintFieldsIncludesOverridablesFromSectionFields(): void

@@ -128,18 +128,23 @@ abstract class BaseFormDefinition
     }
 
     /**
-     * Returns the field names of all fixed fields (including those inside
-     * sections), in definition order.
-     * Useful for identifying which POST keys belong to fixed vs custom fields.
+     * Returns the field names of all submittable fixed fields (including those
+     * inside sections), in definition order.  Display-only types (info,
+     * site-blocks) are excluded because they produce no POST key.
      *
      * @return string[]
      */
     public function getFieldNames(): array
     {
-        return array_map(
+        $displayOnly = [FormFieldSpec::TYPE_INFO, FormFieldSpec::TYPE_SITE_BLOCKS];
+
+        return array_values(array_map(
             static fn(FormFieldSpec $spec): string => $spec->getName(),
-            $this->getAllSpecs()
-        );
+            array_filter(
+                $this->getAllSpecs(),
+                static fn(FormFieldSpec $spec): bool => !in_array($spec->getType(), $displayOnly, true),
+            )
+        ));
     }
 
     /**

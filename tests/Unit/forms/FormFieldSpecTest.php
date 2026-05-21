@@ -262,4 +262,30 @@ final class FormFieldSpecTest extends TestCase
         $spec = FormFieldSpec::textbox('name', 'Name');
         $this->assertInstanceOf(ResolvedFormField::class, $spec->resolve([]));
     }
+
+    // ── siteBlocks() factory ────────────────────────────────────────────────
+
+    public function testSiteBlocksFactoryCreatesCorrectType(): void
+    {
+        $spec = FormFieldSpec::siteBlocks('edi_intro', 'edi_intro_text');
+        $this->assertSame(FormFieldSpec::TYPE_SITE_BLOCKS, $spec->getType());
+    }
+
+    public function testSiteBlocksFactoryStoresName(): void
+    {
+        $spec = FormFieldSpec::siteBlocks('edi_intro', 'edi_intro_text');
+        $this->assertSame('edi_intro', $spec->getName());
+    }
+
+    public function testSiteBlocksHasNoOverridableProperties(): void
+    {
+        $spec = FormFieldSpec::siteBlocks('edi_intro', 'edi_intro_text');
+        $this->assertSame([], $spec->getOverridableProperties());
+    }
+
+    public function testSiteBlocksToBlueprintFieldsReturnsEmpty(): void
+    {
+        $spec = FormFieldSpec::siteBlocks('edi_intro', 'edi_intro_text');
+        $this->assertSame([], $spec->toBlueprintFields());
+    }
 }

@@ -31,6 +31,7 @@ class FormFieldSpec
     public const TYPE_SELECT         = 'select';
     public const TYPE_INFO           = 'info';
     public const TYPE_RATING_MATRIX  = 'rating-matrix';
+    public const TYPE_SITE_BLOCKS    = 'site-blocks';
 
     /** @var array<string, mixed> Overridable property defaults keyed by property name */
     private array $overridable = [];
@@ -45,6 +46,7 @@ class FormFieldSpec
 
     private string $defaultHelp        = '';
     private string $defaultContent     = '';
+    private string $siteFieldName      = '';
     private string $defaultLeftLabel   = 'Strongly disagree';
     private string $defaultMiddleLabel = '';
     private string $defaultRightLabel  = 'Strongly agree';
@@ -189,6 +191,23 @@ class FormFieldSpec
     {
         $spec = new static(self::TYPE_INFO, $name, '');
         $spec->defaultContent = $content;
+        return $spec;
+    }
+
+    /**
+     * Creates a site-blocks (display-only) spec that renders a Kirby blocks field
+     * stored on the site object.  No form input is generated; the field is not
+     * submitted with the form.
+     *
+     * Typical use: editor-managed intro paragraphs placed before a group of fields.
+     *
+     * @param string $name          Unique identifier for this item (not rendered as an input)
+     * @param string $siteFieldName The Kirby site field name holding the blocks content
+     */
+    public static function siteBlocks(string $name, string $siteFieldName): static
+    {
+        $spec = new static(self::TYPE_SITE_BLOCKS, $name, '');
+        $spec->siteFieldName = $siteFieldName;
         return $spec;
     }
 
@@ -360,6 +379,12 @@ class FormFieldSpec
                 name:    $this->name,
                 label:   '',
                 content: $this->defaultContent,
+            ),
+            self::TYPE_SITE_BLOCKS => new ResolvedFormField(
+                type:    $this->type,
+                name:    $this->name,
+                label:   '',
+                content: (string) site()->content()->get($this->siteFieldName)->toBlocks()->toHtml(),
             ),
             self::TYPE_RATING_MATRIX => new ResolvedFormField(
                 type:     $this->type,
