@@ -29,6 +29,11 @@ if ($form->submissionSuccessful) :
 endif;
 
 ?>
+<?php if ($form->introHtml !== '') : ?>
+<div class="container mb-4">
+    <?= $form->introHtml ?>
+</div>
+<?php endif ?>
 <div class="container bg-light pt-4 mb-2">
     <form method="post" novalidate>
         <input type="hidden" name="csrf" value="<?= htmlspecialchars($form->csrfToken, ENT_QUOTES, 'UTF-8') ?>">

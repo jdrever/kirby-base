@@ -16,16 +16,18 @@ use Kirby\Cms\Blocks;
 readonly class ResolvedForm
 {
     /**
-     * @param array<ResolvedFormField|ResolvedFormSection> $fieldGroups         Fixed form fields/sections from a BaseFormDefinition
-     * @param Blocks|null                                  $customBlocks        Custom form element blocks added by panel editors
+     * @param array<ResolvedFormField|ResolvedFormSection> $fieldGroups          Fixed form fields/sections from a BaseFormDefinition
+     * @param Blocks|null                                  $customBlocks         Custom form element blocks added by panel editors
      * @param bool                                         $submissionSuccessful Whether the form was successfully submitted this request
-     * @param string                                       $csrfToken           CSRF token to render as a hidden input
+     * @param string                                       $csrfToken            CSRF token to render as a hidden input
+     * @param string                                       $introHtml            Rendered HTML to display before the form; hidden after submission
      */
     public function __construct(
         public readonly array $fieldGroups,
         public readonly ?Blocks $customBlocks,
         public readonly bool $submissionSuccessful,
         public readonly string $csrfToken,
+        public readonly string $introHtml = '',
     ) {
     }
 }

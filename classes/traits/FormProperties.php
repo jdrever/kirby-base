@@ -18,6 +18,8 @@ trait FormProperties {
 
     private bool $submissionSuccessful = false;
 
+    private string $introHtml = '';
+
     /** @var ResolvedFormField[] Fixed fields resolved from a BaseFormDefinition */
     private array $formFields = [];
 
@@ -80,6 +82,28 @@ trait FormProperties {
     public function setSubmissionSuccessful(bool $submissionSuccessful): static
     {
         $this->submissionSuccessful = $submissionSuccessful;
+        return $this;
+    }
+
+    /**
+     * Returns the rendered HTML intro content to display before the form.
+     *
+     * @return string
+     */
+    public function getIntroHtml(): string
+    {
+        return $this->introHtml;
+    }
+
+    /**
+     * Sets the rendered HTML intro content to display before the form.
+     *
+     * @param string $introHtml
+     * @return $this
+     */
+    public function setIntroHtml(string $introHtml): static
+    {
+        $this->introHtml = $introHtml;
         return $this;
     }
 
@@ -156,6 +180,7 @@ trait FormProperties {
             customBlocks:         $this->customFormBlocks,
             submissionSuccessful: $this->submissionSuccessful,
             csrfToken:            $this->csrfToken,
+            introHtml:            $this->introHtml,
         );
     }
 }

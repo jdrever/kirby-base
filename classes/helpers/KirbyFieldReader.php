@@ -790,6 +790,21 @@ final readonly class KirbyFieldReader
     }
 
     /**
+     * Returns the rendered HTML of a site blocks field, or an empty string if
+     * the field is empty or missing.
+     */
+    public function getSiteFieldAsBlocksHtml(string $fieldName): string
+    {
+        try {
+            $siteField = $this->getSiteField($fieldName);
+            /** @noinspection PhpUndefinedMethodInspection */
+            return (string) $siteField->toBlocks()->toHtml();
+        } catch (KirbyRetrievalException) {
+            return '';
+        }
+    }
+
+    /**
      * Returns the file referenced by the site field.
      *
      * @throws KirbyRetrievalException

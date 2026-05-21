@@ -1331,6 +1331,18 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * Returns the rendered HTML of a site blocks field, or an empty string if
+     * the field is empty or missing.
+     *
+     * @param string $fieldName
+     * @return string
+     */
+    protected function getSiteFieldAsBlocksHtml(string $fieldName): string
+    {
+        return $this->fieldReader->getSiteFieldAsBlocksHtml($fieldName);
+    }
+
+    /**
      * @param string $fieldName
      * @return File
      * @throws KirbyRetrievalException
