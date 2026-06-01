@@ -38,6 +38,27 @@ endif;
     <form method="post" novalidate>
         <input type="hidden" name="csrf" value="<?= htmlspecialchars($form->csrfToken, ENT_QUOTES, 'UTF-8') ?>">
 
+        <?php
+        $hasRequiredFields = false;
+        foreach ($form->fieldGroups as $item) {
+            if ($item instanceof ResolvedFormField && $item->required) {
+                $hasRequiredFields = true;
+                break;
+            }
+            if ($item instanceof ResolvedFormSection) {
+                foreach ($item->fields as $field) {
+                    if ($field->required) {
+                        $hasRequiredFields = true;
+                        break 2;
+                    }
+                }
+            }
+        }
+        ?>
+        <?php if ($hasRequiredFields) : ?>
+        <p class="text-muted small mb-3">Fields marked <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden">with an asterisk</span> are required.</p>
+        <?php endif; ?>
+
         <?php foreach ($form->fieldGroups as $item) : ?>
             <?php if ($item instanceof ResolvedFormSection) : ?>
                 <?php snippet('form/section', ['section' => $item]) ?>
