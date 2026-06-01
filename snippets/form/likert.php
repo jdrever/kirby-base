@@ -13,7 +13,7 @@ $required     = $required ?? false;
 ?>
 
 <?php if (isset($label)) : ?>
-<p><strong><?= $label ?><?php if (!empty($required)) : ?><span class="visually-hidden">(required)</span><span aria-hidden="true">*</span><?php endif ?></strong></p>
+<p><strong><?= $label ?><?php if (!empty($required)) : ?> <span class="visually-hidden">(required)</span><span class="text-danger" aria-hidden="true">*</span><?php endif ?></strong></p>
 <?php endif ?>
 <div class="card p-2 mb-2">
     <div class="d-flex flex-column gap-2 px-2">

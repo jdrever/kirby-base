@@ -7,7 +7,7 @@ use BSBI\WebBase\forms\ResolvedFormField;
 /** @var ResolvedFormField $field */
 
 ?>
-<p><strong><?= $field->label ?><?php if ($field->required) : ?><span class="visually-hidden">(required)</span><span aria-hidden="true">*</span><?php endif ?></strong></p>
+<p><strong><?= $field->label ?><?php if ($field->required) : ?> <span class="visually-hidden">(required)</span><span class="text-danger" aria-hidden="true">*</span><?php endif ?></strong></p>
 <?php if ($field->help !== '') : ?><div class="form-text mb-2"><?= $field->help ?></div><?php endif; ?>
 <div class="table-responsive">
     <table class="table table-bordered table-sm align-middle">

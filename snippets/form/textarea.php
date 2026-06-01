@@ -33,7 +33,7 @@ if (isset($label)) : ?>
         <?=$label ?>
     <?php if ($required) : ?>
         <span class="visually-hidden">(required)</span>
-        <span aria-hidden="true">*</span>
+        <span class="text-danger" aria-hidden="true">*</span>
     <?php endif ?>
 </label>
 <?php endif ?>
