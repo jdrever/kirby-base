@@ -584,6 +584,24 @@ abstract class KirbyBaseHelper
         }
     }
 
+    /**
+     * Publishes a draft page by changing its status to 'listed'.
+     *
+     * @param Page $page
+     * @return Page
+     * @throws KirbyRetrievalException
+     */
+    protected function publishPage(Page $page): Page
+    {
+        try {
+            return $this->kirby->impersonate('kirby', function () use ($page) {
+                return $page->changeStatus('listed');
+            });
+        } catch (Throwable $e) {
+            throw new KirbyRetrievalException($e->getMessage());
+        }
+    }
+
     #endregion
 
     #region PAGE_FIELDS
