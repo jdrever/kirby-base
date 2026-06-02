@@ -570,10 +570,10 @@ abstract class KirbyBaseHelper
 
     /**
      * @param Page $page
-     * @return Page
+     * @return bool
      * @throws KirbyRetrievalException
      */
-    protected function deletePage(Page $page): Page
+    protected function deletePage(Page $page): bool
     {
         try {
             return $this->kirby->impersonate('kirby', function () use ($page) {
