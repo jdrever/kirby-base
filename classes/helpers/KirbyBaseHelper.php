@@ -585,6 +585,16 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * Sends Cache-Control: no-store to prevent browsers (including bfcache) from
+     * serving a stale snapshot of the current page on subsequent navigation.
+     * Call from set*Page methods that display frequently-changing data.
+     */
+    protected function preventCaching(): void
+    {
+        header('Cache-Control: no-store');
+    }
+
+    /**
      * Publishes a draft page by changing its status to 'listed'.
      *
      * @param Page $page
@@ -596,6 +606,24 @@ abstract class KirbyBaseHelper
         try {
             return $this->kirby->impersonate('kirby', function () use ($page) {
                 return $page->changeStatus('listed');
+            });
+        } catch (Throwable $e) {
+            throw new KirbyRetrievalException($e->getMessage());
+        }
+    }
+
+    /**
+     * Moves a published page back to draft status.
+     *
+     * @param Page $page
+     * @return Page
+     * @throws KirbyRetrievalException
+     */
+    protected function unpublishPage(Page $page): Page
+    {
+        try {
+            return $this->kirby->impersonate('kirby', function () use ($page) {
+                return $page->changeStatus('draft');
             });
         } catch (Throwable $e) {
             throw new KirbyRetrievalException($e->getMessage());
