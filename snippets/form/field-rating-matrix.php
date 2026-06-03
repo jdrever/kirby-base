@@ -9,7 +9,7 @@ use BSBI\WebBase\forms\ResolvedFormField;
 ?>
 <p><strong><?= $field->label ?><?php if ($field->required) : ?> <span class="visually-hidden">(required)</span><span class="text-danger" aria-hidden="true">*</span><?php endif ?></strong></p>
 <?php if ($field->help !== '') : ?><div class="form-text mb-2"><?= $field->help ?></div><?php endif; ?>
-<div class="table-responsive">
+<div class="table-responsive"<?php if ($field->required) : ?> data-rating-matrix-required="true"<?php endif; ?>>
     <table class="table table-bordered table-sm align-middle">
         <thead class="table-light">
             <tr>
@@ -37,7 +37,6 @@ use BSBI\WebBase\forms\ResolvedFormField;
                         name="<?= html($inputName) ?>"
                         id="<?= $inputId ?>"
                         value="<?= html($column) ?>"
-                        <?php if ($field->required && $colIndex === 0) : ?>required<?php endif; ?>
                     >
                 </td>
                 <?php endforeach; ?>

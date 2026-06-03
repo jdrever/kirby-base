@@ -141,6 +141,15 @@ endif;
                 }
             });
 
+        // Required rating matrices — at least one row must have a selection
+        form.querySelectorAll('[data-rating-matrix-required]').forEach(function (matrix) {
+            var hasAnyChecked = matrix.querySelector('input[type="radio"]:checked:not(:disabled)') !== null;
+            if (!hasAnyChecked) {
+                var c = getFieldContainer(matrix);
+                if (c && !errorContainers.includes(c)) { errorContainers.push(c); }
+            }
+        });
+
         // Required text inputs and textareas
         form.querySelectorAll('input[required]:not([type="radio"]):not([type="checkbox"]):not(:disabled), textarea[required]:not(:disabled)')
             .forEach(function (el) {
