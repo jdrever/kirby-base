@@ -1,0 +1,38 @@
+name: Cards
+icon: grid
+preview: fields
+
+fields:
+  title:
+    label: Section Title
+    type: text
+    placeholder: Optional section title
+  columns:
+    label: Columns per Row
+    type: select
+    default: "3"
+    width: 1/4
+    options:
+      "2": 2 columns
+      "3": 3 columns
+      "4": 4 columns
+  cards:
+    label: Cards
+    type: structure
+    fields:
+      title:
+        label: Title
+        type: text
+      image:
+        label: Image / Logo
+        type: files
+        query: page.images
+        multiple: false
+        layout: cards
+        size: tiny
+      text:
+        label: Description
+        type: textarea
+      url:
+        label: Link URL
+        type: url

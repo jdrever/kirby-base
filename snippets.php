@@ -75,6 +75,7 @@ return [
     'blocks/form-likert' => __DIR__ . '/snippets/blocks/form-likert.php',
     'blocks/form-select' => __DIR__ . '/snippets/blocks/form-select.php',
     'blocks/button' => __DIR__ . '/snippets/blocks/button.php',
+    'blocks/cards' => __DIR__ . '/snippets/blocks/cards.php',
     'blocks/description-list' => __DIR__ . '/snippets/blocks/description-list.php',
     'blocks/faq' => __DIR__ . '/snippets/blocks/faq.php',
     'blocks/file' => __DIR__ . '/snippets/blocks/file.php',

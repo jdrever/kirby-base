@@ -72,6 +72,12 @@ These are registered in `blueprints.php`.
 Be aware that kirby-base may be updated from other projects.  Always best to pull the latest version of the plugin 
 before making changes.
 
+When adding any new blueprint, snippet, or template file, you MUST also register it explicitly in the corresponding registration file — Kirby does not auto-discover files in a plugin:
+
+- New blueprint (`.yml`) → add an entry to `blueprints.php`
+- New snippet (`.php`) → add an entry to `snippets.php`
+- New template (`.php`) → add an entry to the `templates` array in `index.php`
+
 ## Coding Standards
 
 - PHP 8.3+ required (`declare(strict_types=1)` everywhere)
