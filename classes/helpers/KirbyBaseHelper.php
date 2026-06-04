@@ -433,6 +433,36 @@ abstract class KirbyBaseHelper
     }
 
     /**
+     * Finds a Kirby page by its ID, including draft pages, by walking the path
+     * segment by segment. Avoids loading the full site index.
+     *
+     * Use this instead of page() or getKirbyPage() when the page may be a draft
+     * (e.g. a form page taken offline that still has submissions to export).
+     *
+     * @param string $pageId Slash-delimited page ID, e.g. 'forms/contact'.
+     * @return Page|null The found page, or null if not found at any draft/published level.
+     */
+    public function findKirbyPageOrDraft(string $pageId): ?Page
+    {
+        $page = $this->kirby->page($pageId);
+        if ($page !== null) {
+            return $page;
+        }
+
+        // kirby->page() only resolves published pages; walk each path segment so
+        // we can locate draft pages without loading the entire site index.
+        $parts   = explode('/', $pageId);
+        $current = $this->site->children()->findBy('slug', $parts[0])
+                   ?? $this->site->drafts()->findBy('slug', $parts[0]);
+        for ($i = 1; $i < count($parts) && $current !== null; $i++) {
+            $current = $current->children()->findBy('slug', $parts[$i])
+                       ?? $current->drafts()->findBy('slug', $parts[$i]);
+        }
+
+        return $current instanceof Page ? $current : null;
+    }
+
+    /**
      * @param string $collectionName
      * @param string $sortBy
      * @return Collection

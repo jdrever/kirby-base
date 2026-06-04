@@ -21,8 +21,8 @@ return [
                 );
             }
 
-            $page = page($pageId);
-            if (!$page) {
+            $page = $helper->findKirbyPageOrDraft($pageId);
+            if ($page === null) {
                 return new Response('Page not found.', 'text/plain', 404);
             }
 
