@@ -121,7 +121,7 @@ return [
             $submissionRows = [];
 
             foreach ($pageIds as $pageId) {
-                $submission = page($pageId);
+                $submission = $helper->findKirbyPageOrDraft($pageId);
                 if ($submission === null) {
                     continue;
                 }
