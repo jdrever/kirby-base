@@ -431,6 +431,16 @@ abstract class BaseList
      * @return BaseFilter
      * @noinspection PhpUnused
      */
+    /**
+     * Returns true if filters have been set on this list.
+     *
+     * @return bool
+     */
+    public function hasFilters(): bool
+    {
+        return isset($this->filter);
+    }
+
     public function getFilters(): BaseFilter
     {
         return $this->filter;

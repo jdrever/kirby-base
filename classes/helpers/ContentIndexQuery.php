@@ -259,6 +259,45 @@ class ContentIndexQuery
     }
 
     /**
+     * Filter rows where two TEXT columns (storing numeric values) fall within a lat/lon
+     * bounding box. Uses CAST(column AS REAL) so string-stored coordinates compare correctly,
+     * including negative values. Intended as a fast pre-filter before an exact haversine check.
+     *
+     * @param string $latCol  Column name holding latitude values
+     * @param string $lonCol  Column name holding longitude values
+     * @param float  $minLat  Minimum latitude (inclusive)
+     * @param float  $maxLat  Maximum latitude (inclusive)
+     * @param float  $minLon  Minimum longitude (inclusive)
+     * @param float  $maxLon  Maximum longitude (inclusive)
+     * @return $this
+     */
+    public function whereWithinBoundingBox(
+        string $latCol,
+        string $lonCol,
+        float $minLat,
+        float $maxLat,
+        float $minLon,
+        float $maxLon
+    ): static {
+        $pMinLat = $this->nextParam($latCol . '_min');
+        $pMaxLat = $this->nextParam($latCol . '_max');
+        $pMinLon = $this->nextParam($lonCol . '_min');
+        $pMaxLon = $this->nextParam($lonCol . '_max');
+
+        $this->whereClauses[] = "CAST($latCol AS REAL) >= $pMinLat"
+            . " AND CAST($latCol AS REAL) <= $pMaxLat"
+            . " AND CAST($lonCol AS REAL) >= $pMinLon"
+            . " AND CAST($lonCol AS REAL) <= $pMaxLon";
+
+        $this->params[$pMinLat] = $minLat;
+        $this->params[$pMaxLat] = $maxLat;
+        $this->params[$pMinLon] = $minLon;
+        $this->params[$pMaxLon] = $maxLon;
+
+        return $this;
+    }
+
+    /**
      * Add an ORDER BY clause.
      *
      * @param string $column Column name

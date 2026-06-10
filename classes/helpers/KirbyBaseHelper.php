@@ -5281,4 +5281,44 @@ abstract class KirbyBaseHelper
 
     #endregion
 
+    // ── Geo / postcode helpers ─────────────────────────────────────────────────
+
+    /**
+     * Looks up WGS84 lat/lng for a UK postcode (including Northern Ireland) via
+     * the free postcodes.io API. Returns null if the postcode is not found or the
+     * request fails.
+     *
+     * @param string $postcode UK postcode (e.g. "SW1A 1AA" or "BT1 1AA")
+     * @return array{0: float, 1: float}|null [latitude, longitude] or null
+     */
+    protected function getLatLngFromPostcodesIO(string $postcode): ?array
+    {
+        $url = 'https://api.postcodes.io/postcodes/' . urlencode(trim($postcode));
+
+        $context = stream_context_create([
+            'http' => [
+                'header'  => "User-Agent: BSBI Web/1.0\r\n",
+                'timeout' => 5,
+            ],
+        ]);
+
+        $response = @file_get_contents($url, false, $context);
+        if ($response === false) {
+            return null;
+        }
+
+        $data = json_decode($response, true);
+        if (!is_array($data) || ($data['status'] ?? 0) !== 200) {
+            return null;
+        }
+
+        $lat = $data['result']['latitude'] ?? null;
+        $lon = $data['result']['longitude'] ?? null;
+
+        if (!is_numeric($lat) || !is_numeric($lon)) {
+            return null;
+        }
+
+        return [(float) $lat, (float) $lon];
+    }
 }
