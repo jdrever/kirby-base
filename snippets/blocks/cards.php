@@ -14,10 +14,10 @@ if ($cards->isEmpty()) {
     return;
 }
 
-$columns = $block->columns()->or('3')->value();
+$columns = (string) $block->columns()->or('3')->value();
 $colClass = match ($columns) {
-    '2' => 'col-12 col-md-6',
-    '4' => 'col-12 col-sm-6 col-lg-3',
+    '2', '2 columns' => 'col-12 col-md-6',
+    '4', '4 columns' => 'col-12 col-sm-6 col-lg-3',
     default => 'col-12 col-sm-6 col-lg-4',
 };
 
