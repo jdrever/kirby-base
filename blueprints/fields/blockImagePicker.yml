@@ -1,0 +1,6 @@
+type: files
+label: Image
+multiple: false
+layout: cards
+size: tiny
+query: model.images.add(site.children.filterBy("template", "image_bank").first.files)

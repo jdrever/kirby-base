@@ -53,6 +53,7 @@ return [
     'fields/panelImage' => __DIR__ . '/blueprints/fields/panelImage.yml',
     'fields/placeholderImage' => __DIR__ . '/blueprints/fields/placeholderImage.yml',
     'fields/relatedContent' => __DIR__ . '/blueprints/fields/relatedContent.yml',
+    'fields/blockImagePicker' => __DIR__ . '/blueprints/fields/blockImagePicker.yml',
 
     //files blueprints
     'files/default' => __DIR__ . '/blueprints/files/default.yml',
