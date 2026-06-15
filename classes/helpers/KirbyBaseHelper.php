@@ -5293,21 +5293,31 @@ abstract class KirbyBaseHelper
      */
     protected function getLatLngFromPostcodesIO(string $postcode): ?array
     {
-        $url = 'https://api.postcodes.io/postcodes/' . urlencode(trim($postcode));
+        $url = 'https://api.postcodes.io/postcodes/' . rawurlencode(trim($postcode));
 
-        $context = stream_context_create([
-            'http' => [
-                'header'  => "User-Agent: BSBI Web/1.0\r\n",
+        try {
+            $response = \Kirby\Http\Remote::request($url, [
+                'method'  => 'GET',
+                'headers' => ['User-Agent' => 'BSBI Web/1.0'],
                 'timeout' => 5,
-            ],
-        ]);
-
-        $response = @file_get_contents($url, false, $context);
-        if ($response === false) {
+            ]);
+        } catch (\Throwable $e) {
+            $this->writeToLogFile('errors', 'getLatLngFromPostcodesIO: request failed for ' . $postcode . ': ' . $e->getMessage());
             return null;
         }
 
-        $data = json_decode($response, true);
+        if ($response->code() !== 200) {
+            $this->writeToLogFile('errors', 'getLatLngFromPostcodesIO: HTTP ' . $response->code() . ' for ' . $postcode);
+            return null;
+        }
+
+        $rawContent = $response->content();
+        if ($rawContent === null) {
+            return null;
+        }
+
+        /** @var array<mixed>|null $data */
+        $data = json_decode($rawContent, true);
         if (!is_array($data) || ($data['status'] ?? 0) !== 200) {
             return null;
         }
