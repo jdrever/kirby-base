@@ -1543,6 +1543,96 @@ panel.plugin('open-foundations/kirby-base', {
           <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
         </section>
       `
+    },
+
+    styleguidecheck: {
+      data: function () {
+        return {
+          headline: 'Style Guide Check',
+          pageId: '',
+          checking: false,
+          report: '',
+          error: ''
+        };
+      },
+
+      created: async function () {
+        try {
+          var response = await this.load();
+          this.headline = response.headline || this.headline;
+          this.pageId   = response.pageId   || '';
+        } catch (err) {
+          console.error('styleguidecheck: failed to load section data', err);
+        }
+      },
+
+      methods: {
+        check: async function () {
+          if (!this.pageId) {
+            this.error = 'Could not determine the current page ID.';
+            return;
+          }
+          this.checking = true;
+          this.report   = '';
+          this.error    = '';
+          try {
+            var result = await this.$api.post('style-guide/check', { pageId: this.pageId });
+            if (result.error) {
+              this.error = result.error;
+            } else {
+              this.report = result.report || '';
+            }
+          } catch (err) {
+            this.error = 'Request failed: ' + (err && err.message ? err.message : String(err));
+          } finally {
+            this.checking = false;
+          }
+        },
+
+        markdownToHtml: function (text) {
+          return text
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+            .replace(/^#### (.+)$/gm, '<h4 style="margin:0.75rem 0 0.25rem;font-size:0.85rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-text-dimmed)">$1</h4>')
+            .replace(/^### (.+)$/gm, '<h3 style="margin:1rem 0 0.25rem;font-size:0.9rem;font-weight:700">$1</h3>')
+            .replace(/^## (.+)$/gm, '<h2 style="margin:1.25rem 0 0.4rem;font-size:1rem;font-weight:700;border-bottom:1px solid var(--color-border);padding-bottom:0.25rem">$1</h2>')
+            .replace(/^# (.+)$/gm, '<h1 style="margin:0 0 0.75rem;font-size:1.1rem;font-weight:700">$1</h1>')
+            .replace(/^[-*] (.+)$/gm, '<li style="margin:0.15rem 0 0.15rem 1.25rem;list-style:disc">$1</li>')
+            .replace(/(<li[^>]*>.*<\/li>\n?)+/g, function (m) { return '<ul style="margin:0.25rem 0">' + m + '</ul>'; })
+            .replace(/\n\n+/g, '</p><p style="margin:0.5rem 0">')
+            .replace(/\n/g, '<br>');
+        }
+      },
+
+      template: `
+        <section class="k-section k-styleguidecheck-section">
+          <header class="k-section-header" style="margin-bottom:0.75rem">
+            <h2 class="k-headline">{{ headline }}</h2>
+          </header>
+
+          <div>
+            <button
+              @click="check"
+              :disabled="checking"
+              style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 0.9rem;background:var(--color-black);color:var(--color-white);border:none;cursor:pointer;border-radius:var(--rounded);font-size:0.85rem;font-weight:500"
+            >
+              <span v-if="checking" style="display:inline-block;width:0.75rem;height:0.75rem;border:2px solid var(--color-white);border-top-color:transparent;border-radius:50%;animation:sgc-spin 0.6s linear infinite;flex-shrink:0"></span>
+              {{ checking ? 'Checking…' : 'Check using style guide' }}
+            </button>
+          </div>
+
+          <div v-if="error" style="margin-top:0.75rem;padding:0.6rem 0.75rem;background:var(--color-red-200,#fee2e2);border:1px solid var(--color-red-400,#f87171);border-radius:var(--rounded);font-size:0.85rem;color:var(--color-red-800,#991b1b)">
+            {{ error }}
+          </div>
+
+          <div v-if="report" style="margin-top:0.75rem;padding:0.75rem 1rem;background:var(--color-background);border:1px solid var(--color-border);border-radius:var(--rounded);font-size:0.85rem;line-height:1.6">
+            <p style="margin:0.5rem 0" v-html="markdownToHtml(report)"></p>
+          </div>
+
+          <style>@keyframes sgc-spin { to { transform: rotate(360deg); } }</style>
+        </section>
+      `
     }
   },
 

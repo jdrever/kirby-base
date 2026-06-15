@@ -7,6 +7,7 @@ use BSBI\WebBase\helpers\FilteredFilesHelper;
 use BSBI\WebBase\helpers\FilteredPagesHelper;
 use BSBI\WebBase\helpers\FormSubmissionIndexDefinition;
 use BSBI\WebBase\helpers\SearchIndexHelper;
+use BSBI\WebBase\helpers\StyleGuideService;
 use Kirby\Cms\App as Kirby;
 use Kirby\Panel\Ui\Item\PageItem;
 use Kirby\Toolkit\I18n;
@@ -54,6 +55,7 @@ $pluginConfig = [
         'translatedpages' => require __DIR__ . '/sections/translatedpages.php',
         'filteredpages'   => require __DIR__ . '/sections/filteredpages.php',
         'filteredfiles'   => require __DIR__ . '/sections/filteredfiles.php',
+        'styleguidecheck' => require __DIR__ . '/sections/styleguidecheck.php',
     ],
     'api' => [
         'routes' => [
@@ -91,6 +93,18 @@ $pluginConfig = [
                     $modelId    = (string)get('model_id', '');
                     $template   = (string)get('template', '');
                     return FilteredPagesHelper::getOptions($filterDefs, $modelId, $template);
+                },
+            ],
+            [
+                'pattern' => 'style-guide/check',
+                'method'  => 'POST',
+                /**
+                 * Check the given page's content against the style guide via Gemini.
+                 *
+                 * @return array{report: string}|array{error: string}
+                 */
+                'action'  => function (): array {
+                    return StyleGuideService::check((string) get('pageId', ''));
                 },
             ],
             [
