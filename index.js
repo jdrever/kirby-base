@@ -1611,6 +1611,10 @@ panel.plugin('open-foundations/kirby-base', {
             <h2 class="k-headline">{{ headline }}</h2>
           </header>
 
+          <div style="margin-bottom:0.75rem;padding:0.5rem 0.75rem;background:var(--color-yellow-200,#fef9c3);border:1px solid var(--color-yellow-400,#facc15);border-radius:var(--rounded);font-size:0.8rem;color:var(--color-text)">
+            <strong>Work in progress</strong> — this feature is experimental and results may not be fully accurate.
+          </div>
+
           <div>
             <button
               @click="check"
