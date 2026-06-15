@@ -175,7 +175,8 @@ class StyleGuideService
                 }
             }
 
-            $text = trim((string) preg_replace('/\s+/', ' ', $text));
+            $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $text = trim((string) preg_replace('/[\s\x{00A0}]+/u', ' ', $text));
             if ($text !== '') {
                 $parts[] = "### $label\n$text";
             }
