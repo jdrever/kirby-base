@@ -1,9 +1,11 @@
 <?php
 
 use BSBI\WebBase\helpers\ContentIndexRegistry;
+use BSBI\WebBase\helpers\ImageConversionHelper;
 use BSBI\WebBase\helpers\KirbyBaseHelper;
 use BSBI\WebBase\helpers\KirbyInternalHelper;
 use BSBI\WebBase\helpers\SearchIndexHelper;
+use Kirby\Filesystem\F;
 
 function handlePageChange($newPage, $oldPage) {
     static $isHandling = false;
@@ -68,6 +70,43 @@ function handlePageChange($newPage, $oldPage) {
 }
 
 return [
+    'file.create:after' => function (Kirby\Cms\File $file) {
+        $filename = $file->filename();
+        if (strtolower(pathinfo($filename, PATHINFO_EXTENSION)) !== 'bmp') {
+            return $file;
+        }
+
+        if (!ImageConversionHelper::canConvertBmp()) {
+            KirbyBaseHelper::writeToLogFile(
+                'bmp-convert',
+                'No image library available to convert BMP file: ' . $filename
+            );
+            return $file;
+        }
+
+        $tmpPath = null;
+        try {
+            $tmpPath = ImageConversionHelper::convertBmpToPng($file->root());
+
+            // Overwrite the BMP file on disk with the PNG data
+            F::copy($tmpPath, $file->root(), true);
+
+            // Rename the Kirby file from .bmp to .png
+            $baseName = pathinfo($filename, PATHINFO_FILENAME);
+            return $file->changeName($baseName, false, 'png');
+        } catch (Throwable $e) {
+            KirbyBaseHelper::writeToLogFile(
+                'bmp-convert',
+                'Failed to convert BMP to PNG for ' . $filename . ': ' . $e->getMessage()
+            );
+            return $file;
+        } finally {
+            if ($tmpPath !== null && file_exists($tmpPath)) {
+                unlink($tmpPath);
+            }
+        }
+    },
+
     'page.update:after' => function ($newPage, $oldPage) {
         return handlePageChange($newPage, $oldPage);
     },

@@ -3,7 +3,7 @@
   "description": "A set of base classes and blueprint for web development in a plugin format using Kirby CMS",
   "type": "kirby-plugin",
   "license": "MIT",
-  "version": "3.2.34",
+  "version": "3.2.35",
   "autoload": {
     "psr-4": {
       "BSBI\\WebBase\\": "classes/"
@@ -39,6 +39,10 @@
     "dealerdirect/phpcodesniffer-composer-installer": "^1.1",
     "phpunit/phpunit": "^12.5",
     "rector/rector": "^2.3"
+  },
+  "suggest": {
+    "ext-imagick": "Required for BMP to PNG conversion (supports all BMP variants including RLE-compressed)",
+    "ext-gd": "Required for BMP to PNG conversion when Imagick is unavailable (uncompressed BMP only)"
   },
   "minimum-stability": "stable"
 }
