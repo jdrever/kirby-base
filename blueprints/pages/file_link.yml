@@ -17,6 +17,11 @@ tabs:
         uploads: true
         help: Upload a new file or select from the current page or the file archive.
         query: site.find("file-archive").files
+      permanentLink:
+        type: info
+        label: Permanent link
+        text: "{{ page.url }}"
+        help: Share this page URL rather than the file link — it is friendlier and will not break if the file is replaced.
   panelTab:
     extends: tabs/panel
     columns:
