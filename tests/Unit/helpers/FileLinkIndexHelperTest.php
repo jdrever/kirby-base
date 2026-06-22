@@ -64,6 +64,22 @@ final class FileLinkIndexHelperTest extends TestCase
         $this->assertContains('minutes-2024', $segments);
     }
 
+    // ── Template exclusion ─────────────────────────────────────────────────
+
+    public function testWrapperTemplatesAreExcluded(): void
+    {
+        $this->assertTrue(FileLinkIndexHelper::isExcludedTemplate('file_link'));
+        $this->assertTrue(FileLinkIndexHelper::isExcludedTemplate('page_link'));
+        $this->assertTrue(FileLinkIndexHelper::isExcludedTemplate('file_archive'));
+    }
+
+    public function testContentTemplatesAreNotExcluded(): void
+    {
+        $this->assertFalse(FileLinkIndexHelper::isExcludedTemplate('default'));
+        $this->assertFalse(FileLinkIndexHelper::isExcludedTemplate('blog_post'));
+        $this->assertFalse(FileLinkIndexHelper::isExcludedTemplate('policy'));
+    }
+
     // ── Indexing + querying ────────────────────────────────────────────────
 
     public function testIndexAndQueryUuidLink(): void

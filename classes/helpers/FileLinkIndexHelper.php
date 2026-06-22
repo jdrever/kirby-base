@@ -37,6 +37,23 @@ class FileLinkIndexHelper
     private const string LINKS_TABLE = 'file_links';
     private const string META_TABLE = 'file_links_meta';
 
+    /**
+     * Templates excluded from the index.
+     *
+     * These are system, wrapper, and redirect pages that are not meaningful
+     * "pages that link to a file" — in particular file_link / page_link, which
+     * are auto-managed permanent-URL wrappers and would otherwise appear as
+     * duplicate-looking results alongside the real content page. Mirrors the
+     * site's allPages collection exclusions.
+     *
+     * @var array<int, string>
+     */
+    private const array EXCLUDED_TEMPLATES = [
+        'basket', 'basket_item', 'basket_page', 'blog_month_folder', 'blog_year_folder',
+        'checkout', 'error', 'error-500', 'file_archive', 'file_link', 'form_training',
+        'form_submission', 'image_bank', 'login', 'order', 'orders', 'page_link',
+    ];
+
     private PDO $database;
 
     /**
@@ -101,6 +118,17 @@ class FileLinkIndexHelper
             return [];
         }
         return array_values(array_unique($matches[1]));
+    }
+
+    /**
+     * Return true if the given template name is excluded from the index.
+     *
+     * @param string $templateName The page's intended template name.
+     * @return bool
+     */
+    public static function isExcludedTemplate(string $templateName): bool
+    {
+        return in_array($templateName, self::EXCLUDED_TEMPLATES, true);
     }
 
     // ── Indexing ────────────────────────────────────────────────────────────
@@ -251,6 +279,9 @@ class FileLinkIndexHelper
             $pagesWithLinks = 0;
             foreach (kirby()->site()->index(true) as $page) {
                 try {
+                    if (self::isExcludedTemplate($page->intendedTemplate()->name())) {
+                        continue;
+                    }
                     $inserted = $this->indexPageContent(
                         $page->id(),
                         $this->extractContentText($page),
@@ -281,6 +312,13 @@ class FileLinkIndexHelper
      */
     public function indexPage(Page $page): void
     {
+        // Excluded templates (e.g. file_link wrapper pages) must never appear as
+        // results. Clear any existing rows in case the template changed.
+        if (self::isExcludedTemplate($page->intendedTemplate()->name())) {
+            $this->removePage($page->id());
+            return;
+        }
+
         $this->indexPageContent(
             $page->id(),
             $this->extractContentText($page),
