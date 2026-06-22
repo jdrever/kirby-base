@@ -1,11 +1,64 @@
 <?php
 
 use BSBI\WebBase\helpers\ContentIndexRegistry;
+use BSBI\WebBase\helpers\FileLinkIndexHelper;
 use BSBI\WebBase\helpers\ImageConversionHelper;
 use BSBI\WebBase\helpers\KirbyBaseHelper;
 use BSBI\WebBase\helpers\KirbyInternalHelper;
 use BSBI\WebBase\helpers\SearchIndexHelper;
 use Kirby\Filesystem\F;
+
+/**
+ * Re-index the file links contained in a page's content.
+ *
+ * No-op until the file-link index has been built. Best-effort: failures are
+ * logged but never block the page operation.
+ *
+ * @param Kirby\Cms\Page $page      The page to index.
+ * @param string|null    $oldPageId Previous page ID, when it has changed (slug rename / move).
+ * @return void
+ */
+function updateFileLinkIndex(Kirby\Cms\Page $page, ?string $oldPageId = null): void
+{
+    if (!FileLinkIndexHelper::isIndexReady()) {
+        return;
+    }
+    try {
+        $index = new FileLinkIndexHelper();
+        if ($oldPageId !== null && $oldPageId !== $page->id()) {
+            $index->removePage($oldPageId);
+        }
+        $index->indexPage($page);
+    } catch (Throwable $e) {
+        KirbyBaseHelper::writeToLogFile(
+            'file-link-index',
+            'Failed to update file-link index for page ' . $page->id() . ': ' . $e->getMessage()
+        );
+    }
+}
+
+/**
+ * Remove a page from the file-link index.
+ *
+ * No-op until the file-link index has been built. Best-effort: failures are logged.
+ *
+ * @param string $pageId The page ID to remove.
+ * @return void
+ */
+function removeFromFileLinkIndex(string $pageId): void
+{
+    if (!FileLinkIndexHelper::isIndexReady()) {
+        return;
+    }
+    try {
+        (new FileLinkIndexHelper())->removePage($pageId);
+    } catch (Throwable $e) {
+        KirbyBaseHelper::writeToLogFile(
+            'file-link-index',
+            'Failed to remove page from file-link index for page ' . $pageId . ': ' . $e->getMessage()
+        );
+    }
+}
 
 function handlePageChange($newPage, $oldPage) {
     static $isHandling = false;
@@ -62,6 +115,9 @@ function handlePageChange($newPage, $oldPage) {
         } catch (Throwable $e) {
             KirbyBaseHelper::writeToLogFile('search-index', 'Failed to update content index for page ' . $newPage->id() . ': ' . $e->getMessage());
         }
+
+        // Update file-link (reverse-link) index
+        updateFileLinkIndex($newPage, $oldPage?->id());
 
         return $newPage;
     } finally {
@@ -151,6 +207,9 @@ return [
             KirbyBaseHelper::writeToLogFile('search-index', 'Failed to add page to content index for page ' . $page->id() . ': ' . $e->getMessage());
         }
 
+        // Add to file-link (reverse-link) index
+        updateFileLinkIndex($page);
+
         return $page;
     },
 
@@ -175,6 +234,9 @@ return [
         } catch (Throwable $e) {
             KirbyBaseHelper::writeToLogFile('search-index', 'Failed to update content index after status change for page ' . $newPage->id() . ': ' . $e->getMessage());
         }
+
+        // Update file-link (reverse-link) index
+        updateFileLinkIndex($newPage);
     },
     'page.delete:before' => function (Kirby\Cms\Page $page) {
         // Cache clearing is best-effort — must not block index removal if it fails
@@ -202,6 +264,9 @@ return [
         } catch (Throwable $e) {
             KirbyBaseHelper::writeToLogFile('search-index', 'Failed to remove page from content index for page ' . $page->id() . ': ' . $e->getMessage());
         }
+
+        // Remove from file-link (reverse-link) index
+        removeFromFileLinkIndex($page->id());
     },
 
     'page.changeTemplate:after' => function (Kirby\Cms\Page $newPage, Kirby\Cms\Page $oldPage) {
@@ -247,6 +312,9 @@ return [
         } catch (Throwable $e) {
             KirbyBaseHelper::writeToLogFile('search-index', 'Failed to update content index after page move for page ' . $newPage->id() . ': ' . $e->getMessage());
         }
+
+        // Update file-link (reverse-link) index under the new page ID
+        updateFileLinkIndex($newPage, $oldPage->id());
 
         return $newPage;
     },

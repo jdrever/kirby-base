@@ -430,6 +430,58 @@ return [
         }
     ],
     [
+        'pattern' => 'filelinks-index-rebuild',
+        'method'  => 'GET',
+        'action'  => function () {
+            $helper = new KirbyInternalHelper();
+            if (!$helper->isCurrentUserAdminOrEditor()) {
+                return new Response('You must be an administrator to access this page.', 'text/plain', 403);
+            }
+            try {
+                $fileLinkIndex = new \BSBI\WebBase\helpers\FileLinkIndexHelper();
+                $count = $fileLinkIndex->rebuildIndex();
+                return new Response(
+                    "File-link index rebuilt successfully. $count pages with links indexed.",
+                    'text/plain',
+                    200
+                );
+            } catch (Throwable $e) {
+                return new Response(
+                    'Failed to rebuild file-link index: ' . $e->getMessage(),
+                    'text/plain',
+                    500
+                );
+            }
+        }
+    ],
+    [
+        'pattern' => 'filelinks-index-stats',
+        'method'  => 'GET',
+        'action'  => function () {
+            $helper = new KirbyInternalHelper();
+            if (!$helper->isCurrentUserAdminOrEditor()) {
+                return new Response('You must be an administrator to access this page.', 'text/plain', 403);
+            }
+            try {
+                if (!\BSBI\WebBase\helpers\FileLinkIndexHelper::isIndexReady()) {
+                    return new Response(json_encode(null), 'application/json', 200);
+                }
+                $fileLinkIndex = new \BSBI\WebBase\helpers\FileLinkIndexHelper();
+                return new Response(
+                    json_encode($fileLinkIndex->getStats(), JSON_PRETTY_PRINT),
+                    'application/json',
+                    200
+                );
+            } catch (Throwable $e) {
+                return new Response(
+                    json_encode(['error' => $e->getMessage()]),
+                    'application/json',
+                    500
+                );
+            }
+        }
+    ],
+    [
         'pattern' => 'content-index-records',
         'method'  => 'GET',
         'action'  => function () {

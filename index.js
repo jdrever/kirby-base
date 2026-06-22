@@ -316,6 +316,65 @@ panel.plugin('open-foundations/kirby-base', {
   },
 
   sections: {
+    filearchivelinks: {
+      data: function () {
+        return {
+          headline: null,
+          indexReady: true,
+          links: []
+        }
+      },
+      created: async function () {
+        try {
+          const response = await this.load();
+          this.headline = response.headline;
+          this.indexReady = response.indexReady;
+          this.links = response.links || [];
+        } catch (error) {
+          console.error('Failed to load file archive links:', error);
+        }
+      },
+      template: `
+        <section class="k-section k-filearchivelinks-section">
+          <header class="k-section-header">
+            <h2 class="k-headline">{{ headline }}</h2>
+          </header>
+
+          <k-empty v-if="!indexReady" icon="search">
+            File-link index not yet built. An administrator can build it from the Indexes panel.
+          </k-empty>
+
+          <k-empty v-else-if="links.length === 0" icon="check">
+            No pages link to this file.
+          </k-empty>
+
+          <ul v-else class="k-filearchivelinks-list" style="list-style: none; padding: 0; margin: 0.5rem 0 0;">
+            <li
+              v-for="link in links"
+              :key="link.pageId"
+              style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border);"
+            >
+              <k-link
+                :to="link.panelUrl"
+                style="font-weight: 500; flex: 1;"
+              >{{ link.title }}</k-link>
+              <a
+                v-if="link.url"
+                :href="link.url"
+                target="_blank"
+                rel="noopener"
+                style="color: var(--color-text-dimmed); font-size: 0.8rem;"
+              >view</a>
+              <span
+                v-if="link.linkTypes && link.linkTypes.indexOf('permanent_url') !== -1"
+                style="font-size: 0.7rem; color: var(--color-text-dimmed); border: 1px solid var(--color-border); border-radius: var(--rounded); padding: 0.05rem 0.35rem;"
+                title="Linked via a hard-coded permanent URL"
+              >permanent URL</span>
+            </li>
+          </ul>
+        </section>
+      `
+    },
     quicklinks: {
       data: function () {
         return {
@@ -1642,12 +1701,13 @@ panel.plugin('open-foundations/kirby-base', {
 
   components: {
     'k-index-stats-view': {
-      props: ['searchStats', 'contentIndexes', 'imageBankStats'],
+      props: ['searchStats', 'contentIndexes', 'imageBankStats', 'fileLinkStats'],
       data: function () {
         return {
           currentSearchStats: this.searchStats,
           currentContentIndexes: this.contentIndexes,
           currentImageBankStats: this.imageBankStats,
+          currentFileLinkStats: this.fileLinkStats,
           rebuilding: null,
           shownRecords: {},
           recordData: {},
@@ -1670,6 +1730,10 @@ panel.plugin('open-foundations/kirby-base', {
               await fetch('/imagebank-index-rebuild');
               const res = await fetch('/imagebank-index-stats');
               this.currentImageBankStats = await res.json();
+            } else if (type === 'filelinks') {
+              await fetch('/filelinks-index-rebuild');
+              const res = await fetch('/filelinks-index-stats');
+              this.currentFileLinkStats = await res.json();
             }
           } catch (error) {
             console.error('Index rebuild failed:', error);
@@ -1866,6 +1930,26 @@ panel.plugin('open-foundations/kirby-base', {
                   <button @click="goToPage('imagebank', 'imagebank', null, recordData['imagebank'].page - 1)" :disabled="recordData['imagebank'].page <= 1" style="padding: 0.25rem 0.5rem; border: 1px solid var(--color-border); border-radius: var(--rounded); background: transparent; cursor: pointer; font-size: 0.75rem;" :style="{ opacity: recordData['imagebank'].page <= 1 ? '0.4' : '1' }">&larr; Prev</button>
                   <span>Page {{ recordData['imagebank'].page }} of {{ recordData['imagebank'].totalPages }} &middot; {{ recordData['imagebank'].total }} total</span>
                   <button @click="goToPage('imagebank', 'imagebank', null, recordData['imagebank'].page + 1)" :disabled="recordData['imagebank'].page >= recordData['imagebank'].totalPages" style="padding: 0.25rem 0.5rem; border: 1px solid var(--color-border); border-radius: var(--rounded); background: transparent; cursor: pointer; font-size: 0.75rem;" :style="{ opacity: recordData['imagebank'].page >= recordData['imagebank'].totalPages ? '0.4' : '1' }">Next &rarr;</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- File-Link (reverse-link) Index -->
+            <div style="background: var(--color-background); border-radius: var(--rounded); padding: 1.25rem;">
+              <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                <h2 style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-dimmed); min-width: 120px; margin: 0;">File Links</h2>
+                <span v-if="currentFileLinkStats" style="font-size: 0.85rem; color: var(--color-text-dimmed);">{{ currentFileLinkStats.total_files }} files &middot; {{ currentFileLinkStats.total_links }} links across {{ currentFileLinkStats.total_pages }} pages &middot; Last rebuilt: {{ currentFileLinkStats.last_rebuild || 'Never' }}</span>
+                <span v-else style="font-size: 0.85rem; color: var(--color-text-dimmed);">Not yet built</span>
+                <div style="margin-left: auto; display: flex; gap: 0.5rem; flex-shrink: 0;">
+                  <button
+                    @click="rebuild('filelinks')"
+                    :disabled="rebuilding !== null"
+                    style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.6rem; background: var(--color-black); color: var(--color-white); border: none; cursor: pointer; border-radius: var(--rounded); font-size: 0.75rem;"
+                    :style="{ opacity: rebuilding !== null && rebuilding !== 'filelinks' ? '0.4' : '1' }"
+                  >
+                    <span v-if="rebuilding === 'filelinks'" style="display: inline-block; width: 0.65rem; height: 0.65rem; border: 2px solid var(--color-white); border-top-color: transparent; border-radius: 50%; animation: k-idx-spin 0.6s linear infinite;"></span>
+                    {{ rebuilding === 'filelinks' ? 'Rebuilding...' : 'Rebuild' }}
+                  </button>
                 </div>
               </div>
             </div>

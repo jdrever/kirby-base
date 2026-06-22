@@ -2,6 +2,7 @@
 
 use BSBI\WebBase\helpers\ContentIndexDefinition;
 use BSBI\WebBase\helpers\ContentIndexRegistry;
+use BSBI\WebBase\helpers\FileLinkIndexHelper;
 use BSBI\WebBase\helpers\ImageBankIndexHelper;
 use BSBI\WebBase\helpers\FilteredFilesHelper;
 use BSBI\WebBase\helpers\FilteredPagesHelper;
@@ -55,6 +56,7 @@ $pluginConfig = [
         'translatedpages' => require __DIR__ . '/sections/translatedpages.php',
         'filteredpages'   => require __DIR__ . '/sections/filteredpages.php',
         'filteredfiles'   => require __DIR__ . '/sections/filteredfiles.php',
+        'filearchivelinks' => require __DIR__ . '/sections/filearchivelinks.php',
         'styleguidecheck' => require __DIR__ . '/sections/styleguidecheck.php',
     ],
     'api' => [
@@ -237,6 +239,15 @@ if (option('contentIndex.showIndexStatsPanel', false)) {
                         } catch (Throwable) {
                         }
 
+                        $fileLinkStats = null;
+                        try {
+                            if (FileLinkIndexHelper::isIndexReady()) {
+                                $fileLinkHelper = new FileLinkIndexHelper();
+                                $fileLinkStats  = $fileLinkHelper->getStats();
+                            }
+                        } catch (Throwable) {
+                        }
+
                         return [
                             'component' => 'k-index-stats-view',
                             'title'     => 'Indexes',
@@ -244,6 +255,7 @@ if (option('contentIndex.showIndexStatsPanel', false)) {
                                 'searchStats'    => $searchStats,
                                 'contentIndexes' => $contentIndexes,
                                 'imageBankStats' => $imageBankStats,
+                                'fileLinkStats'  => $fileLinkStats,
                             ],
                         ];
                     },
