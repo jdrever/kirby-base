@@ -15,7 +15,12 @@ declare(strict_types=1);
  * linkedFrom:
  *   type: filearchivelinks
  *   headline: Linked from these pages
+ *   emptyText: No pages link to this file.
  * </code>
+ *
+ * The section is file-type agnostic (it matches purely on the file's UUID), so it
+ * is also used on the generic image blueprint — pass an image-specific
+ * headline/emptyText there.
  */
 
 use BSBI\WebBase\helpers\FileLinkIndexHelper;
@@ -31,6 +36,19 @@ return [
          */
         'headline' => function (string $headline = 'Linked from'): string {
             return $headline;
+        },
+
+        /**
+         * Message shown when the index is built but no pages reference the file.
+         *
+         * Configurable so the section can present file-type-appropriate wording
+         * (e.g. "No pages use this image." on Image Bank items).
+         *
+         * @param string $emptyText
+         * @return string
+         */
+        'emptyText' => function (string $emptyText = 'No pages link to this file.'): string {
+            return $emptyText;
         },
 
         /**

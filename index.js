@@ -320,6 +320,7 @@ panel.plugin('open-foundations/kirby-base', {
       data: function () {
         return {
           headline: null,
+          emptyText: 'No pages link to this file.',
           indexReady: true,
           links: []
         }
@@ -328,6 +329,7 @@ panel.plugin('open-foundations/kirby-base', {
         try {
           const response = await this.load();
           this.headline = response.headline;
+          this.emptyText = response.emptyText || this.emptyText;
           this.indexReady = response.indexReady;
           this.links = response.links || [];
         } catch (error) {
@@ -345,7 +347,7 @@ panel.plugin('open-foundations/kirby-base', {
           </k-empty>
 
           <k-empty v-else-if="links.length === 0" icon="check">
-            No pages link to this file.
+            {{ emptyText }}
           </k-empty>
 
           <ul v-else class="k-filearchivelinks-list" style="list-style: none; padding: 0; margin: 0.5rem 0 0;">
