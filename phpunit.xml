@@ -16,6 +16,7 @@
         <exclude>
             <directory>classes/helpers</directory>
             <directory>classes/traits/GenericKirbyHelper.php</directory>
+            <directory>classes/Testing</directory>
         </exclude>
     </source>
 </phpunit>

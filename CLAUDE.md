@@ -85,6 +85,31 @@ When adding any new blueprint, snippet, or template file, you MUST also register
 - PascalCase classes, camelCase methods/properties, snake_case for Kirby template/blueprint names
 - PHPDoc comments for all public methods/constructors
 
+## Testing (test-first)
+
+Write the test first: **red → green → refactor**. Cover the happy path and the awkward
+edges (empty/null relations, camelCase vs snake_case keys, draft/unlisted exclusions).
+
+- **Run:** `vendor/bin/phpunit` (whole suite) or `vendor/bin/phpunit --filter SomeTest`
+  (fast inner loop). In a consuming site, `bin/test.sh` runs both that site's suite and
+  this one.
+- **Make Kirby logic testable by construction — don't grow `KirbyBaseHelper`.** Its
+  constructor reaches for the global `kirby()`/`site()`/`page()`, so it can't be
+  instantiated in a unit test. When a change wants branching logic there, extract a
+  small `final readonly` service that takes its Kirby collaborators via the constructor
+  (like `KirbyFieldReader`, `ImageService`, `NavigationService`) and test the service.
+  Split services by responsibility, not by method.
+- **Shared test support lives in `classes/Testing/` (`BSBI\WebBase\Testing`).**
+  `KirbyTestEnvironment::boot()` returns a minimal in-memory Kirby App;
+  `KirbyContentBuilder` fabricates pages/structures/blocks. These are deliberately
+  PHPUnit-free so they ship in the plugin autoload — test cases *compose* them, they
+  don't extend them. Note: `kirby()` auto-boots an App when none exists, registering
+  global error/exception handlers that PHPUnit 12 reports as risky; boot once up front
+  (e.g. in `setUpBeforeClass`) to keep that out of the per-test window.
+- **Hold the line.** New behaviour ships with a test written first. Don't retro-fit
+  tests onto the global-state body of `KirbyBaseHelper`; extract-and-test when you touch
+  it. Coverage is a diagnostic, not a target.
+
 ## Version Management
 
 To release a new version: update `version` in `composer.json`, commit, tag with the version number, and push with tags.
