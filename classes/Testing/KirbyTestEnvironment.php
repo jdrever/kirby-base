@@ -88,6 +88,9 @@ final class KirbyTestEnvironment
         $root    = sys_get_temp_dir() . '/' . $namespace . '-' . uniqid();
         $content = $root . '/content';
         self::copyDir($fixtureDir, $content);
+        // Create the cache root explicitly, mirroring boot(), so cache-backed code
+        // never depends on Kirby auto-creating it.
+        mkdir($root . '/cache', 0777, true);
 
         self::registerCleanup();
         self::$tempDirs[] = $root;
