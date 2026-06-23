@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BSBI\WebBase\Tests\Unit\testing;
 
 use BSBI\WebBase\Testing\KirbyTestEnvironment;
+use InvalidArgumentException;
 use Kirby\Cms\App;
 use PHPUnit\Framework\TestCase;
 
@@ -50,5 +51,11 @@ final class KirbyTestEnvironmentTest extends TestCase
     public function testBootMergesExtraOptions(): void
     {
         $this->assertSame('value', self::$kirbyWithOptions->option('custom.option'));
+    }
+
+    public function testBootWithContentThrowsForMissingFixture(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        KirbyTestEnvironment::bootWithContent('/no/such/fixture/dir');
     }
 }
