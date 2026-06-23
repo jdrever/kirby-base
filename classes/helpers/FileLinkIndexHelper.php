@@ -37,20 +37,32 @@ class FileLinkIndexHelper
     private const string LINKS_TABLE = 'file_links';
     private const string META_TABLE = 'file_links_meta';
 
+    /** Link-type recorded for a file:// token embedded in page content. */
+    private const string LINK_TYPE_UUID = 'uuid';
+    /** Link-type recorded for a hard-coded /files/<permanentUrl> reference. */
+    private const string LINK_TYPE_PERMANENT_URL = 'permanent_url';
+    /** Link-type recorded for a file wrapped by a file_link permanent-URL page. */
+    private const string LINK_TYPE_FILE_LINK = 'file_link';
+
+    /** Template name of the permanent-URL wrapper page that wraps a single file. */
+    private const string FILE_LINK_TEMPLATE = 'file_link';
+
     /**
      * Templates excluded from the index.
      *
      * These are system, wrapper, and redirect pages that are not meaningful
-     * "pages that link to a file" — in particular file_link / page_link, which
-     * are auto-managed permanent-URL wrappers and would otherwise appear as
-     * duplicate-looking results alongside the real content page. Mirrors the
-     * site's allPages collection exclusions.
+     * "pages that link to a file". Note that file_link is NOT excluded: a
+     * file_link page is a permanent-URL wrapper around a single file and is
+     * often the only direct reference to that file, so it must be indexed (see
+     * #535) — it is handled specially via indexFileLinkContent() and recorded
+     * with the file_link link-type. Mirrors the site's allPages collection
+     * exclusions otherwise.
      *
      * @var array<int, string>
      */
     private const array EXCLUDED_TEMPLATES = [
         'basket', 'basket_item', 'basket_page', 'blog_month_folder', 'blog_year_folder',
-        'checkout', 'error', 'error-500', 'file_archive', 'file_link', 'form_training',
+        'checkout', 'error', 'error-500', 'file_archive', 'form_training',
         'form_submission', 'image_bank', 'login', 'order', 'orders', 'page_link',
     ];
 
@@ -150,14 +162,53 @@ class FileLinkIndexHelper
 
         $rows = [];
         foreach (self::extractFileUuids($contentText) as $uuid) {
-            $rows[] = [$uuid, 'uuid'];
+            $rows[] = [$uuid, self::LINK_TYPE_UUID];
         }
         foreach (self::extractPermanentUrlSegments($contentText) as $segment) {
             if (isset($permanentUrlMap[$segment])) {
-                $rows[] = [$permanentUrlMap[$segment], 'permanent_url'];
+                $rows[] = [$permanentUrlMap[$segment], self::LINK_TYPE_PERMANENT_URL];
             }
         }
 
+        return $this->insertLinks($pageId, $rows);
+    }
+
+    /**
+     * Index (or re-index) the file wrapped by a single file_link page.
+     *
+     * A file_link page is a permanent-URL wrapper whose `file` field holds a
+     * single <code>file://UUID</code> token. It is frequently the only direct
+     * reference to that file, so the file must be recorded as used — attributed
+     * to the wrapper page with the dedicated file_link link-type so the Panel can
+     * present it distinctly from ordinary content references (see #535).
+     *
+     * Existing rows for the page are removed first, so the call is idempotent.
+     *
+     * @param string $pageId      The file_link page's Kirby ID.
+     * @param string $contentText The file_link page's combined raw content text.
+     * @return int Number of link rows inserted for the page.
+     */
+    public function indexFileLinkContent(string $pageId, string $contentText): int
+    {
+        $this->removePage($pageId);
+
+        $rows = [];
+        foreach (self::extractFileUuids($contentText) as $uuid) {
+            $rows[] = [$uuid, self::LINK_TYPE_FILE_LINK];
+        }
+
+        return $this->insertLinks($pageId, $rows);
+    }
+
+    /**
+     * Insert link rows for a page, ignoring duplicates.
+     *
+     * @param string                          $pageId The Kirby page ID the links belong to.
+     * @param array<int, array{0: string, 1: string}> $rows   List of [file UUID, link type] pairs.
+     * @return int Number of rows actually inserted (duplicates are ignored).
+     */
+    private function insertLinks(string $pageId, array $rows): int
+    {
         if ($rows === []) {
             return 0;
         }
@@ -279,15 +330,7 @@ class FileLinkIndexHelper
             $pagesWithLinks = 0;
             foreach (kirby()->site()->index(true) as $page) {
                 try {
-                    if (self::isExcludedTemplate($page->intendedTemplate()->name())) {
-                        continue;
-                    }
-                    $inserted = $this->indexPageContent(
-                        $page->id(),
-                        $this->extractContentText($page),
-                        $permanentUrlMap
-                    );
-                    if ($inserted > 0) {
+                    if ($this->indexSinglePage($page, $permanentUrlMap) > 0) {
                         $pagesWithLinks++;
                     }
                 } catch (Throwable $e) {
@@ -312,17 +355,43 @@ class FileLinkIndexHelper
      */
     public function indexPage(Page $page): void
     {
-        // Excluded templates (e.g. file_link wrapper pages) must never appear as
-        // results. Clear any existing rows in case the template changed.
-        if (self::isExcludedTemplate($page->intendedTemplate()->name())) {
-            $this->removePage($page->id());
-            return;
+        $this->indexSinglePage($page, $this->buildPermanentUrlMap());
+    }
+
+    /**
+     * Index a single Kirby page according to its template.
+     *
+     * Routing:
+     *  - file_link wrapper pages are indexed via indexFileLinkContent() so the
+     *    file they wrap is recorded as used (with the file_link link-type).
+     *  - other excluded templates clear any stale rows and contribute nothing.
+     *  - all remaining pages are scanned for file:// and /files/ references.
+     *
+     * Shared by rebuildIndex() (full scan) and indexPage() (incremental hook).
+     *
+     * @param Page                  $page            The page to index.
+     * @param array<string, string> $permanentUrlMap Map of permanentUrl segment => file UUID.
+     * @return int Number of link rows inserted for the page.
+     */
+    private function indexSinglePage(Page $page, array $permanentUrlMap): int
+    {
+        $template = $page->intendedTemplate()->name();
+
+        if ($template === self::FILE_LINK_TEMPLATE) {
+            return $this->indexFileLinkContent($page->id(), $this->extractContentText($page));
         }
 
-        $this->indexPageContent(
+        // Excluded templates must never appear as results. Clear any existing
+        // rows in case the template changed.
+        if (self::isExcludedTemplate($template)) {
+            $this->removePage($page->id());
+            return 0;
+        }
+
+        return $this->indexPageContent(
             $page->id(),
             $this->extractContentText($page),
-            $this->buildPermanentUrlMap()
+            $permanentUrlMap
         );
     }
 

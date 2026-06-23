@@ -292,6 +292,10 @@ return [
             } catch (Throwable $e) {
                 KirbyBaseHelper::writeToLogFile('search-index', 'Failed to update new-template index entry for page ' . $newPage->id() . ': ' . $e->getMessage());
             }
+
+            // Update file-link (reverse-link) index: a template change to/from
+            // file_link changes whether the page contributes a wrapped-file link.
+            updateFileLinkIndex($newPage);
         } catch (Throwable $e) {
             KirbyBaseHelper::writeToLogFile('search-index', 'Failed to handle template change for page ' . $newPage->id() . ': ' . $e->getMessage());
         }

@@ -68,9 +68,15 @@ final class FileLinkIndexHelperTest extends TestCase
 
     public function testWrapperTemplatesAreExcluded(): void
     {
-        $this->assertTrue(FileLinkIndexHelper::isExcludedTemplate('file_link'));
         $this->assertTrue(FileLinkIndexHelper::isExcludedTemplate('page_link'));
         $this->assertTrue(FileLinkIndexHelper::isExcludedTemplate('file_archive'));
+    }
+
+    public function testFileLinkTemplateIsNotExcluded(): void
+    {
+        // file_link pages wrap a single file to give it a permanent URL; they are
+        // the only direct reference to that file, so they MUST be indexed (see #535).
+        $this->assertFalse(FileLinkIndexHelper::isExcludedTemplate('file_link'));
     }
 
     public function testContentTemplatesAreNotExcluded(): void
@@ -136,6 +142,39 @@ final class FileLinkIndexHelperTest extends TestCase
         $this->assertCount(1, $pages, 'Same page should appear once');
         $this->assertStringContainsString('uuid', $pages[0]['linkTypes']);
         $this->assertStringContainsString('permanent_url', $pages[0]['linkTypes']);
+    }
+
+    public function testFileLinkContentRecordsFileLinkType(): void
+    {
+        // A file_link wrapper page references its wrapped file via a file:// token
+        // in the `file` field; the wrapped file must be recorded as used (#535).
+        $this->index->indexFileLinkContent('downloads/annual-report', '- file://abc123');
+
+        $pages = $this->index->getLinkingPages('abc123');
+        $this->assertCount(1, $pages);
+        $this->assertSame('downloads/annual-report', $pages[0]['pageId']);
+        $this->assertSame('file_link', $pages[0]['linkTypes']);
+    }
+
+    public function testFileLinkContentIsIdempotent(): void
+    {
+        $this->index->indexFileLinkContent('downloads/report', 'file://oldfile');
+        // Wrapper re-pointed at a different file
+        $this->index->indexFileLinkContent('downloads/report', 'file://newfile');
+
+        $this->assertSame([], $this->index->getLinkingPages('oldfile'));
+        $this->assertCount(1, $this->index->getLinkingPages('newfile'));
+    }
+
+    public function testFileLinkContentWithNoTokensInsertsNothing(): void
+    {
+        // A malformed/empty file_link wrapper (no file:// token) records nothing
+        // and clears any prior rows for the page.
+        $this->index->indexFileLinkContent('downloads/empty', 'file://abc123');
+        $this->assertCount(1, $this->index->getLinkingPages('abc123'));
+
+        $this->assertSame(0, $this->index->indexFileLinkContent('downloads/empty', 'no tokens here'));
+        $this->assertSame([], $this->index->getLinkingPages('abc123'));
     }
 
     public function testReindexingPageReplacesPreviousLinks(): void

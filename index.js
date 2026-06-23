@@ -372,6 +372,11 @@ panel.plugin('open-foundations/kirby-base', {
                 style="font-size: 0.7rem; color: var(--color-text-dimmed); border: 1px solid var(--color-border); border-radius: var(--rounded); padding: 0.05rem 0.35rem;"
                 title="Linked via a hard-coded permanent URL"
               >permanent URL</span>
+              <span
+                v-if="link.linkTypes && link.linkTypes.indexOf('file_link') !== -1"
+                style="font-size: 0.7rem; color: var(--color-text-dimmed); border: 1px solid var(--color-border); border-radius: var(--rounded); padding: 0.05rem 0.35rem;"
+                title="Wrapped by a file-link page that gives this file a permanent URL"
+              >file link</span>
             </li>
           </ul>
         </section>
