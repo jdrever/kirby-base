@@ -29,6 +29,7 @@ use BSBI\WebBase\models\WebPageBlocks;
 use BSBI\WebBase\models\WebPageLink;
 use BSBI\WebBase\models\WebPageLinks;
 use BSBI\WebBase\models\User;
+use BSBI\WebBase\models\UserList;
 use BSBI\WebBase\models\WebPageTagLinks;
 use BSBI\WebBase\models\WebPageTagLinkSet;
 use BSBI\WebBase\traits\OptionsHandling;
@@ -1329,6 +1330,21 @@ abstract class KirbyBaseHelper
     public function getPageFieldAsUserNames(Page $page, string $fieldName): string
     {
         return $this->fieldReader->getUserNames($page, $fieldName);
+    }
+
+    /**
+     * Returns a UserList of full poster details (name, email, job title) for the
+     * users stored in the given field, preserving their stored order.
+     *
+     * Returns an empty UserList if the field is empty or on any error.
+     *
+     * @param Page $page The page holding the users field.
+     * @param string $fieldName The name of the users field (e.g. 'postedBy').
+     * @return UserList
+     */
+    public function getPageFieldAsUsers(Page $page, string $fieldName): UserList
+    {
+        return $this->fieldReader->getUsers($page, $fieldName);
     }
 
 

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace BSBI\WebBase\Tests\Unit\traits;
 
+use BSBI\WebBase\models\User;
+use BSBI\WebBase\models\UserList;
 use BSBI\WebBase\traits\PostProperties;
 use DateTime;
 use PHPUnit\Framework\TestCase;
@@ -86,6 +88,35 @@ final class PostPropertiesTest extends TestCase
         $model->setPostedBy('Unknown');
 
         $this->assertFalse($model->hasPostedBy());
+    }
+
+    /**
+     * Verify posters defaults to unset and can be set as a UserList.
+     */
+    public function testPostersGetterSetter(): void
+    {
+        $model = $this->createModel();
+
+        $this->assertFalse($model->hasPosters());
+
+        $posters = new UserList();
+        $posters->addListItem((new User('Jane Doe'))->setUserName('Jane Doe'));
+        $model->setPosters($posters);
+
+        $this->assertTrue($model->hasPosters());
+        $this->assertSame($posters, $model->getPosters());
+        $this->assertSame(1, $model->getPosters()->count());
+    }
+
+    /**
+     * Verify an empty posters list is treated as not having posters.
+     */
+    public function testEmptyPostersTreatedAsNotSet(): void
+    {
+        $model = $this->createModel();
+        $model->setPosters(new UserList());
+
+        $this->assertFalse($model->hasPosters());
     }
 
     /**

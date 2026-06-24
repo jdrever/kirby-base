@@ -2,6 +2,7 @@
 
 namespace BSBI\WebBase\traits;
 
+use BSBI\WebBase\models\UserList;
 use DateTime;
 
 /**
@@ -20,6 +21,8 @@ trait PostProperties
     private string $excerpt;
 
     private string $postedBy;
+
+    private UserList $posters;
 
     public function hasSubtitle(): bool
     {
@@ -85,6 +88,38 @@ trait PostProperties
     public function setPostedBy(string $postedBy): static
     {
         $this->postedBy = $postedBy;
+        return $this;
+    }
+
+    /**
+     * Whether one or more poster (author) details are available.
+     *
+     * @return bool
+     */
+    public function hasPosters(): bool
+    {
+        return isset($this->posters) && $this->posters->hasListItems();
+    }
+
+    /**
+     * Get the list of posters (authors) with their full details.
+     *
+     * @return UserList
+     */
+    public function getPosters(): UserList
+    {
+        return $this->posters;
+    }
+
+    /**
+     * Set the list of posters (authors) with their full details.
+     *
+     * @param UserList $posters
+     * @return $this
+     */
+    public function setPosters(UserList $posters): static
+    {
+        $this->posters = $posters;
         return $this;
     }
 

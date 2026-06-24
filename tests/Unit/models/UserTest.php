@@ -40,4 +40,16 @@ final class UserTest extends TestCase
         $this->assertTrue($user->hasEmail());
         $this->assertSame('alice@example.com', $user->getEmail());
     }
+
+    public function testJobTitleGetterSetter(): void
+    {
+        $user = new User('');
+
+        $this->assertFalse($user->hasJobTitle());
+        $this->assertSame('', $user->getJobTitle());
+
+        $user->setJobTitle('Records Officer');
+        $this->assertTrue($user->hasJobTitle());
+        $this->assertSame('Records Officer', $user->getJobTitle());
+    }
 }

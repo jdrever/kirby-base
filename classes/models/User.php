@@ -21,6 +21,8 @@ class User extends BaseModel
 
     private string $email;
 
+    private string $jobTitle = '';
+
     /**
      * @return bool
      */
@@ -74,11 +76,12 @@ class User extends BaseModel
 
     /**
      * @param string $role
-     * @return void
+     * @return $this
      */
-    public function setRole(string $role): void
+    public function setRole(string $role): User
     {
         $this->role = $role;
+        return $this;
     }
 
     public function hasEmail() : bool
@@ -101,6 +104,32 @@ class User extends BaseModel
     public function setEmail(string $email): User
     {
         $this->email = $email;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasJobTitle(): bool
+    {
+        return !empty($this->jobTitle);
+    }
+
+    /**
+     * @return string
+     */
+    public function getJobTitle(): string
+    {
+        return $this->jobTitle;
+    }
+
+    /**
+     * @param string $jobTitle
+     * @return $this
+     */
+    public function setJobTitle(string $jobTitle): User
+    {
+        $this->jobTitle = $jobTitle;
         return $this;
     }
 

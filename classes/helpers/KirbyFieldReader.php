@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace BSBI\WebBase\helpers;
 
+use BSBI\WebBase\models\User as UserModel;
+use BSBI\WebBase\models\UserList;
 use BSBI\WebBase\models\WebPageLink;
 use BSBI\WebBase\models\WebPageLinks;
 use DateTime;
@@ -610,6 +612,41 @@ final readonly class KirbyFieldReader
         } catch (Exception) {
             return '';
         }
+    }
+
+    /**
+     * Returns a UserList of full poster details (name, email, job title) for the
+     * users stored in the given field, preserving their stored order.
+     *
+     * Returns an empty UserList if the field is empty or on any error.
+     *
+     * @param Page $page The page holding the users field.
+     * @param string $fieldName The name of the users field (e.g. 'postedBy').
+     * @return UserList
+     */
+    public function getUsers(Page $page, string $fieldName): UserList
+    {
+        $userList = new UserList();
+        try {
+            $field = $page->content()->get($fieldName);
+
+            if ($field instanceof Field && $field->isNotEmpty()) {
+                /** @noinspection PhpUndefinedMethodInspection */
+                foreach ($field->toUsers() as $kirbyUser) {
+                    $userModel = new UserModel($kirbyUser->username() ?? '');
+                    $userModel
+                        ->setUserId($kirbyUser->id())
+                        ->setUserName($kirbyUser->username() ?? '')
+                        ->setEmail($kirbyUser->email() ?? '')
+                        ->setRole($kirbyUser->role()->name())
+                        ->setJobTitle($kirbyUser->content()->get('jobTitle')->value() ?? '');
+                    $userList->addListItem($userModel);
+                }
+            }
+        } catch (Exception) {
+            return new UserList();
+        }
+        return $userList;
     }
 
     /**

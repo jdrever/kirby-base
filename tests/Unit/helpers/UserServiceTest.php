@@ -244,6 +244,28 @@ final class UserServiceTest extends TestCase
         $this->assertSame('admin', $user->getRole());
     }
 
+    public function testGetUserMapsJobTitle(): void
+    {
+        $kirbyUser = \Kirby\Cms\User::factory([
+            'email'   => 'jobtitle-' . uniqid() . '@example.com',
+            'role'    => 'member',
+            'content' => ['jobTitle' => 'Records Officer'],
+        ]);
+        $user = $this->makeService()->getUser($kirbyUser);
+
+        $this->assertTrue($user->hasJobTitle());
+        $this->assertSame('Records Officer', $user->getJobTitle());
+    }
+
+    public function testGetUserWithoutJobTitleHasEmptyJobTitle(): void
+    {
+        $kirbyUser = $this->makeKirbyUser('member');
+        $user = $this->makeService()->getUser($kirbyUser);
+
+        $this->assertFalse($user->hasJobTitle());
+        $this->assertSame('', $user->getJobTitle());
+    }
+
     // =========================================================================
     // getUserName
     // =========================================================================

@@ -55,6 +55,10 @@ final class KirbyFieldReaderTest extends TestCase
                 'content' => $contentDir,
             ],
             'options' => [],
+            'users' => [
+                ['email' => 'jane@bsbi.org', 'name' => 'Jane Doe', 'content' => ['jobTitle' => 'Records Officer']],
+                ['email' => 'bob@bsbi.org', 'name' => 'Bob Lee'],
+            ],
         ]);
 
         self::$reader = new KirbyFieldReader(self::$kirby, self::$kirby->site());
@@ -871,5 +875,38 @@ final class KirbyFieldReaderTest extends TestCase
         $dt = self::$reader->getFileModifiedAsDateTime($kirbyFile);
 
         $this->assertInstanceOf(DateTime::class, $dt);
+    }
+
+    // =========================================================================
+    // USERS — getUsers
+    // =========================================================================
+
+    public function testGetUsersReturnsUserListWithNameEmailAndJobTitle(): void
+    {
+        $page = $this->makePage(['postedBy' => "- jane@bsbi.org\n- bob@bsbi.org"]);
+
+        $list = self::$reader->getUsers($page, 'postedBy');
+
+        $this->assertSame(2, $list->count());
+
+        $jane = $list->getListItems()[0];
+        $this->assertSame('Jane Doe', $jane->getUserName());
+        $this->assertSame('jane@bsbi.org', $jane->getEmail());
+        $this->assertSame('Records Officer', $jane->getJobTitle());
+
+        $bob = $list->getListItems()[1];
+        $this->assertSame('Bob Lee', $bob->getUserName());
+        $this->assertFalse($bob->hasJobTitle());
+        $this->assertSame('', $bob->getJobTitle());
+    }
+
+    public function testGetUsersReturnsEmptyListWhenFieldEmpty(): void
+    {
+        $page = $this->makePage([]);
+
+        $list = self::$reader->getUsers($page, 'postedBy');
+
+        $this->assertSame(0, $list->count());
+        $this->assertFalse($list->hasListItems());
     }
 }

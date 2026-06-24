@@ -93,7 +93,8 @@ final readonly class UserService
         $user->setUserId($kirbyUser->id())
             ->setUserName($kirbyUser->username())
             ->setEmail($kirbyUser->email())
-            ->setRole($kirbyUser->role()->name());
+            ->setRole($kirbyUser->role()->name())
+            ->setJobTitle($kirbyUser->content()->get('jobTitle')->value() ?? '');
         return $user;
     }
 
