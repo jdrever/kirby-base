@@ -23,6 +23,19 @@ $pluginConfig = [
                 },
             ],
         ],
+        // A users field whose picker narrows by full name (AND-of-words) instead
+        // of Kirby's default OR-of-words search across name/email/role, which is
+        // unusable on a site with thousands of users. Behaves identically to the
+        // built-in `users` field in every other respect.
+        'usernamesearch' => [
+            'extends' => 'users',
+            'methods' => [
+                'userpicker' => function (array $params = []) {
+                    $params['model'] = $this->model();
+                    return (new \BSBI\WebBase\cms\UserNamePicker($params))->toArray();
+                },
+            ],
+        ],
     ],
     'blueprints' => require __DIR__ . '/blueprints.php',
     'snippets' => require __DIR__ . '/snippets.php',

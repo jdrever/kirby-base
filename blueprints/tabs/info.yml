@@ -29,7 +29,7 @@ sections:
         type: date
       reviewBy:
         label: Review By
-        type: users
+        type: usernamesearch
       lastTagSync:
         label: Last Tag Sync
         type: date

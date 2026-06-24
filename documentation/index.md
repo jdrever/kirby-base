@@ -206,6 +206,9 @@ You need to do this to update the plugin in your project
 ## Cookie consent
 - See [cookie-consent.md](cookie-consent.md)
 
+## Custom fields
+- See [custom-fields.md](custom-fields.md)
+
 ## Requirements
 
 The following need to be in place for any site using KirbyBase

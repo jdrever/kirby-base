@@ -1,5 +1,10 @@
 panel.plugin('open-foundations/kirby-base', {
   fields: {
+    // Renders identically to the core users field; all the narrowed
+    // full-name search lives in the PHP UserNamePicker behind its api.
+    usernamesearch: {
+      extends: 'k-users-field'
+    },
     maplocation: {
       props: {
         value: {

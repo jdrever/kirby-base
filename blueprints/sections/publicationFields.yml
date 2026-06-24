@@ -10,4 +10,4 @@ fields:
     required: true
   postedBy:
     label: Posted By
-    type: users
+    type: usernamesearch
