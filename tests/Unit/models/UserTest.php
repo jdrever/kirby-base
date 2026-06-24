@@ -52,4 +52,16 @@ final class UserTest extends TestCase
         $this->assertTrue($user->hasJobTitle());
         $this->assertSame('Records Officer', $user->getJobTitle());
     }
+
+    public function testProfileUrlGetterSetter(): void
+    {
+        $user = new User('');
+
+        $this->assertFalse($user->hasProfileUrl());
+        $this->assertSame('', $user->getProfileUrl());
+
+        $user->setProfileUrl('https://bsbi.org/people/jane-doe');
+        $this->assertTrue($user->hasProfileUrl());
+        $this->assertSame('https://bsbi.org/people/jane-doe', $user->getProfileUrl());
+    }
 }

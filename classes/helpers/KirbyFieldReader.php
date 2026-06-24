@@ -620,11 +620,17 @@ final readonly class KirbyFieldReader
      *
      * Returns an empty UserList if the field is empty or on any error.
      *
+     * An optional enricher callback is invoked once per resolved user with the
+     * built User model and the underlying Kirby user, allowing the caller to add
+     * site-specific data (e.g. a linked profile page) without this generic helper
+     * needing to know about it.
+     *
      * @param Page $page The page holding the users field.
      * @param string $fieldName The name of the users field (e.g. 'postedBy').
+     * @param callable(UserModel, User): void|null $enrich Optional per-user enricher.
      * @return UserList
      */
-    public function getUsers(Page $page, string $fieldName): UserList
+    public function getUsers(Page $page, string $fieldName, ?callable $enrich = null): UserList
     {
         $userList = new UserList();
         try {
@@ -640,6 +646,9 @@ final readonly class KirbyFieldReader
                         ->setEmail($kirbyUser->email() ?? '')
                         ->setRole($kirbyUser->role()->name())
                         ->setJobTitle($kirbyUser->content()->get('jobTitle')->value() ?? '');
+                    if ($enrich !== null) {
+                        $enrich($userModel, $kirbyUser);
+                    }
                     $userList->addListItem($userModel);
                 }
             }

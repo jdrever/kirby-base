@@ -1338,13 +1338,34 @@ abstract class KirbyBaseHelper
      *
      * Returns an empty UserList if the field is empty or on any error.
      *
+     * Each built User model is passed through {@see decoratePosterUser()}, which
+     * consuming sites may override to add site-specific data (e.g. a linked
+     * profile/person page).
+     *
      * @param Page $page The page holding the users field.
      * @param string $fieldName The name of the users field (e.g. 'postedBy').
      * @return UserList
      */
     public function getPageFieldAsUsers(Page $page, string $fieldName): UserList
     {
-        return $this->fieldReader->getUsers($page, $fieldName);
+        return $this->fieldReader->getUsers(
+            $page,
+            $fieldName,
+            fn (User $userModel, \Kirby\Cms\User $kirbyUser) => $this->decoratePosterUser($userModel, $kirbyUser)
+        );
+    }
+
+    /**
+     * Hook for consuming sites to enrich a poster's User model with site-specific
+     * data (for example a linked person/profile page that overrides the job title
+     * and supplies a profile URL). No-op by default.
+     *
+     * @param User $userModel The model built from the Kirby user.
+     * @param \Kirby\Cms\User $kirbyUser The underlying Kirby user.
+     * @return void
+     */
+    protected function decoratePosterUser(User $userModel, \Kirby\Cms\User $kirbyUser): void
+    {
     }
 
 

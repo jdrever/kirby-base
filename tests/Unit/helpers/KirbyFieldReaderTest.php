@@ -909,4 +909,35 @@ final class KirbyFieldReaderTest extends TestCase
         $this->assertSame(0, $list->count());
         $this->assertFalse($list->hasListItems());
     }
+
+    public function testGetUsersInvokesEnricherForEachUserInOrder(): void
+    {
+        $page = $this->makePage(['postedBy' => "- jane@bsbi.org\n- bob@bsbi.org"]);
+
+        $seenEmails = [];
+        $list = self::$reader->getUsers(
+            $page,
+            'postedBy',
+            function ($userModel, $kirbyUser) use (&$seenEmails): void {
+                $seenEmails[] = $kirbyUser->email();
+                $userModel->setProfileUrl('https://example.test/' . $kirbyUser->username());
+            }
+        );
+
+        // Enricher runs once per user, in stored order, with the underlying Kirby user.
+        $this->assertSame(['jane@bsbi.org', 'bob@bsbi.org'], $seenEmails);
+
+        $jane = $list->getListItems()[0];
+        $this->assertTrue($jane->hasProfileUrl());
+        $this->assertSame('https://example.test/Jane Doe', $jane->getProfileUrl());
+    }
+
+    public function testGetUsersWithoutEnricherLeavesProfileUrlEmpty(): void
+    {
+        $page = $this->makePage(['postedBy' => '- jane@bsbi.org']);
+
+        $list = self::$reader->getUsers($page, 'postedBy');
+
+        $this->assertFalse($list->getListItems()[0]->hasProfileUrl());
+    }
 }

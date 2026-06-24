@@ -23,6 +23,8 @@ class User extends BaseModel
 
     private string $jobTitle = '';
 
+    private string $profileUrl = '';
+
     /**
      * @return bool
      */
@@ -130,6 +132,34 @@ class User extends BaseModel
     public function setJobTitle(string $jobTitle): User
     {
         $this->jobTitle = $jobTitle;
+        return $this;
+    }
+
+    /**
+     * Whether the user has an associated profile/person page to link to.
+     *
+     * @return bool
+     */
+    public function hasProfileUrl(): bool
+    {
+        return !empty($this->profileUrl);
+    }
+
+    /**
+     * @return string
+     */
+    public function getProfileUrl(): string
+    {
+        return $this->profileUrl;
+    }
+
+    /**
+     * @param string $profileUrl
+     * @return $this
+     */
+    public function setProfileUrl(string $profileUrl): User
+    {
+        $this->profileUrl = $profileUrl;
         return $this;
     }
 
