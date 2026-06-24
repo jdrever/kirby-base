@@ -659,6 +659,93 @@ final readonly class KirbyFieldReader
     }
 
     /**
+     * Returns a UserList of contributors selected on a page, resolved against the
+     * site-level master contributors structure for their job role and email.
+     *
+     * The page field is expected to be a multiselect of contributor names (the
+     * values stored by a field whose options are drawn from the master list).
+     * Selection order is preserved. A selected name that is no longer present in
+     * the master list yields a User carrying just that name. Contributors are not
+     * Kirby users, so the built models have no user id (isLoggedIn() is false).
+     *
+     * Returns an empty UserList if nothing is selected or on any error.
+     *
+     * @param Page $page The page holding the contributor selection field.
+     * @param string $fieldName The name of the multiselect field (e.g. 'postedByContributors').
+     * @param Structure $contributors The site-level master contributors structure.
+     * @return UserList
+     */
+    public function getContributors(Page $page, string $fieldName, Structure $contributors): UserList
+    {
+        $userList = new UserList();
+        try {
+            $field = $page->content()->get($fieldName);
+            if (!($field instanceof Field) || $field->isEmpty()) {
+                return $userList;
+            }
+
+            $selectedNames = $field->split(',');
+            if ($selectedNames === []) {
+                return $userList;
+            }
+
+            // Build a name => [jobTitle, email] map from the master list once.
+            $detailsByName = [];
+            foreach ($contributors as $row) {
+                $name = trim($row->name()->value() ?? '');
+                if ($name === '') {
+                    continue;
+                }
+                $detailsByName[$name] = [
+                    'jobTitle' => $row->jobRole()->value() ?? '',
+                    'email'    => $row->email()->value() ?? '',
+                ];
+            }
+
+            foreach ($selectedNames as $name) {
+                $details = $detailsByName[$name] ?? ['jobTitle' => '', 'email' => ''];
+                $userModel = new UserModel($name);
+                $userModel
+                    ->setUserId('')
+                    ->setUserName($name)
+                    ->setEmail($details['email'])
+                    ->setRole('')
+                    ->setJobTitle($details['jobTitle']);
+                $userList->addListItem($userModel);
+            }
+        } catch (Exception) {
+            return new UserList();
+        }
+        return $userList;
+    }
+
+    /**
+     * Returns a comma-separated string of contributor names selected on a page.
+     *
+     * Returns 'Unknown' if nothing is selected, or an empty string on error,
+     * mirroring {@see getUserNames()}.
+     *
+     * @param Page $page The page holding the contributor selection field.
+     * @param string $fieldName The name of the multiselect field (e.g. 'postedByContributors').
+     * @return string
+     */
+    public function getContributorNames(Page $page, string $fieldName): string
+    {
+        try {
+            $field = $page->content()->get($fieldName);
+            if ($field instanceof Field && $field->isNotEmpty()) {
+                $names = $field->split(',');
+                if ($names !== []) {
+                    return implode(', ', $names);
+                }
+            }
+            return 'Unknown';
+        } catch (Exception) {
+            return '';
+        }
+    }
+
+    /**
      * Returns the file's last-modified date as a DateTime.
      */
     public function getFileModifiedAsDateTime(File $file): DateTime

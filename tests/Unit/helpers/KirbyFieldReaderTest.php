@@ -940,4 +940,128 @@ final class KirbyFieldReaderTest extends TestCase
 
         $this->assertFalse($list->getListItems()[0]->hasProfileUrl());
     }
+
+    // =========================================================================
+    // CONTRIBUTORS — getContributors / getContributorNames
+    // =========================================================================
+
+    /**
+     * Builds a master contributors Structure from the given rows.
+     *
+     * @param array<int, array<string, string>> $rows
+     */
+    private function makeContributors(array $rows): Structure
+    {
+        $page = $this->makePage(['contributors' => Yaml::encode($rows)]);
+
+        return self::$reader->getPageFieldAsStructure($page, 'contributors');
+    }
+
+    public function testGetContributorsBuildsUserModelsFromMasterListInSelectionOrder(): void
+    {
+        $contributors = $this->makeContributors([
+            ['name' => 'Jane Smith', 'jobRole' => 'Volunteer', 'email' => 'jane.smith@example.org'],
+            ['name' => 'Bob Jones', 'jobRole' => 'Recorder', 'email' => 'bob.jones@example.org'],
+        ]);
+        // Selection order (Bob first) should be preserved, not master-list order.
+        $page = $this->makePage(['postedByContributors' => 'Bob Jones, Jane Smith']);
+
+        $list = self::$reader->getContributors($page, 'postedByContributors', $contributors);
+
+        $this->assertSame(2, $list->count());
+
+        $bob = $list->getListItems()[0];
+        $this->assertSame('Bob Jones', $bob->getUserName());
+        $this->assertSame('bob.jones@example.org', $bob->getEmail());
+        $this->assertSame('Recorder', $bob->getJobTitle());
+        // Contributors are not Kirby users.
+        $this->assertFalse($bob->isLoggedIn());
+
+        $jane = $list->getListItems()[1];
+        $this->assertSame('Jane Smith', $jane->getUserName());
+        $this->assertSame('jane.smith@example.org', $jane->getEmail());
+        $this->assertSame('Volunteer', $jane->getJobTitle());
+    }
+
+    public function testGetContributorsReturnsEmptyListWhenNoneSelected(): void
+    {
+        $contributors = $this->makeContributors([
+            ['name' => 'Jane Smith', 'jobRole' => 'Volunteer', 'email' => 'jane.smith@example.org'],
+        ]);
+        $page = $this->makePage([]);
+
+        $list = self::$reader->getContributors($page, 'postedByContributors', $contributors);
+
+        $this->assertSame(0, $list->count());
+        $this->assertFalse($list->hasListItems());
+    }
+
+    public function testGetContributorsLeavesEmailAndJobTitleEmptyWhenMasterEntryLacksThem(): void
+    {
+        $contributors = $this->makeContributors([
+            ['name' => 'Jane Smith'],
+        ]);
+        $page = $this->makePage(['postedByContributors' => 'Jane Smith']);
+
+        $list = self::$reader->getContributors($page, 'postedByContributors', $contributors);
+
+        $jane = $list->getListItems()[0];
+        $this->assertSame('Jane Smith', $jane->getUserName());
+        $this->assertFalse($jane->hasEmail());
+        $this->assertSame('', $jane->getEmail());
+        $this->assertFalse($jane->hasJobTitle());
+        $this->assertSame('', $jane->getJobTitle());
+    }
+
+    public function testGetContributorsForNameNotInMasterListReturnsNameOnly(): void
+    {
+        $contributors = $this->makeContributors([
+            ['name' => 'Jane Smith', 'jobRole' => 'Volunteer', 'email' => 'jane.smith@example.org'],
+        ]);
+        // "Ghost Author" was removed from the master list but is still selected.
+        $page = $this->makePage(['postedByContributors' => 'Ghost Author']);
+
+        $list = self::$reader->getContributors($page, 'postedByContributors', $contributors);
+
+        $this->assertSame(1, $list->count());
+        $ghost = $list->getListItems()[0];
+        $this->assertSame('Ghost Author', $ghost->getUserName());
+        $this->assertFalse($ghost->hasEmail());
+        $this->assertFalse($ghost->hasJobTitle());
+    }
+
+    public function testGetContributorsWithEmptyMasterListReturnsNameOnlyPosters(): void
+    {
+        // Mirrors the fallback in getPostedByUsers when no contributors structure
+        // exists yet: selections still resolve to name-only posters.
+        $contributors = new Structure();
+        $page = $this->makePage(['postedByContributors' => 'Jane Smith, Bob Jones']);
+
+        $list = self::$reader->getContributors($page, 'postedByContributors', $contributors);
+
+        $this->assertSame(2, $list->count());
+        $this->assertSame('Jane Smith', $list->getListItems()[0]->getUserName());
+        $this->assertFalse($list->getListItems()[0]->hasEmail());
+        $this->assertSame('Bob Jones', $list->getListItems()[1]->getUserName());
+    }
+
+    public function testGetContributorNamesReturnsSelectedNamesJoined(): void
+    {
+        $page = $this->makePage(['postedByContributors' => 'Bob Jones, Jane Smith']);
+
+        $this->assertSame(
+            'Bob Jones, Jane Smith',
+            self::$reader->getContributorNames($page, 'postedByContributors')
+        );
+    }
+
+    public function testGetContributorNamesReturnsUnknownWhenEmpty(): void
+    {
+        $page = $this->makePage([]);
+
+        $this->assertSame(
+            'Unknown',
+            self::$reader->getContributorNames($page, 'postedByContributors')
+        );
+    }
 }

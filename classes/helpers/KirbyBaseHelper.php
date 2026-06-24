@@ -1368,6 +1368,88 @@ abstract class KirbyBaseHelper
     {
     }
 
+    /**
+     * Returns the "posted by" display string for a publication page, honouring the
+     * site-level `postedBySource` config option.
+     *
+     * With `postedBySource` = `contributors`, the names are read from the page's
+     * contributor-selection field when it holds a selection; otherwise — including
+     * for legacy pages credited before contributors existed — they fall back to the
+     * Kirby users field. With the default `users` source the users field is always
+     * used.
+     *
+     * @param Page $page The publication page.
+     * @param string $usersField The Kirby users field name (default 'postedBy').
+     * @param string $contributorsField The contributor-selection field name (default 'postedByContributors').
+     * @return string
+     */
+    public function getPostedByNames(
+        Page $page,
+        string $usersField = 'postedBy',
+        string $contributorsField = 'postedByContributors'
+    ): string {
+        if ($this->usesContributorsForPostedBy() && $this->isPageFieldNotEmpty($page, $contributorsField)) {
+            return $this->fieldReader->getContributorNames($page, $contributorsField);
+        }
+        return $this->fieldReader->getUserNames($page, $usersField);
+    }
+
+    /**
+     * Returns a UserList of posters for a publication page, honouring the
+     * site-level `postedBySource` config option.
+     *
+     * Rich posters — those carrying an email and job title for public display —
+     * are only ever sourced from contributors. With `postedBySource` =
+     * `contributors`, posters are built from the page's contributor selection
+     * (resolved against the site `contributors` structure) when it holds one. When
+     * it does not — including legacy pages credited via the Kirby users field — an
+     * empty list is returned so consumers fall back to the plain {@see getPostedByNames()}
+     * string: Kirby-user emails and job titles are deliberately not published in
+     * contributors mode, only curated contributor details are. With the default
+     * `users` source the users field is always used and decorated via
+     * {@see decoratePosterUser()}.
+     *
+     * @param Page $page The publication page.
+     * @param string $usersField The Kirby users field name (default 'postedBy').
+     * @param string $contributorsField The contributor-selection field name (default 'postedByContributors').
+     * @return UserList
+     * @throws KirbyRetrievalException
+     */
+    public function getPostedByUsers(
+        Page $page,
+        string $usersField = 'postedBy',
+        string $contributorsField = 'postedByContributors'
+    ): UserList {
+        if ($this->usesContributorsForPostedBy()) {
+            if (!$this->isPageFieldNotEmpty($page, $contributorsField)) {
+                // No contributor selection (e.g. a legacy page credited via the
+                // Kirby users field): no rich posters, so the plain name is shown.
+                return new UserList();
+            }
+            // The master contributors list may not exist yet (no rows entered);
+            // fall back to an empty structure so pages still build. Selected names
+            // then resolve to name-only posters.
+            try {
+                $contributors = $this->getSiteFieldAsStructure('contributors');
+            } catch (KirbyRetrievalException) {
+                $contributors = new Structure();
+            }
+            return $this->fieldReader->getContributors($page, $contributorsField, $contributors);
+        }
+        return $this->getPageFieldAsUsers($page, $usersField);
+    }
+
+    /**
+     * Whether the site is configured to source "posted by" credits from the
+     * contributors structure rather than from Kirby users.
+     *
+     * @return bool
+     */
+    private function usesContributorsForPostedBy(): bool
+    {
+        return $this->kirby->option('postedBySource', 'users') === 'contributors';
+    }
+
 
 
     #endregion

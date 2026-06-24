@@ -11,3 +11,13 @@ fields:
   postedBy:
     label: Posted By
     type: usernamesearch
+    help: Kirby users. Shown as a plain name. If you select any Contributors below, those are shown instead (with their email and job role).
+  postedByContributors:
+    label: Posted By (Contributors)
+    help: Select from the contributors defined in the site Settings tab. When set, these take precedence over Posted By above, and their email and job role are displayed.
+    type: multiselect
+    options:
+      type: query
+      query: site.contributors.toStructure
+      text: "{{ item.name }}"
+      value: "{{ item.name }}"
