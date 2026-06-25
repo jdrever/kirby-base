@@ -19,5 +19,5 @@ fields:
     options:
       type: query
       query: site.contributors.toStructure
-      text: "{{ item.name }}"
-      value: "{{ item.name }}"
+      text: "{{ item.name.trim }}"
+      value: "{{ item.name.trim }}"
