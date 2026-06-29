@@ -1790,13 +1790,19 @@ abstract class KirbyBaseHelper
      * @param Page $page
      * @param string $fieldName
      * @param ImageType $imageType (optional, if image is found)
+     * @param string $pageFieldName the structure field holding the linked page
+     * @param ImageSizes $imageSizes responsive `sizes` hint for any card image,
+     *                               so the browser picks a correctly-sized srcset
+     *                               candidate for the layout (e.g. THIRD_LARGE_SCREEN
+     *                               for a 3-up card row)
      * @return WebPageLinks
      * @noinspection PhpUnused
      */
-    protected function getStructureAsWebPageLinks(Page      $page,
-                                                  string    $fieldName = 'related',
-                                                  ImageType $imageType = ImageType::SQUARE,
-                                                  string $pageFieldName = 'page'): WebPageLinks
+    protected function getStructureAsWebPageLinks(Page       $page,
+                                                  string     $fieldName = 'related',
+                                                  ImageType  $imageType = ImageType::SQUARE,
+                                                  string     $pageFieldName = 'page',
+                                                  ImageSizes $imageSizes = ImageSizes::HALF_LARGE_SCREEN): WebPageLinks
     {
         $webPageLinks = new WebPageLinks();
         try {
@@ -1818,7 +1824,7 @@ abstract class KirbyBaseHelper
                             80,
                             $imageType,
                             '',
-                            ImageSizes::HALF_LARGE_SCREEN
+                            $imageSizes
                         );
                         $webPageLink->setImage($image);
                     }
