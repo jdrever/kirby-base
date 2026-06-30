@@ -76,6 +76,7 @@ abstract class KirbyBaseHelper
     protected SearchService $searchService;
     protected CollectionFilterService $collectionFilterService;
     protected UserService $userService;
+    protected FileDeliveryService $fileDeliveryService;
 
     #region CONSTRUCTOR
     /**
@@ -130,6 +131,7 @@ abstract class KirbyBaseHelper
             $this->fieldReader,
             fn () => $this->hasSessionCookie(),
         );
+        $this->fileDeliveryService = new FileDeliveryService();
     }
     #endregion
 
@@ -4903,11 +4905,45 @@ abstract class KirbyBaseHelper
      * @param string $fieldName
      * @return void
      */
-    public function redirectToFile(Page $page, string $fieldName = 'file'):void {
-        $file = $this->getPageFieldAsDocument($page, $fieldName);
-        if ($file->hasUrl()) {
-            $fileUrl = $file->getURL();
-            go($fileUrl);
+    /**
+     * Send the user to (or serve) the file held in a page field.
+     *
+     * By default this issues an HTTP redirect to the file's media URL, so the file
+     * is served statically by the web server / CDN and the address bar changes.
+     * When $stream is true the file's bytes are served in-place instead, so the
+     * current page URL is retained; $forceDownload then controls whether the file
+     * is shown inline (e.g. a PDF opens in the browser) or sent as a download.
+     *
+     * @param Page $page The page holding the file field
+     * @param string $fieldName The file field name
+     * @param bool $stream When true, serve the file in-place (keep the page URL)
+     *                      instead of redirecting to its media URL
+     * @param bool $forceDownload When streaming, send the file as a download
+     *                            (attachment) rather than serving it inline
+     * @return void
+     * @throws Exception If a forced download is requested but the file is missing
+     */
+    public function redirectToFile(
+        Page $page,
+        string $fieldName = 'file',
+        bool $stream = false,
+        bool $forceDownload = false
+    ): void {
+        if ($stream) {
+            $file = $this->getPageFieldAsFile($page, $fieldName);
+            if ($file !== null) {
+                echo $this->fileDeliveryService
+                    ->buildResponse($file->root(), $file->filename(), $forceDownload)
+                    ->send();
+                exit;
+            }
+            go('error');
+            return;
+        }
+
+        $document = $this->getPageFieldAsDocument($page, $fieldName);
+        if ($document->hasUrl()) {
+            go($document->getURL());
         } else {
             go('error');
         }
