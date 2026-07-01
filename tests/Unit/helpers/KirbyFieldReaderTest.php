@@ -463,6 +463,36 @@ final class KirbyFieldReaderTest extends TestCase
         $this->assertSame('', self::$reader->getPageFieldAsBlocksHtml($page, 'missing'));
     }
 
+    public function testGetPageFieldAsBlocksHtmlHonoursExcerptLength(): void
+    {
+        $longText = str_repeat('word ', 200); // ~1000 chars
+        $blocks = [['type' => 'text', 'content' => ['text' => "<p>$longText</p>"]]];
+        $page = $this->makePage(['content' => Json::encode($blocks)]);
+
+        $short = self::$reader->getPageFieldAsBlocksHtml($page, 'content', false, 50);
+        $long  = self::$reader->getPageFieldAsBlocksHtml($page, 'content', false, 400);
+
+        // The requested length must be respected, not a hard-coded cap.
+        $this->assertLessThanOrEqual(60, strlen($short), 'A 50-char excerpt should be short');
+        $this->assertGreaterThan(300, strlen($long), 'A 400-char excerpt should deliver more text');
+        $this->assertGreaterThan(strlen($short), strlen($long), 'A larger length must yield more text');
+    }
+
+    public function testGetPageFieldAsBlocksHtmlExcerptSeparatesAdjacentBlocks(): void
+    {
+        // Two text blocks (or two paragraphs) must not run together when the
+        // excerpt strips the tags between them: "...ends here.Second..." is wrong.
+        $blocks = [
+            ['type' => 'text', 'content' => ['text' => '<p>First paragraph ends here.</p>']],
+            ['type' => 'text', 'content' => ['text' => '<p>Second paragraph starts here.</p>']],
+        ];
+        $page = $this->makePage(['content' => Json::encode($blocks)]);
+        $excerpt = self::$reader->getPageFieldAsBlocksHtml($page, 'content', false, 200);
+
+        $this->assertStringContainsString('here. Second', $excerpt);
+        $this->assertStringNotContainsString('here.Second', $excerpt);
+    }
+
     public function testGetPageFieldTextBlocksAsExcerptReturnsShortened(): void
     {
         $longText = str_repeat('word ', 100);

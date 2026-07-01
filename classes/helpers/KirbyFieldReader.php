@@ -318,6 +318,15 @@ final readonly class KirbyFieldReader
     /**
      * Returns block content rendered as HTML, optionally limited to an excerpt.
      *
+     * When $excerpt is 0 the full HTML of every block is returned. When $excerpt
+     * is greater than 0 only text blocks are included and the result is truncated
+     * to that number of characters (plain text, via {@see Str::excerpt()}).
+     *
+     * @param Page $page The page to read from
+     * @param string $fieldName The blocks field name
+     * @param bool $required Whether to throw if the field is missing
+     * @param int $excerpt Maximum excerpt length in characters (0 = full content, no truncation)
+     * @return string
      * @throws KirbyRetrievalException
      */
     public function getPageFieldAsBlocksHtml(
@@ -340,7 +349,16 @@ final readonly class KirbyFieldReader
                     }
                 }
             }
-            return ($excerpt === 0) ? $blocksHTML : Str::excerpt($blocksHTML, 200);
+            if ($excerpt === 0) {
+                return $blocksHTML;
+            }
+
+            // Insert a space between adjacent tags so block boundaries (e.g.
+            // "</p><p>") don't run words together once Str::excerpt strips the
+            // tags. Str::excerpt collapses any resulting double spaces.
+            $spacedHTML = str_replace('><', '> <', $blocksHTML);
+
+            return Str::excerpt($spacedHTML, $excerpt);
         } catch (KirbyRetrievalException $e) {
             if ($required) {
                 throw $e;
