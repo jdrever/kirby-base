@@ -73,12 +73,12 @@ $allChecked = $selectedCount === 0;
 ?>
 <div class="container bg-light p-2 rounded my-2" id="<?= $id ?>" data-role="grouped-multiselect">
     <?php if ($label !== '') : ?>
-    <p class="fw-bold mb-2"><?= $label ?> <span class="badge text-bg-success<?= $allChecked ? ' d-none' : '' ?>" data-role="selected-count"><?= $selectedCount ?></span></p>
+    <p class="fw-bold mb-2"><?= htmlspecialchars($label) ?> <span class="badge text-bg-success<?= $allChecked ? ' d-none' : '' ?>" data-role="selected-count"><?= $selectedCount ?></span></p>
     <?php endif ?>
 
     <div class="form-check form-check--flush">
         <input type="checkbox" class="form-check-input" id="<?= $id ?>_all" data-role="all" <?= $allChecked ? 'checked' : '' ?>>
-        <label class="form-check-label" for="<?= $id ?>_all"><?= $allLabel ?></label>
+        <label class="form-check-label" for="<?= $id ?>_all"><?= htmlspecialchars($allLabel) ?></label>
     </div>
 
     <div data-role="options" class="mt-2<?= $allChecked ? ' d-none' : '' ?>">
@@ -87,7 +87,7 @@ $allChecked = $selectedCount === 0;
             class="form-control form-control-sm mb-2"
             data-role="filter"
             placeholder="Type to filter&hellip;"
-            aria-label="Filter <?= $label !== '' ? $label : 'options' ?>"
+            aria-label="Filter <?= htmlspecialchars($label !== '' ? $label : 'options') ?>"
             autocomplete="off"
         >
 
@@ -118,7 +118,7 @@ $allChecked = $selectedCount === 0;
                         aria-expanded="<?= $groupIsOpen ? 'true' : 'false' ?>"
                         aria-controls="<?= $panelId ?>"
                     >
-                        <span class="fw-medium"><?= $groupLabel ?></span>
+                        <span class="fw-medium"><?= htmlspecialchars((string) $groupLabel) ?></span>
                         <span class="d-flex align-items-center">
                             <span class="badge text-bg-success me-2<?= empty($groupSelected) ? ' d-none' : '' ?>" data-role="group-count"><?= count($groupSelected) ?></span>
                             <span class="grouped-multiselect__chevron" aria-hidden="true">&#9662;</span>
@@ -141,7 +141,7 @@ $allChecked = $selectedCount === 0;
                             class="form-check-input"
                             <?= in_array($option, $selectedValues, true) ? 'checked' : '' ?>
                         >
-                        <label class="form-check-label fs-6" for="<?= $checkboxId ?>"><?= $option ?></label>
+                        <label class="form-check-label fs-6" for="<?= $checkboxId ?>"><?= htmlspecialchars((string) $option) ?></label>
                     </div>
                     <?php $optionIndex++;
                     endforeach ?>
